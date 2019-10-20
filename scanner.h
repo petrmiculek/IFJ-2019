@@ -3,12 +3,20 @@
 
 #define INITIAL_SIZE 20
 #define REALLOC_SIZE 5
+#define STACK_CAPACITY 100
+#define STACK_REALLOC 20
 
 #define STRING_END "\0"
 
 #define RET_ERR { state = ERROR; return LEXICAL_ERROR; }
 #define APPEND if(append_string(&(token->string), read)){ return INTERNAL_ERROR;}
 
+typedef struct
+{ 
+    unsigned int top; 
+    unsigned int capacity; 
+    unsigned int* array; 
+}stack_t; 
 
 typedef struct
 {
@@ -23,6 +31,41 @@ typedef struct
     string_t string;
     unsigned int type;
 }token_t;
+
+
+
+/**
+ * @brief alloc memory for string
+ * 
+ * @param string pointer
+ * @return unsigned int INTERNAL_ERROR if malloc fails, otherwise OK
+ */
+unsigned int init_string(string_t *string);
+
+/**
+ * @brief add one character at end of string
+ * 
+ * @param string string to which will be appended
+ * @param var Char which is to be appended
+ * @return unsigned int INTERNAL_ERROR if realloc fails, otherwise OK
+ */
+unsigned int append_string(string_t *string, char var);
+/**
+ * @brief free
+ * 
+ * @param string 
+ * @return unsigned int 
+ */
+unsigned int free_string(string_t *string);
+/**
+ * @brief Get the token object
+ * 
+ * @param token token struct to be filled 
+ * @param file file to read from
+ * @return unsigned int INTERNAL_ERROR if one of used functions fails, LEXICAL_ERROR if lexical sructure of 
+ * text is wrong, otherwise OK
+ */
+unsigned int get_token(token_t *token, FILE *file);
 
 enum state{
     START,
@@ -57,13 +100,16 @@ enum state{
     LIT_B,
     LIT_FIN,
     FLOAT_E,
-    FLOAT_N,
+    FLOAT_Z,
     FLOAT_S,
     FLOAT_D,
     FLOAT,
     COMMA,
     COLON,
-    ERROR
+    ERROR,
+    EOL,
+    EOL_SP,
+    INDENT
 };
 
 enum token_type{
@@ -96,5 +142,6 @@ enum token_type{
     TOKEN_RETURN,
     TOKEN_WHILE,
     TOKEN_COMMA,
-    TOKEN_COLON
+    TOKEN_COLON,
+    TOKEN_EOL
 };
