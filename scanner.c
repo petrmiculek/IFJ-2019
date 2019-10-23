@@ -5,15 +5,38 @@
 #include <string.h>
 
 /*######################TODO LIST######################
--0 v celociselnej casti ako chyba
+-zadanie 4.2 posledny odsek o viacriadkovom koment.
 
-
+#######################################################
 */
+
+unsigned int
+createStack(stack_t *stack) 
+{ 
+    stack->capacity = STACK_CAPACITY; 
+    stack->top = 0; 
+    if((stack->array = (int*)malloc(STACK_CAPACITY * sizeof(unsigned int)))==NULL){
+        return INTERNAL_ERROR;
+    }
+    stack->array[stack->top]==0;
+    return OK;
+} 
+unsigned int
+push(stack_t *stack, unsigned int item) 
+{ 
+    if (stack->capacity-1==stack->top){
+        if((stack->array = (int*)realloc(stack->array, sizeof(unsigned int)* STACK_REALLOC ))==NULL){
+            return INTERNAL_ERROR; 
+        }
+    }
+    stack->array[++stack->top] = item;
+    return OK;
+}
 
 unsigned int
 init_string(string_t *string)
 {    
-    if((string->str = (char *)malloc(sizeof(char)*INITIAL_SIZE)==NULL)){
+    if((string->str = (char *)malloc(sizeof(char)*INITIAL_SIZE))==NULL){
         return INTERNAL_ERROR;
     }
     string->size = INITIAL_SIZE;
@@ -21,12 +44,14 @@ init_string(string_t *string)
     return OK;
 }
 
+
+
 unsigned int
 append_string(string_t *string, char var)
 {
     if(string->length==string->size){
 
-        if((string->str = (char *)realloc(string->str, sizeof(char)*string->length+REALLOC_SIZE)==NULL)){
+        if((string->str = (char *)realloc(string->str, sizeof(char)*string->length+REALLOC_SIZE))==NULL){
             return INTERNAL_ERROR;
         }
         string->size += REALLOC_SIZE;
@@ -58,6 +83,8 @@ get_token(token_t *token, FILE *file)
     if (init_string(&token->string)){
         return INTERNAL_ERROR;
     }
+    
+    static unsigned int spaces_num =0;
     unsigned int state = START;
     char read;
     
@@ -75,7 +102,7 @@ get_token(token_t *token, FILE *file)
                 break;
             }
             else if(read=='\n'){
-                state =START;
+                state =EOL;
                 break;
             }
             else if(read=='\''){
@@ -114,10 +141,12 @@ get_token(token_t *token, FILE *file)
             }
             else if(read=='>'){
                 state = MORE;
+                token->type=TOKEN_LESS;
                 break;
             }
             else if(read=='<'){
                 state = LESS;
+                token->type=TOKEN_LESS;
                 break;
             }
             else if(read=='/'){
@@ -169,7 +198,31 @@ get_token(token_t *token, FILE *file)
                 state = ERROR;
                 RET_ERR
             }
-        
+        case EOL:
+            if(read==' '){
+                state = EOL_SP;
+                break;
+            }
+            else{
+                token->type = TOKEN_EOL;
+                return OK;
+            }
+        case EOL_SP:
+            spaces_num++;
+            if(read==' '){
+                state = EOL_SP;
+                break;
+            }
+            else if(read=='#'){
+                state = COMMENT;
+                break;
+            }
+            else{
+                state = INDENT;
+                break;
+            }
+        case INDENT:
+
         case INT:
             if(read=='.'){
                 state = FLOAT;
@@ -187,10 +240,8 @@ get_token(token_t *token, FILE *file)
                 break;
             }
             else if((39<read && read<48) || (59<read && read<63) || read ==' ' || read== '"' || read=='\n'){ //   <> () *+=-/ " "  # " ,  
-        
                 token->type = TOKEN_INT;
                 ungetc(read, file);
-        
                 return OK;
             }
             else{
@@ -229,36 +280,34 @@ get_token(token_t *token, FILE *file)
             }
         case FLOAT_E:
             if('1'<=read && read<='9'){
-                state = FLOAT_N;
-                APPEND
-                break;
-            }
-            else if(read=='0'){
-                state = FLOAT_E;
-                break;
-            }
-            else if(read=='+' || read=='-'){
                 state = FLOAT_S;
                 APPEND
                 break;
             }
-            else RET_ERR
-        case FLOAT_N:
-            if('0'<=read && read<='9'){
-                state = FLOAT_N;
+            else if(read=='0'){
+                state = FLOAT_Z;
+                break;
+            }
+            else if(read=='+' || read=='-'){
+                state = FLOAT_Z;
                 APPEND
                 break;
             }
-            else if((39<read && read<48) || (59<read && read<63) || read ==' ' || read== '"' || read=='\n' ){
-                token->type = TOKEN_FLOAT;
-                ungetc(read, file);
-                return OK;
-            }
             else RET_ERR
-
+        case FLOAT_Z:
+            if('1'<=read && read<='9'){
+                state = FLOAT_S;
+                APPEND
+                break;
+            }
+            else if(read=='0'){
+                state = FLOAT_Z;
+                break;
+            }
+            
         case FLOAT_S:
             if('0'<=read && read<='9'){
-                state = FLOAT_N;
+                state = FLOAT_S;
                 APPEND
                 break;
             }
@@ -343,6 +392,22 @@ get_token(token_t *token, FILE *file)
                 break;
             }
             else RET_ERR
+        case LESS:
+            if(read=='='){
+                token->type = TOKEN_LESS_E;
+            }
+            else{
+                ungetc(read, file);
+            }
+            return OK;
+        case MORE:
+            if(read=='='){
+                token->type = TOKEN_MORE_E;
+            }
+            else{
+                ungetc(read, file);
+            }
+            return OK;
         case COMMENT:
             if(read=='\n'){
                 state=START;
@@ -359,10 +424,11 @@ get_token(token_t *token, FILE *file)
                 break;
             }
             else RET_ERR
-            
+        case SPACE:
+
 
         default:
-            state = ERROR;
+            state = START;
             break;
         }
     }
