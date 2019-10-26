@@ -68,7 +68,7 @@ unsigned int free_string(string_t *string);
 unsigned int get_token(token_t *token, FILE *file);
 
 enum state{
-    START,
+    S_START,
     LIT,
     SPACE,
     INT,
