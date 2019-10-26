@@ -41,6 +41,7 @@ init_string(string_t *string)
     }
     string->size = INITIAL_SIZE;
     string->length= 0;
+    //strncat(&string->str, STRING_END, 1);
     return OK;
 }
 
@@ -49,6 +50,7 @@ init_string(string_t *string)
 unsigned int
 append_string(string_t *string, char var)
 {
+    char nula = '\0';
     if(string->length==string->size){
 
         if((string->str = (char *)realloc(string->str, sizeof(char)*string->length+REALLOC_SIZE))==NULL){
@@ -56,10 +58,10 @@ append_string(string_t *string, char var)
         }
         string->size += REALLOC_SIZE;
     }
-    strncat(&string->str, &var, 1);
-    strncat(&string->str, STRING_END, 1);
+    strncat(string->str, &var, 1);
+    strncat(string->str, STRING_END, 1);
     string->length++;
-    //string->str[string->length]= STRING_END;
+    printf("%d. string: %s\n",string->length, string->str);
     return OK;
 
 }
@@ -89,8 +91,7 @@ get_token(token_t *token, FILE *file)
     char read;
     
     while (1)
-    {
-        
+    {  
         read = fgetc(file);
         switch (state)
         {
@@ -204,6 +205,7 @@ get_token(token_t *token, FILE *file)
                 break;
             }
             else{
+                ungetc(read,file);
                 token->type = TOKEN_EOL;
                 return OK;
             }
@@ -279,6 +281,7 @@ get_token(token_t *token, FILE *file)
                 RET_ERR
             }
         case FLOAT_E:
+        printf("mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm\n");
             if('1'<=read && read<='9'){
                 state = FLOAT_S;
                 APPEND
@@ -289,6 +292,7 @@ get_token(token_t *token, FILE *file)
                 break;
             }
             else if(read=='+' || read=='-'){
+                printf("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz\n");
                 state = FLOAT_Z;
                 APPEND
                 break;
