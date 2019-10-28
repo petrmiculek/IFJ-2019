@@ -1,4 +1,5 @@
-#include "my_string.c"
+#ifndef MY_STRING
+#define MY_STRING
 
 #define INITIAL_SIZE 20
 #define REALLOC_SIZE 5
@@ -30,3 +31,4 @@ append_string(string_t *string, char var);
  */
 void
 free_string(string_t *string);
+#endif

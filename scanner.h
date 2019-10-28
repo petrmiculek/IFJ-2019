@@ -1,11 +1,13 @@
+
+#ifndef SCANNER
+#define SCANNER
+
 #include <stdio.h>
 #include <stdlib.h>
-#include "scanner.c"
+//#include "scanner.c"
 
 #define STACK_CAPACITY 100
 #define STACK_REALLOC 20
-
-
 
 #define RET_ERR do { state = STATE_ERROR; return LEXICAL_ERROR; } while(0);
 #define APPEND if(append_string(&(token->string), read)){ return INTERNAL_ERROR;}
@@ -126,3 +128,5 @@ typedef enum token_type
     TOKEN_SPACE,
     TOKEN_IDENT,
 } token_type;
+
+#endif
