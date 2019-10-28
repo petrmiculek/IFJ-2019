@@ -5,13 +5,7 @@
 #include <string.h>
 
 /*######################TODO LIST######################
--zadanie 4.2 posledny odsek o viacriadkovom koment.
--scanner.h wtf do
--otzka moze byt hned prvy prikaz s odsadenim?
--na konci sa dogeneruju vsetky zvysne tokeny dedent, takze 
--state space
--string by s nemusel stále alokovať a uvoľnovať, ale používal by sa stálen ten istý s tým,
-že by sa po každom použití priradila '/0' na pozíciu 0 
+
 #######################################################
 */
 char *keywords[] = {"def", "else", "if", "None", "pass", "return", "while"};
@@ -84,13 +78,13 @@ init_string(string_t *string)
         return INTERNAL_ERROR;
     }
     string->size = INITIAL_SIZE;
-    string->length = 0;
-    return OK;
-}
+     //string->str[string->length]= STRING_END;length = 0;
+     //string->str[string->length]= STRING_END;K;
+}    //string->str[string->length]= STRING_END;
 
-unsigned int
-append_string(string_t *string, char var)
-{
+u    //string->str[string->length]= STRING_END;
+a    //string->str[string->length]= STRING_END;g(string_t *string, char var)
+{    //string->str[string->length]= STRING_END;
     if (string->length == string->size)
     {
 
@@ -103,7 +97,6 @@ append_string(string_t *string, char var)
     strncat(string->str, &var, 1);
     strncat(string->str, STRING_END, 1);
     string->length++;
-    //string->str[string->length]= STRING_END;
     return OK;
 
 }
