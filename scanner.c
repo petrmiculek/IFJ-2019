@@ -130,13 +130,10 @@ get_token(token_t *token, FILE *file, stack_t *stack)
     unsigned int state = STATE_START;
     int read;
 
-    //printf("getTOken\n");
     if (spaces_num >= 0)
     {
-        //printf("%d\n",spaces_num);
         if (stack->array[stack->top] < spaces_num)
         {
-            //printf("---1---: %d \n",stack->array[stack->top]);
             push(stack, (unsigned) spaces_num);
             spaces_num = -1;
             token->type = TOKEN_INDENT;
@@ -144,12 +141,10 @@ get_token(token_t *token, FILE *file, stack_t *stack)
         }
         else if (stack->array[stack->top] == spaces_num)
         {
-            //printf("---2---: %d \n",stack->array[stack->top]);
             spaces_num = -1;
         }
         else
         {
-            //printf("---3---: %d \n",stack->array[stack->top]);
             pull(stack);
             if (stack->array[stack->top] < spaces_num)
                 RET_ERR
@@ -163,8 +158,6 @@ get_token(token_t *token, FILE *file, stack_t *stack)
     }
     else if (spaces_num == -2)
     {
-        //printf("%d\n",stack->array[stack->top]);
-        //printf("%d\n",spaces_num);
         if (stack->array[stack->top] != 0)
         {
             pull(stack);
