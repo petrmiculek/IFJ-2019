@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-#include <stdlib.h>
-#include <stdio.h>
-=======
 
 #ifndef SCANNER
 #define SCANNER
@@ -9,18 +5,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "my_string.h"
->>>>>>> 3451088022736464f03b4285e45ba8e9f62fa914
 
 #define STACK_CAPACITY 100
 #define STACK_REALLOC 20
 
-<<<<<<< HEAD
-#define RET_ERR do { state = STATE_ERROR; return LEXICAL_ERROR; } while(0);
-#define APPEND if(append_string(&(token->string), read)){ return INTERNAL_ERROR;}
-=======
 #define RETURN_ERR do { state = STATE_ERROR; return RET_LEXICAL_ERROR; } while(0);
 #define APPEND if(append_string(&(token->string), read)){ return RET_INTERNAL_ERROR; }
->>>>>>> 3451088022736464f03b4285e45ba8e9f62fa914
 
 typedef struct
 {
