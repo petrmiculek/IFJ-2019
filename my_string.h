@@ -5,6 +5,13 @@
 #define REALLOC_SIZE 5
 #define STRING_END "\0"
 
+typedef struct
+{
+    char *str;
+    unsigned int length;
+    unsigned int size;
+} string_t;
+
 /**
  * @brief alloc memory for string
  *

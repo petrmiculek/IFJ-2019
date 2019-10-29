@@ -1,6 +1,5 @@
-#include "scanner.h"
-#include "err.h"
 #include "my_string.h"
+#include "err.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,11 +9,11 @@ init_string(string_t *string)
 {
     if ((string->str = (char *) malloc(sizeof(char) * INITIAL_SIZE)) == NULL)
     {
-        return INTERNAL_ERROR;
+        return RET_INTERNAL_ERROR;
     }
     string->size = INITIAL_SIZE;
     string->length = 0;
-    return OK;
+    return RET_OK;
 }
 
 
@@ -27,14 +26,14 @@ append_string(string_t *string, char var)
 
         if ((string->str = (char *) realloc(string->str, sizeof(char) * string->length + REALLOC_SIZE)) == NULL)
         {
-            return INTERNAL_ERROR;
+            return RET_INTERNAL_ERROR;
         }
         string->size += REALLOC_SIZE;
     }
     strncat(string->str, &var, 1);
     strncat(string->str, STRING_END, 1);
     string->length++;
-    return OK;
+    return RET_OK;
 
 }
 

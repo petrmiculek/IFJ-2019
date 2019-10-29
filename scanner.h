@@ -4,13 +4,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-//#include "scanner.c"
+#include "my_string.h"
 
 #define STACK_CAPACITY 100
 #define STACK_REALLOC 20
 
-#define RET_ERR do { state = STATE_ERROR; return LEXICAL_ERROR; } while(0);
-#define APPEND if(append_string(&(token->string), read)){ return INTERNAL_ERROR;}
+#define RETURN_ERR do { state = STATE_ERROR; return RET_LEXICAL_ERROR; } while(0);
+#define APPEND if(append_string(&(token->string), read)){ return RET_INTERNAL_ERROR; }
 
 typedef struct
 {
@@ -18,13 +18,6 @@ typedef struct
     unsigned int capacity;
     unsigned int *array;
 } stack_t;
-
-typedef struct
-{
-    char *str;
-    unsigned int length;
-    unsigned int size;
-} string_t;
 
 typedef struct
 {
@@ -65,7 +58,7 @@ enum state
     STATE_ASSIGN,
     STATE_N_EQUAL,
     STATE_NEG,
-    STATE_IDENT,
+    STATE_IDENTIFIER,
     STATE_COMMENT,
     STATE_BLOCK,
     STATE_BLOCK1,
@@ -98,7 +91,7 @@ typedef enum token_type
     TOKEN_LIT,
     TOKEN_NEG,
     TOKEN_N_EQUAL,
-    TOKEN_ASSIG,
+    TOKEN_ASSIGN,
     TOKEN_IS_EQUAL,
     TOKEN_MORE,
     TOKEN_MORE_E,
@@ -126,7 +119,7 @@ typedef enum token_type
     TOKEN_DEDENT,
     TOKEN_END,
     TOKEN_SPACE,
-    TOKEN_IDENT,
+    TOKEN_IDENTIFIER,
 } token_type;
 
 #endif
