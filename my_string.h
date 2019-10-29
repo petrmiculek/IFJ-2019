@@ -1,5 +1,3 @@
-#include "my_string.c"
-
 #define INITIAL_SIZE 20
 #define REALLOC_SIZE 5
 #define STRING_END "\0"

@@ -1,6 +1,6 @@
 #include "scanner.h"
 #include "err.h"
-#include "my_string.c"
+#include "my_string.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
