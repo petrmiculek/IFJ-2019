@@ -8,7 +8,7 @@ int main () {
     FILE *fp;
     int c;
 
-    fp = fopen("file.txt","r");
+    fp = fopen("input","r");
     if(fp == NULL) {
         perror("Error in opening file");
         return(-1);
@@ -18,7 +18,7 @@ int main () {
 
     initStack(&stack);
     do{
-        if(get_token(&token, fp, &stack)==LEXICAL_ERROR)
+        if(get_token(&token, fp, &stack)== RET_LEXICAL_ERROR)
         {
             free_string(&token.string);
             fprintf(stderr,"LEXICAL_ERROR\n");
