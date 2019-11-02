@@ -382,8 +382,8 @@ get_token(token_t *token, FILE *file, stack_t *stack)
                     state = STATE_FLOAT_Z;
                     break;
                 }
-                // FIXME What if both conditions are false
-                break;
+                else
+                    RETURN_ERR
             case STATE_FLOAT_S:
                 if ('0' <= read && read <= '9')
                 {
