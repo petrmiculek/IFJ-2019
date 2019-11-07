@@ -1,0 +1,3 @@
+mojePromenna = inputs()
+
+mojePromenna = None

@@ -25,7 +25,7 @@ int main () {
             return 1;
         }
 
-        printf("STRING: %s TYPE: ", token.string);
+        printf("STRING: %s TYPE: ", token.string.str);
         if(token.type==TOKEN_FLOAT){
             printf("FLOAT\n");
         }
@@ -37,19 +37,19 @@ int main () {
         }
         else if(token.type==TOKEN_END){
             printf("END\n");
-        } 
+        }
         else if(token.type==TOKEN_EOF){
             printf("EOF\n");
-        } 
+        }
         else if(token.type==TOKEN_SPACE){
             printf("SPACE\n");
-        } 
+        }
         else if(token.type==TOKEN_EOL){
             printf("EOL\n");
         }
         else if(token.type==TOKEN_IDENTIFIER){
             printf("IDENT\n");
-        } 
+        }
         else{
             printf("%d\n",token.type);
         }
