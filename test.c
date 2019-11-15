@@ -18,10 +18,10 @@ int main () {
 
     initStack(&stack);
     do{
-        if(get_token(&token, fp, &stack)== RET_LEXICAL_ERROR)
+        if (get_token(&token, fp, &stack) == RET_LEXICAL_ERROR)
         {
             free_string(&token.string);
-            fprintf(stderr,"LEXICAL_ERROR\n");
+            fprintf(stderr, "LEXICAL_ERROR\n");
             return 1;
         }
 
@@ -30,7 +30,7 @@ int main () {
             printf("FLOAT\n");
         }
         else if(token.type==TOKEN_DEDENT){
-            printf("DETENT\n");
+            printf("DEDENT\n");
         }
         else if(token.type==TOKEN_INDENT){
             printf("INDENT\n");

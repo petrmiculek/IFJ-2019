@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-std=c11 -Wall -Wextra -pedantic -g
 
 BIN=compiler
-BIN_TEST=test
+BIN_TEST=tests
 RM=rm -f
 
 # .c -> sources
@@ -29,7 +29,8 @@ $(BIN_TEST): $(TEST_OBJ) $(COMMON_OBJECTS)
 	$(CC) $(CFLAGS) -o  $@ $^
 
 # $(SOURCES) $(TEST_SOURCES)
-.PHONY: clean
+.PHONY: clean test tests
+test:$(BIN_TEST) # just a hack
 
 clean:
 	$(RM) *.o $(BIN) $(BIN_TEST)

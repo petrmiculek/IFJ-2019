@@ -32,9 +32,11 @@ append_string(string_t *string, char var)
     }
     strncat(string->str, &var, 1);
     strncat(string->str, STRING_END, 1);
+    /* FIXME second strncat is not necessary, afaik
+     * result of strncat is always null-terminated
+     */
     string->length++;
     return RET_OK;
-
 }
 
 void

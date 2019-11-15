@@ -1,12 +1,27 @@
 #include "scanner.h"
 #include "my_string.h"
+#include "parser.h"
 #include "err.h"
 #include <stdlib.h>
 #include <stdio.h>
 
 int
-main()
+main(int argc, char **argv)
 {
+    FILE *f;
+    if (argc == 1)
+    {
+        perror("No input file given\n");
+        return RET_INTERNAL_ERROR; // TODO idk which ret_code to use
+    }
+    if ((f = fopen(argv[1], "r")) == NULL)
+    {
+        perror("Error in opening file");
+        return RET_INTERNAL_ERROR;
+    }
+
+    parse(f);
 
     return 0;
 }
+
