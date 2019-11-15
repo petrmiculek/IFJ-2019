@@ -61,12 +61,13 @@ push(stack_t *stack, unsigned int item)
             return RET_INTERNAL_ERROR;
         }
     }
+
     stack->array[++stack->top] = item;
     return RET_OK;
 }
 
 void
-pull(stack_t *stack)
+pop(stack_t *stack)
 {
     if (stack->top != 0)
         stack->top--;
@@ -98,7 +99,7 @@ get_token(token_t *token, FILE *file, stack_t *stack)
         }
         else
         {
-            pull(stack);
+            pop(stack);
             if (stack->array[stack->top] < spaces_num)
                 RETURN_ERR
             if (stack->array[stack->top] == spaces_num)
@@ -113,7 +114,7 @@ get_token(token_t *token, FILE *file, stack_t *stack)
     {
         if (stack->array[stack->top] != 0)
         {
-            pull(stack);
+            pop(stack);
             token->type = TOKEN_DEDENT;
             return RET_OK;
         }

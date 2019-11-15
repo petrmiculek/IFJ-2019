@@ -46,7 +46,7 @@ unsigned int
 push(stack_t *stack, unsigned int item);
 
 void
-pull(stack_t *stack);
+pop(stack_t *stack);
 
 enum state
 {

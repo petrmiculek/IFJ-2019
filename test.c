@@ -6,7 +6,7 @@
 
 int main () {
     FILE *fp;
-    int c;
+    // int c; // unused
 
     fp = fopen("input","r");
     if(fp == NULL) {
