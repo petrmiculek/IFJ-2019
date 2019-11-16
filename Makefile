@@ -5,35 +5,42 @@ BIN=compiler
 BIN_TEST=tests
 RM=rm -f
 
-# .c -> sources
-# .h -> deps (dependencies)
+# vvvv add source files here vvvv
 
-# DEPS = my_string.h scanner.h parser.h
-BIN_SOURCES = main.c
-TEST_SOURCES = test.c
-COMMON_SOURCES = my_string.c scanner.c parser.c
+BIN_SOURCE_FILES = main.c
+TEST_SOURCE_FILES = test.c
+COMMON_SOURCE_FILES = my_string.c scanner.c parser.c
 
-COMMON_OBJECTS = $(COMMON_SOURCES:.c=.o)
-BIN_OBJ = $(BIN_SOURCES:.c=.o)
-TEST_OBJ = $(TEST_SOURCES:.c=.o)
+# ^^^^ add source files here ^^^^
 
-all: $(BIN)
+SOURCES_DIR = src
+OBJECTS_DIR = obj
 
-%.o: $(COMMON_SOURCES) ($BIN_SOURCES) ($TEST_SOURCES)
-	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(BIN): $(BIN_OBJ) $(COMMON_OBJECTS)
+COMMON_SOURCES = $(addprefix $(SOURCES_DIR)/, COMMON_SOURCE_FILES )
+BIN_SOURCES = $(addprefix $(SOURCES_DIR)/, BIN_SOURCE_FILES )
+TEST_SOURCES = $(addprefix $(SOURCES_DIR)/, TEST_SOURCE_FILES )
+
+COMMON_OBJECTS = $(addprefix $(OBJECTS_DIR)/, $(COMMON_SOURCE_FILES:.c=.o) )
+BIN_OBJECTS = $(addprefix $(OBJECTS_DIR)/, $(BIN_SOURCE_FILES:.c=.o) )
+TEST_OBJECTS = $(addprefix $(OBJECTS_DIR)/, $(TEST_SOURCE_FILES:.c=.o) )
+
+all: $(BIN) $(BIN_TEST)
+
+$(BIN): $(BIN_OBJECTS) $(COMMON_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
-$(BIN_TEST): $(TEST_OBJ) $(COMMON_OBJECTS)
+$(BIN_TEST): $(TEST_OBJECTS) $(COMMON_OBJECTS)
 	$(CC) $(CFLAGS) -o  $@ $^
 
-# $(SOURCES) $(TEST_SOURCES)
+$(OBJECTS_DIR)/%.o: $(SOURCES_DIR)/%.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 .PHONY: clean test tests
-test:$(BIN_TEST) # just a hack
+test: $(BIN_TEST) # just a hack
 
 clean:
-	$(RM) *.o $(BIN) $(BIN_TEST)
+	$(RM) $(OBJECTS_DIR)/*.o $(BIN) $(BIN_TEST)
 
 leaks: $(BIN)
 	valgrind --track-origins=yes --leak-check=full --show-reachable=yes ./$(EXECUTABLE) $(CMDLINE)

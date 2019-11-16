@@ -17,6 +17,7 @@ parse(FILE *file)
     do
     {
         res = get_token(&token, file, &stack);
+        printf("%u: %s\n", token.type, token.string.str);
     }
     while (token.type != TOKEN_END && res != RET_LEXICAL_ERROR);
 

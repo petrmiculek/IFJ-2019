@@ -4,20 +4,32 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-int main () {
+int
+main(int argc, char **argv)
+{
     FILE *fp;
     // int c; // unused
 
-    fp = fopen("input","r");
-    if(fp == NULL) {
+    if (argc < 2)
+    {
+        fp = fopen("input", "r");
+    }
+    else
+    {
+        fp = fopen(argv[1], "r");
+    }
+
+    if (fp == NULL)
+    {
         perror("Error in opening file");
-        return(-1);
+        return (-1);
     }
     token_t token;
     stack_t stack;
 
     initStack(&stack);
-    do{
+    do
+    {
         if (get_token(&token, fp, &stack) == RET_LEXICAL_ERROR)
         {
             free_string(&token.string);
@@ -26,7 +38,8 @@ int main () {
         }
 
         printf("STRING: %s TYPE: ", token.string.str);
-        if(token.type==TOKEN_FLOAT){
+        if (token.type == TOKEN_FLOAT)
+        {
             printf("FLOAT\n");
         }
         else if(token.type==TOKEN_DEDENT){
