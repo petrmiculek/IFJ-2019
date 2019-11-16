@@ -141,6 +141,11 @@ get_token(token_t *token, FILE *file, stack_t *stack)
                     APPEND
                     break;
                 }
+                else if (read == '\r')
+                {
+                    break;
+                    // TODO gotta handle windows eol \r\n
+                }
                 else if (read == '\n')
                 {
                     state = STATE_EOL;
@@ -262,7 +267,9 @@ get_token(token_t *token, FILE *file, stack_t *stack)
 
                 break;
 
-            case STATE_EOL:spaces_num++;
+            case STATE_EOL:
+
+                spaces_num++;
                 if (read == ' ')
                 {
                     state = STATE_EOL_SP;
@@ -274,7 +281,9 @@ get_token(token_t *token, FILE *file, stack_t *stack)
                     token->type = TOKEN_EOL;
                     return RET_OK;
                 }
-            case STATE_EOL_SP:spaces_num++;
+            case STATE_EOL_SP:
+
+                spaces_num++;
                 if (read == ' ')
                 {
                     state = STATE_EOL_SP;
@@ -476,7 +485,10 @@ get_token(token_t *token, FILE *file, stack_t *stack)
                     state = STATE_BLOCK_B;
                     break;
                 }
-                else if (31 < read)
+                else if (31 < read
+                    || read == '\r'
+                    || read == '\n'
+                    || read == '\t')
                 {
                     state = STATE_BLOCK2;
                     break;
@@ -486,7 +498,7 @@ get_token(token_t *token, FILE *file, stack_t *stack)
             case STATE_BLOCK_B:
                 if (read == '"')
                 {
-                    state = STATE_BLOCK1;
+                    state = STATE_BLOCK_B1;
                     break;
                 }
                 else
@@ -582,9 +594,12 @@ get_token(token_t *token, FILE *file, stack_t *stack)
                     token->type = TOKEN_DIVISION;
                     return RET_OK;
                 }
-            default: state = STATE_ERROR;
+            default:
+
+                state = STATE_ERROR;
+                fprintf(stderr, "%s, %u: reached default state", __func__, __LINE__);
                 break;
-                // FIXME CLion tells me the default case is unreachable code, don't know why.
+                // FIXME default case unreachable code?
         }
     }
 

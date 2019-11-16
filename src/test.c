@@ -34,11 +34,11 @@ main(int argc, char **argv)
         if (get_token(&token, fp, &stack) == RET_LEXICAL_ERROR)
         {
             free_string(&token.string);
-            fprintf(stderr, "LEXICAL_ERROR\n");
-            return 1;
+            fprintf(stdout, "LEXICAL_ERROR\n");
+            return RET_LEXICAL_ERROR;
         }
 
-        printf("STRING: %s TYPE: ", token.string.str);
+        printf("STRING: %-40s TYPE: ", token.string.str);
         print_token_type(token);
 
         free_string(&token.string);
@@ -50,6 +50,7 @@ main(int argc, char **argv)
 
     return (0);
 }
+
 void
 print_token_type(token_t token)
 {
