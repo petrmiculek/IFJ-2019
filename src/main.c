@@ -16,7 +16,7 @@ main(int argc, char **argv)
     }
     if ((f = fopen(argv[1], "r")) == NULL)
     {
-        perror("Error in opening file");
+        fprintf(stderr, "Error in opening file %s", argv[1]);
         return RET_INTERNAL_ERROR;
     }
 

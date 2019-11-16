@@ -1,7 +1,3 @@
-//
-// Created by petrmiculek on 15.11.19.
-//
-
 #include "parser.h"
 #include "scanner.h"
 #include "err.h"
