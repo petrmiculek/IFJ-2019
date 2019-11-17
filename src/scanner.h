@@ -34,19 +34,29 @@ typedef struct
  * text is wrong, otherwise OK
  */
 unsigned int
-get_token(token_t *token, FILE *file, stack_t *stack);
-
-unsigned int
-initStack(stack_t *stack);
-
-void
-free_stack(stack_t *stack);
+get_token(token_t *token, FILE *file);
 
 unsigned int
 push(stack_t *stack, unsigned int item);
 
 void
-pull(stack_t *stack);
+pop(stack_t *stack);
+
+stack_t *
+init_stack();
+
+unsigned int
+initStack(stack_t *stack);
+
+/*
+void
+free_stack(stack_t *stack);
+
+// replaced by free_static_stack
+*/
+
+void
+free_static_stack();
 
 enum state
 {

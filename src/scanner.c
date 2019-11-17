@@ -11,6 +11,8 @@
 */
 char *keywords[] = {"def", "else", "if", "None", "pass", "return", "while"};
 
+static stack_t *space_stack = NULL;
+
 token_type
 check_keyword(char *str)
 {
@@ -45,10 +47,27 @@ initStack(stack_t *stack)
     return RET_OK;
 }
 
-void
-free_stack(stack_t *stack)
+
+stack_t *
+init_stack()
 {
-    free(stack->array);
+    stack_t *stack;
+    if (NULL != (stack = malloc(sizeof(stack_t))))
+    {
+        if (initStack(stack) != RET_OK)
+        {
+            free(stack);
+            stack = NULL;
+        }
+    }
+    return stack;
+}
+
+
+void
+free_static_stack()
+{
+    free(space_stack);
 }
 
 unsigned int
@@ -61,20 +80,29 @@ push(stack_t *stack, unsigned int item)
             return RET_INTERNAL_ERROR;
         }
     }
+
     stack->array[++stack->top] = item;
     return RET_OK;
 }
 
 void
-pull(stack_t *stack)
+pop(stack_t *stack)
 {
     if (stack->top != 0)
         stack->top--;
 }
 
 unsigned int
-get_token(token_t *token, FILE *file, stack_t *stack)
+get_token(token_t *token, FILE *file)
 {
+    if (space_stack == NULL)
+    {
+        if (NULL == (space_stack = init_stack()))
+        {
+            return RET_INTERNAL_ERROR;
+        }
+    }
+
     if (init_string(&token->string))
     {
         return RET_INTERNAL_ERROR;
@@ -85,23 +113,23 @@ get_token(token_t *token, FILE *file, stack_t *stack)
 
     if (spaces_num >= 0)
     {
-        if (stack->array[stack->top] < spaces_num)
+        if (space_stack->array[space_stack->top] < spaces_num)
         {
-            push(stack, (unsigned) spaces_num);
+            push(space_stack, (unsigned) spaces_num);
             spaces_num = -1;
             token->type = TOKEN_INDENT;
             return RET_OK;
         }
-        else if (stack->array[stack->top] == spaces_num)
+        else if (space_stack->array[space_stack->top] == spaces_num)
         {
             spaces_num = -1;
         }
         else
         {
-            pull(stack);
-            if (stack->array[stack->top] < spaces_num)
+            pop(space_stack);
+            if (space_stack->array[space_stack->top] < spaces_num)
                 RETURN_ERR
-            if (stack->array[stack->top] == spaces_num)
+            if (space_stack->array[space_stack->top] == spaces_num)
             {
                 spaces_num = -1;
             }
@@ -111,9 +139,9 @@ get_token(token_t *token, FILE *file, stack_t *stack)
     }
     else if (spaces_num == -2)
     {
-        if (stack->array[stack->top] != 0)
+        if (space_stack->array[space_stack->top] != 0)
         {
-            pull(stack);
+            pop(space_stack);
             token->type = TOKEN_DEDENT;
             return RET_OK;
         }
@@ -140,6 +168,11 @@ get_token(token_t *token, FILE *file, stack_t *stack)
                     APPEND
                     break;
                 }
+                else if (read == '\r')
+                {
+                    break;
+                    // TODO gotta handle windows eol \r\n
+                }
                 else if (read == '\n')
                 {
                     state = STATE_EOL;
@@ -158,7 +191,7 @@ get_token(token_t *token, FILE *file, stack_t *stack)
                 }
                 else if (read == '"')
                 {
-                    state = STATE_BLOCK1;
+                    state = STATE_BLOCK;
                     break;
                 }
                 else if (read == '#')
@@ -166,7 +199,9 @@ get_token(token_t *token, FILE *file, stack_t *stack)
                     state = STATE_COMMENT;
                     break;
                 }
-                else if ((read >= 'a' && read <= 'z') || (read >= 'A' && read <= 'Z') || read == '_')
+                else if ((read >= 'a' && read <= 'z')
+                    || (read >= 'A' && read <= 'Z')
+                    || (read == '_'))
                 {
                     state = STATE_IDENTIFIER;
                     APPEND
@@ -259,9 +294,9 @@ get_token(token_t *token, FILE *file, stack_t *stack)
                     RETURN_ERR
                 }
 
-                break;
+            case STATE_EOL:
 
-            case STATE_EOL:spaces_num++;
+                spaces_num++;
                 if (read == ' ')
                 {
                     state = STATE_EOL_SP;
@@ -273,7 +308,10 @@ get_token(token_t *token, FILE *file, stack_t *stack)
                     token->type = TOKEN_EOL;
                     return RET_OK;
                 }
-            case STATE_EOL_SP:spaces_num++;
+
+            case STATE_EOL_SP:
+
+                spaces_num++;
                 if (read == ' ')
                 {
                     state = STATE_EOL_SP;
@@ -480,7 +518,10 @@ get_token(token_t *token, FILE *file, stack_t *stack)
                     state = STATE_BLOCK_ES1;
                     break;
                 }
-                else if (31 < read)
+                else if (31 < read
+                    || read == '\r'
+                    || read == '\n'
+                    || read == '\t')
                 {
                     state = STATE_BLOCK3;
                     break;
@@ -612,9 +653,13 @@ get_token(token_t *token, FILE *file, stack_t *stack)
                     token->type = TOKEN_DIVISION;
                     return RET_OK;
                 }
-            default: state = STATE_ERROR;
+
+            default:
+
+                state = STATE_ERROR;
+                fprintf(stderr, "%s, %u: reached default state", __func__, __LINE__);
                 break;
-                // FIXME CLion tells me the default case is unreachable code, don't know why.
+                // FIXME default case unreachable code?
         }
     }
 
