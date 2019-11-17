@@ -45,6 +45,21 @@ initStack(stack_t *stack)
     return RET_OK;
 }
 
+stack_t *
+init_stack()
+{
+    stack_t *stack;
+    if (NULL != (stack = malloc(sizeof(stack_t))))
+    {
+        if (initStack(stack) != RET_OK)
+        {
+            free(stack);
+            stack = NULL;
+        }
+    }
+    return stack;
+}
+
 void
 free_stack(stack_t *stack)
 {
@@ -74,8 +89,18 @@ pop(stack_t *stack)
 }
 
 unsigned int
-get_token(token_t *token, FILE *file, stack_t *stack)
+get_token(token_t *token, FILE *file)
 {
+    static stack_t *space_stack = NULL;
+
+    if (space_stack == NULL)
+    {
+        if (NULL == (space_stack = init_stack()))
+        {
+            return RET_INTERNAL_ERROR;
+        }
+    }
+
     if (init_string(&token->string))
     {
         return RET_INTERNAL_ERROR;
@@ -86,23 +111,23 @@ get_token(token_t *token, FILE *file, stack_t *stack)
 
     if (spaces_num >= 0)
     {
-        if (stack->array[stack->top] < spaces_num)
+        if (space_stack->array[space_stack->top] < spaces_num)
         {
-            push(stack, (unsigned) spaces_num);
+            push(space_stack, (unsigned) spaces_num);
             spaces_num = -1;
             token->type = TOKEN_INDENT;
             return RET_OK;
         }
-        else if (stack->array[stack->top] == spaces_num)
+        else if (space_stack->array[space_stack->top] == spaces_num)
         {
             spaces_num = -1;
         }
         else
         {
-            pop(stack);
-            if (stack->array[stack->top] < spaces_num)
+            pop(space_stack);
+            if (space_stack->array[space_stack->top] < spaces_num)
                 RETURN_ERR
-            if (stack->array[stack->top] == spaces_num)
+            if (space_stack->array[space_stack->top] == spaces_num)
             {
                 spaces_num = -1;
             }
@@ -112,9 +137,9 @@ get_token(token_t *token, FILE *file, stack_t *stack)
     }
     else if (spaces_num == -2)
     {
-        if (stack->array[stack->top] != 0)
+        if (space_stack->array[space_stack->top] != 0)
         {
-            pop(stack);
+            pop(space_stack);
             token->type = TOKEN_DEDENT;
             return RET_OK;
         }

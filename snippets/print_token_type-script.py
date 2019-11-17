@@ -2,8 +2,8 @@
 Skript na tvorbu if-else if bloku pro tisk typu tokenu
 
 1. prekopirovat do token_type ENUM ze scanner.h
-2. ctrl + h, nahradit TOKEN_ za ' # otevreni stringu
-3.           nahradit , za ', # uzavreni stringu
+2. ctrl + h, nahradit TOKEN_ za '       # otevreni stringu
+3.           nahradit , za ',           # uzavreni stringu
 4. prepsat zavorky na hranate
 
 Zkopirovat vystup do programu do zdroje ( smazat prvni else )

@@ -34,7 +34,7 @@ typedef struct
  * text is wrong, otherwise OK
  */
 unsigned int
-get_token(token_t *token, FILE *file, stack_t *stack);
+get_token(token_t *token, FILE *file);
 
 unsigned int
 initStack(stack_t *stack);

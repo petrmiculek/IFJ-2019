@@ -26,12 +26,14 @@ main(int argc, char **argv)
         return (-1);
     }
     token_t token;
+    /*
     stack_t stack;
 
     initStack(&stack);
+     */
     do
     {
-        if (get_token(&token, fp, &stack) == RET_LEXICAL_ERROR)
+        if (get_token(&token, fp) == RET_LEXICAL_ERROR)
         {
             free_string(&token.string);
             fprintf(stdout, "LEXICAL_ERROR\n");
@@ -45,7 +47,7 @@ main(int argc, char **argv)
     }
     while (token.type != TOKEN_END);
 
-    free_stack(&stack);
+    // free_stack(&stack);
     fclose(fp);
 
     return (0);
