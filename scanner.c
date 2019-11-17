@@ -158,7 +158,7 @@ get_token(token_t *token, FILE *file, stack_t *stack)
                 }
                 else if (read == '"')
                 {
-                    state = STATE_BLOCK;
+                    state = STATE_BLOCK1;
                     break;
                 }
                 else if (read == '#')
@@ -166,7 +166,7 @@ get_token(token_t *token, FILE *file, stack_t *stack)
                     state = STATE_COMMENT;
                     break;
                 }
-                else if ((read >= 'a' && read <= 'z') || (read >= 'A' && read <= 'Z'))
+                else if ((read >= 'a' && read <= 'z') || (read >= 'A' && read <= 'Z') || read == '_')
                 {
                     state = STATE_IDENTIFIER;
                     APPEND
@@ -453,14 +453,6 @@ get_token(token_t *token, FILE *file, stack_t *stack)
                 }
                 else
                     RETURN_ERR
-            case STATE_BLOCK:
-                if (read == '"')
-                {
-                    state = STATE_BLOCK1;
-                    break;
-                }
-                else
-                    RETURN_ERR
             case STATE_BLOCK1:
                 if (read == '"')
                 {
@@ -472,20 +464,25 @@ get_token(token_t *token, FILE *file, stack_t *stack)
             case STATE_BLOCK2:
                 if (read == '"')
                 {
-                    state = STATE_BLOCK_B;
-                    break;
-                }
-                else if (31 < read)
-                {
-                    state = STATE_BLOCK2;
+                    state = STATE_BLOCK3;
                     break;
                 }
                 else
                     RETURN_ERR
-            case STATE_BLOCK_B:
+            case STATE_BLOCK3:
                 if (read == '"')
                 {
-                    state = STATE_BLOCK1;
+                    state = STATE_BLOCK_B1;
+                    break;
+                }
+                else if (read == '\\')
+                {
+                    state = STATE_BLOCK_ES1;
+                    break;
+                }
+                else if (31 < read)
+                {
+                    state = STATE_BLOCK3;
                     break;
                 }
                 else
@@ -493,11 +490,45 @@ get_token(token_t *token, FILE *file, stack_t *stack)
             case STATE_BLOCK_B1:
                 if (read == '"')
                 {
-                    state = STATE_START;
+                    state = STATE_BLOCK2;
+                    break;
+                }
+                else if (read == '\\')
+                {
+                    state = STATE_BLOCK_ES1;
                     break;
                 }
                 else
                     RETURN_ERR
+            case STATE_BLOCK_B2:
+                if (read == '"')
+                {
+                    state = STATE_START;
+                    break;
+                }
+                else if (read == '\\')
+                {
+                    state = STATE_BLOCK_ES1;
+                    break;
+                }
+                else
+                    RETURN_ERR
+            case STATE_BLOCK_ES1:
+                if (read == '"')
+                {
+                    if (append_string(&(token->string), read))
+                    {
+                        return RET_INTERNAL_ERROR;
+                    }
+                    APPEND
+                    state = STATE_BLOCK_ES2;
+                    break;
+                }
+                else
+                {
+                    state = STATE_BLOCK3;
+                    break;
+                }
             case STATE_COMMENT:
                 if (read == '\n')
                 {
@@ -512,7 +543,7 @@ get_token(token_t *token, FILE *file, stack_t *stack)
             case STATE_IDENTIFIER:
                 if ((read >= 'a' && read <= 'z')
                     || (read >= 'A' && read <= 'Z')
-                    || (read == '-')
+                    || (read == '_')
                     || (read >= '0' && read <= '9'))
                 {
                     state = STATE_IDENTIFIER;
