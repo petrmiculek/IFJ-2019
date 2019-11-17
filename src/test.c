@@ -1,16 +1,16 @@
 #include "scanner.h"
 #include "my_string.h"
 #include "err.h"
-#include <stdlib.h>
 #include <stdio.h>
 
 void
 print_token_type(token_t token);
+
 int
 main(int argc, char **argv)
 {
     FILE *fp;
-    // int c; // unused
+
     char filename[] = "input";
     char *file = filename;
     if (argc > 1)
@@ -23,31 +23,29 @@ main(int argc, char **argv)
     if (fp == NULL)
     {
         fprintf(stderr, "Error in opening file \"%s\"\n", file);
-        return (-1);
+        return -1;
     }
-    token_t token;
-    /*
-    stack_t stack;
 
-    initStack(&stack);
-     */
+    token_t token;
+
     do
     {
-        if (get_token(&token, fp) == RET_LEXICAL_ERROR)
+        unsigned int res = get_token(&token, fp);
+
+        printf("str: %-40s type: ", token.string.str);
+        print_token_type(token);
+        // ^^^ might print invalid data on lexical error, but at least we get some info?
+
+        free_string(&token.string);
+
+        if (res == RET_LEXICAL_ERROR)
         {
-            free_string(&token.string);
             fprintf(stdout, "LEXICAL_ERROR\n");
             return RET_LEXICAL_ERROR;
         }
-
-        printf("STRING: %-40s TYPE: ", token.string.str);
-        print_token_type(token);
-
-        free_string(&token.string);
     }
     while (token.type != TOKEN_END);
 
-    // free_stack(&stack);
     fclose(fp);
 
     return (0);
