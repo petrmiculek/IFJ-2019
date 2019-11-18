@@ -1,0 +1,45 @@
+str: def                                      type: DEF
+str:                                          type: SPACE
+str: var                                      type: IDENTIFIER
+str:                                          type: SPACE
+str:                                          type: COLON
+str:                                          type: EOL
+str:                                          type: INDENT
+str: while                                    type: WHILE
+str:                                          type: SPACE
+str: b                                        type: IDENTIFIER
+str:                                          type: IS_EQUAL
+str: c                                        type: IDENTIFIER
+str:                                          type: EOL
+str:                                          type: INDENT
+str: if                                       type: IF
+str:                                          type: SPACE
+str: a                                        type: IDENTIFIER
+str:                                          type: LESS
+str: b                                        type: IDENTIFIER
+str:                                          type: COLON
+str:                                          type: EOL
+str:                                          type: INDENT
+str: return                                   type: RETURN
+str:                                          type: SPACE
+str: g                                        type: IDENTIFIER
+str:                                          type: EOL
+str:                                          type: DEDENT
+str: else                                     type: ELSE
+str:                                          type: SPACE
+str:                                          type: COLON
+str:                                          type: EOL
+str:                                          type: INDENT
+str: b                                        type: IDENTIFIER
+str:                                          type: SPACE
+str:                                          type: ASSIGN
+str:                                          type: SPACE
+str: b                                        type: IDENTIFIER
+str:                                          type: PLUS
+str: a                                        type: IDENTIFIER
+str:                                          type: EOL
+str:                                          type: DEDENT
+str:                                          type: DEDENT
+str:                                          type: DEDENT
+str:                                          type: EOF
+str:                                          type: END

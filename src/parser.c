@@ -1,19 +1,31 @@
 #include "parser.h"
 #include "scanner.h"
 #include "err.h"
+#include "token_queue.h"
+#include "stack.h"
 //#include <stdbool.h>
 #include <stdlib.h>
+#include <assert.h>
+#include <stdbool.h>
 
 #define RETURN_IF_ERR(res) do { if ((res) != RET_OK) {return (res);} } while(0);
 
 /**
  * custom defined bool values
+ *
  * so that functions can return RET_INTERNAL_ERROR and RET_LEXICAL_ERROR
- *
- *
+ * - why can't you just use the stdbool ones?
+ * true is defined as 1, which is RET_LEXICAL_ERROR, meaning they collide
  */
+#ifdef true
+#undef true
+#endif // true
+
 #define true 2999
+
+#ifndef false
 #define false 0
+#endif // false
 
 // TODO projit Valgrind
 
@@ -71,6 +83,9 @@ expression(data_t *data);
 int
 init_data(data_t **data);
 
+void
+clear_data(data_t **data);
+
 /**
  * Wrapper for get_token
  * @param data
@@ -79,6 +94,8 @@ init_data(data_t **data);
 void
 get_next_token(data_t *data, unsigned int *res);
 
+bool
+is_expression(token_t *token);
 unsigned int
 parse(FILE *file)
 {
@@ -98,42 +115,9 @@ parse(FILE *file)
     printf((res) ? "ok" : "err");
 
     free_static_stack();
+    clear_data(&data);
 
     return RET_OK;
-}
-
-int
-init_data(data_t **data)
-{
-    // idea: could use (data_t** data) and set (*data = NULL) on error
-
-    if (NULL == ((*data) = malloc(sizeof(data_t))))
-    {
-        return false;
-    }
-
-    // token and its contents
-
-    if (NULL == ((*data)->token = malloc(sizeof(token_t))))
-    {
-        free(*data);
-        return false;
-    }
-
-    if (RET_OK != init_string(&(*data)->token->string))
-    {
-        free((*data)->token);
-        free(*data);
-        return false;
-    }
-
-    // symtable
-
-    // flags
-    // in function -> allow return
-    // in while -> context aware code generation for defvar ?
-
-    return true;
 }
 
 int
@@ -231,21 +215,20 @@ statement(data_t *data)
     // STATEMENT -> id = ASSIGN_RHS eol
     // STATEMENT -> ASSIGN_RHS eol
     //
+    //STATEMENT -> pass eol
     //STATEMENT -> IF_CLAUSE
     //STATEMENT -> WHILE_CLAUSE
-    //STATEMENT -> pass eol
     //STATEMENT -> RETURN_STATEMENT
 
-    unsigned int res_token_read = 0;
+    unsigned int read_result = 0;
 
-    get_next_token(data, &res_token_read);
-    RETURN_IF_ERR(res_token_read);
+    get_next_token(data, &read_result);
+    RETURN_IF_ERR(read_result);
 
     if (data->token->type == TOKEN_PASS)
     {
-
-        get_next_token(data, &res_token_read);
-        RETURN_IF_ERR(res_token_read);
+        get_next_token(data, &read_result);
+        RETURN_IF_ERR(read_result);
 
         if (data->token->type == TOKEN_EOL)
         {
@@ -255,28 +238,98 @@ statement(data_t *data)
         {
             return false;
         }
-
     }
     else if (return_statement(data))
     {
-
+        return true;
     }
     else if (if_clause(data))
     {
-
+        return true;
     }
     else if (while_clause(data))
     {
-
+        return true;
     }
     else
     {
         // non LL1 decision:
-        // id = RHS
-        // RHS
+        // id = RHS eol
+        // RHS eol ( something like: id * id + 4 eol )
+
+        // checking if first token is an identifier doesn't tell us anything
+        // TODO Continue work here
+
+        q_enqueue(data->token, data->token_queue);
+        data->use_queue_for_read = false;
+
+        get_next_token(data, &read_result);
+        RETURN_IF_ERR(read_result);
+
+        if (data->token->type == TOKEN_ASSIGN)
+        {
+            // STATEMENT -> id = ASSIGN_RHS eol
+
+            if (assign_rhs(data))
+            {
+                get_next_token(data, &read_result);
+                RETURN_IF_ERR(read_result);
+
+                if (data->token->type == TOKEN_EOL)
+                {
+                    // assign-statement complete, save info from tokens
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            // STATEMENT -> ASSIGN_RHS eol
+
+            q_enqueue(data->token, data->token_queue);
+
+            if (assign_rhs(data))
+            {
+
+                get_next_token(data, &read_result);
+                RETURN_IF_ERR(read_result);
+
+                if (data->token->type == TOKEN_EOL)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+
     }
 
-    return 0;
+    return false; // TODO dead code, remove when done
+}
+
+bool
+is_expression(token_t *token)
+{
+    return (token->type == TOKEN_PLUS
+        || token->type == TOKEN_MINUS
+        || token->type == TOKEN_LEFT
+    );
+    // TODO actually, this is not going to work
 }
 
 int
@@ -285,7 +338,20 @@ assign_rhs(data_t *data)
     (void) data;
     // ASSIGN_RHS -> id ( CALL_PARAM
     // ASSIGN_RHS -> EXPRESSION
-    return 0;
+
+    unsigned int res = 0;
+    get_next_token(data, &res);
+    RETURN_IF_ERR(res);
+
+    if (data->token->type == TOKEN_IDENTIFIER)
+    {
+        //token_t token_tmp = *data->token;
+        q_enqueue(data->token, data->token_queue);
+
+        // call PSA
+    }
+
+    return false;
 }
 
 int
@@ -311,7 +377,7 @@ statement_global(data_t *data)
     }
     else if (data->token->type == TOKEN_EOF)
     {
-        // HANDLE END
+        // TODO how to handle eof?
         return true;
     }
     else
@@ -319,7 +385,6 @@ statement_global(data_t *data)
         return false;
     }
 }
-
 
 int
 if_clause(data_t *data)
@@ -423,7 +488,100 @@ expression(data_t *data)
 void
 get_next_token(data_t *data, unsigned int *res)
 {
-    *res = get_token(data->token, data->file);
+    if (data->token_queue->first)
+    {
+        data->token = q_pop(data->token_queue);
+        *res = RET_OK;
+    }
+    else
+    {
+        *res = get_token(data->token, data->file);
+    }
+}
 
+int
+init_data(data_t **data)
+{
+    int init_state = 0;
+
+    if (NULL == ((*data) = malloc(sizeof(data_t))))
+    {
+        init_state = 1;
+        goto cleanup;
+    }
+
+    // token and its contents
+
+    if (NULL == ((*data)->token = malloc(sizeof(token_t))))
+    {
+        init_state = 2;
+        goto cleanup;
+    }
+
+    if (RET_OK != init_string(&(*data)->token->string))
+    {
+        init_state = 3;
+        goto cleanup;
+    }
+
+    // queue
+    if (NULL == ((*data)->token_queue = q_init_queue()))
+    {
+        init_state = 4;
+        goto cleanup;
+    }
+
+
+    // switch cases don't contain break statement on purpose
+    // fall-through makes sure all the neccessary objects are cleaned
+    cleanup:
+    switch (init_state)
+    {
+        case 5:
+
+            q_free_queue((*data)->token_queue);
+            // falls through
+        case 4:
+
+            free_string(&(*data)->token->string);
+            // falls through
+        case 3:
+
+            free((*data)->token);
+            // falls through
+        case 2:
+
+            free(*data);
+            *data = NULL;
+            // falls through
+        case 1:
+            /* first alloc failed, nothing to free */
+            return false;
+        case 0:
+            /* nothing failed -> OK */
+        default:
+
+            printf("%s:%u:init_state: invalid value\n", __func__, __LINE__);
+            break;
+    }
+
+    // Feature ideas:
+
+    //      symtable
+    //      flags
+    //      inside function -> allow return
+    //      inside while -> context aware code generation for defvar ?
+
+    return true;
+}
+
+void
+clear_data(data_t **data)
+{
+    q_free_queue((*data)->token_queue);
+    free_string(&(*data)->token->string);
+    free((*data)->token);
+    free(*data);
+    *data = NULL;
 }
 

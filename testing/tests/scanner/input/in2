@@ -1,0 +1,6 @@
+def var :
+    while b==c
+        if a<b:
+            return g
+        else :
+            b = b+a

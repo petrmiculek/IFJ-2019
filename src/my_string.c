@@ -11,12 +11,12 @@ init_string(string_t *string)
     {
         return RET_INTERNAL_ERROR;
     }
+    string->str[0] = '\0';
+
     string->size = INITIAL_SIZE;
     string->length = 0;
     return RET_OK;
 }
-
-
 
 unsigned int
 append_string(string_t *string, char var)
@@ -36,6 +36,23 @@ append_string(string_t *string, char var)
      * result of strncat is always null-terminated
      */
     string->length++;
+    return RET_OK;
+}
+
+int
+copy_string(string_t *dest, string_t *src)
+{
+    unsigned int new_length = src->length;
+    if (new_length >= dest->size)
+    {
+        if ((dest->str = (char *) realloc(dest->str, new_length + 1)) == NULL)
+        {
+            return RET_INTERNAL_ERROR;
+        }
+        dest->size = new_length + 1;
+    }
+    strcpy(dest->str, src->str);
+    dest->length = new_length;
     return RET_OK;
 }
 

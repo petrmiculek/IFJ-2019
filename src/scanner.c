@@ -1,12 +1,14 @@
 #include "scanner.h"
 #include "err.h"
 #include "my_string.h"
+#include "stack.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 /*######################TODO LIST######################
-
+    Aktualne scanner nevynucuje, aby \r\n sly hned za sebou
+    Neni to priorita, ale tato podminka by tam spravne mela byt
 #######################################################
 */
 char *keywords[] = {"def", "else", "if", "None", "pass", "return", "while"};
@@ -34,62 +36,11 @@ check_keyword(char *str)
         return TOKEN_IDENTIFIER;
 }
 
-unsigned int
-initStack(stack_t *stack)
-{
-    stack->capacity = STACK_CAPACITY;
-    stack->top = 0;
-    if ((stack->array = (unsigned int *) malloc(STACK_CAPACITY * sizeof(unsigned int *))) == NULL)
-    {
-        return RET_INTERNAL_ERROR;
-    }
-    stack->array[stack->top] = 0;
-    return RET_OK;
-}
-
-
-stack_t *
-init_stack()
-{
-    stack_t *stack;
-    if (NULL != (stack = malloc(sizeof(stack_t))))
-    {
-        if (initStack(stack) != RET_OK)
-        {
-            free(stack);
-            stack = NULL;
-        }
-    }
-    return stack;
-}
-
-
+// this can't go to stack.c/stack.h, as the variable it interacts with is static
 void
 free_static_stack()
 {
     free(space_stack);
-}
-
-unsigned int
-push(stack_t *stack, unsigned int item)
-{
-    if (stack->capacity - 1 == stack->top)
-    {
-        if ((stack->array = (unsigned int *) realloc(stack->array, sizeof(unsigned int) * STACK_REALLOC)) == NULL)
-        {
-            return RET_INTERNAL_ERROR;
-        }
-    }
-
-    stack->array[++stack->top] = item;
-    return RET_OK;
-}
-
-void
-pop(stack_t *stack)
-{
-    if (stack->top != 0)
-        stack->top--;
 }
 
 unsigned int

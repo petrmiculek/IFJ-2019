@@ -1,0 +1,14 @@
+str: if                                       type: IF
+str:                                          type: EOL
+str:                                          type: INDENT
+str: asdf                                     type: LIT
+str:                                          type: SPACE
+str:                                          type: N_EQUAL
+str:                                          type: SPACE
+str: o                                        type: IDENTIFIER
+str:                                          type: EOL
+str:                                          type: DEDENT
+str: pass                                     type: PASS
+str:                                          type: EOL
+str:                                          type: EOF
+str:                                          type: END
