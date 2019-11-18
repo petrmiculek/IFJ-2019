@@ -163,10 +163,6 @@ get_token(token_t *token, FILE *file)
                     state = STATE_NEG;
                     break;
                 }
-                else if (read == '0')
-                {
-                    RETURN_ERR
-                }
                 else if (read == '=')
                 {
                     state = STATE_ASSIGN;
