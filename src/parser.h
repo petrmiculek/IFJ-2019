@@ -8,7 +8,7 @@
 #include "scanner.h"
 #include "token_queue.h"
 
-unsigned int
+int
 parse(FILE *file);
 
 typedef struct

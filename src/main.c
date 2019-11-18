@@ -22,8 +22,8 @@ main(int argc, char **argv)
         return RET_INTERNAL_ERROR;
     }
 
-    parse(file);
+    int res = parse(file);
 
-    return 0;
+    return res;
 }
 

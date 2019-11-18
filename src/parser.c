@@ -10,23 +10,6 @@
 
 #define RETURN_IF_ERR(res) do { if ((res) != RET_OK) {return (res);} } while(0);
 
-/**
- * custom defined bool values
- *
- * so that functions can return RET_INTERNAL_ERROR and RET_LEXICAL_ERROR
- * - why can't you just use the stdbool ones?
- * true is defined as 1, which is RET_LEXICAL_ERROR, meaning they collide
- */
-#ifdef true
-#undef true
-#endif // true
-
-#define true 2999
-
-#ifndef false
-#define false 0
-#endif // false
-
 // TODO projit Valgrind
 
 int
@@ -92,14 +75,15 @@ clear_data(data_t **data);
  * @return
  */
 void
-get_next_token(data_t *data, unsigned int *res);
+get_next_token(data_t *data, int *res);
 
-bool
+int
 is_expression(token_t *token);
-unsigned int
+
+int
 parse(FILE *file)
 {
-    unsigned int res;
+    int res;
 
     data_t *data = NULL;
 
@@ -128,7 +112,7 @@ statement_list_nonempty(data_t *data)
 
 
 
-    return 0;
+    return WARNING_NOT_IMPLEMENTED;
 }
 
 int
@@ -137,60 +121,63 @@ statement_list(data_t *data)
     // STATEMENT_LIST -> STATEMENT STATEMENT_LIST
     // STATEMENT_LIST -> dedent
 
-    unsigned int res = 0;
+    int res = 0;
 
     get_next_token(data, &res);
-    RETURN_IF_ERR(res);
+    RETURN_IF_ERR(res)
 
     if (data->token->type == TOKEN_DEDENT)
     {
-        return true;
+        return RET_OK;
     }
-    else if (statement(data))
+    else
     {
-        return statement_list(data);
-    }
+        if ((res = statement(data)) != RET_OK)
+            return res;
 
-    // else
-    return false;
+        if ((res = statement_list(data)) != RET_OK)
+            return res;
+
+        return RET_OK;
+    }
 }
 
 int
 function_def(data_t *data)
 {
     // FUNCTION_DEF -> def id ( DEF_PARAM_LIST ) : eol indent STATEMENT_LIST_NONEMPTY
-    unsigned int res = 0;
+    int res = 0;
 
     get_next_token(data, &res);
-    RETURN_IF_ERR(res);
+    RETURN_IF_ERR(res)
 
     if (data->token->type != TOKEN_DEF)
-        return false;
+        return RET_SYNTAX_ERROR;
 
     get_next_token(data, &res);
-    RETURN_IF_ERR(res);
+    RETURN_IF_ERR(res)
 
     if (data->token->type != TOKEN_IDENTIFIER)
-        return false;
+        return RET_SYNTAX_ERROR;
 
     // identifier to symtable
     // check redefinition
 
     get_next_token(data, &res);
-    RETURN_IF_ERR(res);
+    RETURN_IF_ERR(res)
 
     if (data->token->type != TOKEN_LEFT)
-        return false;
+        return RET_SYNTAX_ERROR;
 
-    if (!def_param_list(data))
-        return false;
+    if ((res = def_param_list(data)) != RET_OK)
+        return res;
 /*
     // right brace should be read from DEF_PARAM_LIST
     get_next_token(data, &res);
     RETURN_IF_ERR(res);
 
     if (data->token->type != TOKEN_RIGHT)
-        return false;
+        return RET_SYNTAX_ERROR;
 
  */
 
@@ -198,18 +185,18 @@ function_def(data_t *data)
     RETURN_IF_ERR(res);
 
     if (data->token->type != TOKEN_COLON)
-        return false;
+        return RET_SYNTAX_ERROR;
 
     get_next_token(data, &res);
     RETURN_IF_ERR(res);
 
     if (data->token->type != TOKEN_INDENT)
-        return false;
+        return RET_SYNTAX_ERROR;
 
-    if (!statement_list_nonempty(data))
-        return false;
+    if ((res = statement_list_nonempty(data)) != RET_OK)
+        return res;
 
-    return true;
+    return RET_OK;
 }
 
 int
@@ -223,36 +210,36 @@ statement(data_t *data)
     //STATEMENT -> WHILE_CLAUSE
     //STATEMENT -> RETURN_STATEMENT
 
-    unsigned int read_result = 0;
+    int res = 0;
 
-    get_next_token(data, &read_result);
-    RETURN_IF_ERR(read_result);
+    get_next_token(data, &res);
+    RETURN_IF_ERR(res);
 
     if (data->token->type == TOKEN_PASS)
     {
-        get_next_token(data, &read_result);
-        RETURN_IF_ERR(read_result);
+        get_next_token(data, &res);
+        RETURN_IF_ERR(res);
 
         if (data->token->type == TOKEN_EOL)
         {
-            return true;
+            return RET_OK;
         }
         else
         {
-            return false;
+            return RET_SYNTAX_ERROR;
         }
     }
     else if (return_statement(data))
     {
-        return true;
+        return RET_SYNTAX_ERROR;
     }
     else if (if_clause(data))
     {
-        return true;
+        return RET_SYNTAX_ERROR;
     }
     else if (while_clause(data))
     {
-        return true;
+        return RET_SYNTAX_ERROR;
     }
     else
     {
@@ -266,33 +253,28 @@ statement(data_t *data)
             q_enqueue(data->token, data->token_queue); // identifier set aside
             data->use_queue_for_read = false;
 
-            get_next_token(data, &read_result);
-            RETURN_IF_ERR(read_result);
+            get_next_token(data, &res);
+            RETURN_IF_ERR(res);
 
             if (data->token->type == TOKEN_ASSIGN)
             {
                 // STATEMENT -> id = ASSIGN_RHS eol
 
-                if (assign_rhs(data))
-                {
-                    get_next_token(data, &read_result);
-                    RETURN_IF_ERR(read_result);
+                if ((res = assign_rhs(data)) != RET_OK)
+                    return res;
 
-                    if (data->token->type == TOKEN_EOL)
-                    {
-                        // assign-statement complete, save info from tokens
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                get_next_token(data, &res);
+                RETURN_IF_ERR(res);
+
+                if (data->token->type == TOKEN_EOL)
+                {
+                    // assign-statement complete, save info from tokens
+                    return RET_OK;
                 }
                 else
                 {
-                    return false;
+                    return RET_SYNTAX_ERROR;
                 }
-
             }
             else
             {
@@ -300,37 +282,36 @@ statement(data_t *data)
 
                 q_enqueue(data->token, data->token_queue); // token past identifier is set aside
                 data->use_queue_for_read = true;
+                // data->use_queue_for_read turns back to false after queue is emptied
 
-                if (assign_rhs(data))
+                if ((res = assign_rhs(data)) != RET_OK)
+                    return res;
+
+                get_next_token(data, &res);
+                RETURN_IF_ERR(res);
+
+                if (data->token->type == TOKEN_EOL)
                 {
-
-                    get_next_token(data, &read_result);
-                    RETURN_IF_ERR(read_result);
-
-                    if (data->token->type == TOKEN_EOL)
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    return RET_OK;
                 }
                 else
                 {
-                    return false;
+                    return RET_SYNTAX_ERROR;
                 }
+
             }
         }
         else // data->token->type != TOKEN_IDENTIFIER
         {
-            // TODO Don't forget about this
+
+            if ((res = assign_rhs(data)) != RET_OK)
+                return res;
         }
     }
-    return false; // TODO dead code, remove when done
+    return RET_SYNTAX_ERROR; // TODO dead code, remove when done
 }
 
-bool
+int
 is_expression(token_t *token)
 {
     return (token->type == TOKEN_PLUS
@@ -343,23 +324,32 @@ is_expression(token_t *token)
 int
 assign_rhs(data_t *data)
 {
-    (void) data;
-    // ASSIGN_RHS -> id ( CALL_PARAM
+    // ASSIGN_RHS -> id ( CALL_PARAM_LIST
     // ASSIGN_RHS -> EXPRESSION
 
-    unsigned int res = 0;
+    int res = 0;
     get_next_token(data, &res);
     RETURN_IF_ERR(res);
 
     if (data->token->type == TOKEN_IDENTIFIER)
     {
-        //token_t token_tmp = *data->token;
         q_enqueue(data->token, data->token_queue);
 
-        // call PSA
+        get_next_token(data, &res);
+        RETURN_IF_ERR(res);
+
+        if (data->token->type == TOKEN_LEFT)
+        {
+            if ((res = call_param_list(data)) != RET_OK)
+                return res;
+
+            // TODO finish
+            return WARNING_NOT_IMPLEMENTED;
+
+        }
     }
 
-    return false;
+    return RET_SYNTAX_ERROR;
 }
 
 int
@@ -369,28 +359,31 @@ statement_global(data_t *data)
     // STATEMENT_GLOBAL -> STATEMENT_LIST STATEMENT_GLOBAL
     // STATEMENT_GLOBAL -> eof
 
-    unsigned int res = 0;
+    int res = 0;
     get_next_token(data, &res);
 
     RETURN_IF_ERR(res);
 
-    if (function_def(data))
+    if (function_def(data) == RET_OK)
     {
         return (statement_global(data));
     }
-    else if (statement_list(data))
+    else if (statement_list(data) == RET_OK)
     {
         // TODO solve repeated branch
+        ;
+        // solved
         return (statement_global(data));
+
     }
     else if (data->token->type == TOKEN_EOF)
     {
         // TODO how to handle eof?
-        return true;
+        return RET_OK;
     }
     else
     {
-        return false;
+        return RET_SYNTAX_ERROR;
     }
 }
 
@@ -400,7 +393,7 @@ if_clause(data_t *data)
     (void) data;
     // IF_CLAUSE -> if EXPRESSION : eol indent STATEMENT_LIST_NONEMPTY
     // else : eol indent STATEMENT_LIST_NONEMPTY
-    return 0;
+    return WARNING_NOT_IMPLEMENTED;
 }
 
 int
@@ -408,7 +401,7 @@ while_clause(data_t *data)
 {
     (void) data;
     // WHILE_CLAUSE -> while EXPRESSION : eol indent STATEMENT_LIST_NONEMPTY
-    return 0;
+    return WARNING_NOT_IMPLEMENTED;
 }
 
 int
@@ -416,7 +409,7 @@ function_call(data_t *data)
 {
     (void) data;
     // FUNCTION_CALL -> function_id ( CALL_PARAM_LIST )
-    return 0;
+    return WARNING_NOT_IMPLEMENTED;
 }
 
 int
@@ -425,7 +418,7 @@ def_param_list_next(data_t *data)
     (void) data;
     // DEF_PARAM_LIST_NEXT -> , id DEF_PARAM_LIST_NEXT
     // DEF_PARAM_LIST_NEXT -> )
-    return 0;
+    return WARNING_NOT_IMPLEMENTED;
 }
 
 int
@@ -434,7 +427,7 @@ def_param_list(data_t *data)
     (void) data;
     // DEF_PARAM_LIST -> id DEF_PARAM_LIST_NEXT
     // DEF_PARAM_LIST -> )
-    return 0;
+    return WARNING_NOT_IMPLEMENTED;
 }
 
 int
@@ -443,7 +436,7 @@ call_param_list(data_t *data)
     (void) data;
     // CALL_PARAM_LIST -> CALL_ELEM CALL_PARAM_LIST_NEXT
     // CALL_PARAM_LIST -> )
-    return 0;
+    return WARNING_NOT_IMPLEMENTED;
 }
 
 int
@@ -452,7 +445,7 @@ call_param_list_next(data_t *data)
     (void) data;
     // CALL_PARAM_LIST_NEXT -> , CALL_ELEM CALL_PARAM_LIST_NEXT
     // CALL_PARAM_LIST_NEXT -> )
-    return 0;
+    return WARNING_NOT_IMPLEMENTED;
 }
 
 int
@@ -462,7 +455,7 @@ call_elem(data_t *data)
     // CALL_ELEM -> id
     // CALL_ELEM -> literal
     // CALL_ELEM -> none
-    return 0;
+    return WARNING_NOT_IMPLEMENTED;
 }
 
 int
@@ -470,7 +463,7 @@ return_statement(data_t *data)
 {
     (void) data;
     // RETURN -> return RETURN_EXPRESSION
-    return 0;
+    return WARNING_NOT_IMPLEMENTED;
 }
 
 int
@@ -479,7 +472,7 @@ return_expression(data_t *data)
     (void) data;
     // RETURN_EXPRESSION -> eol
     // RETURN_EXPRESSION -> EXPRESSION eol
-    return 0;
+    return WARNING_NOT_IMPLEMENTED;
 }
 
 int
@@ -490,20 +483,30 @@ expression(data_t *data)
     // EXPRESSION -> expr
 
     // guess we call PSA here
-    return 0;
+    return WARNING_NOT_IMPLEMENTED;
 }
 
 void
-get_next_token(data_t *data, unsigned int *res)
+get_next_token(data_t *data, int *res)
 {
-    if (data->token_queue->first)
+    if (data->use_queue_for_read)
     {
-        data->token = q_pop(data->token_queue);
-        *res = RET_OK;
+        if (data->token_queue->first)
+        {
+            data->token = q_pop(data->token_queue);
+            *res = RET_OK;
+        }
+        else
+        {
+            // queue is empty, stop reading from it
+            // and read token like usual
+            data->use_queue_for_read = false;
+            *res = (int) get_token(data->token, data->file);
+        }
     }
     else
     {
-        *res = get_token(data->token, data->file);
+        *res = (int) get_token(data->token, data->file);
     }
 }
 
@@ -547,6 +550,7 @@ init_data(data_t **data)
     {
         case 5:
 
+            // unreachable code, it's here for future extending of inititialization
             q_free_queue((*data)->token_queue);
             // falls through
         case 4:
@@ -564,7 +568,7 @@ init_data(data_t **data)
             // falls through
         case 1:
             /* first alloc failed, nothing to free */
-            return false;
+            return RET_INTERNAL_ERROR;
         case 0:
             /* nothing failed -> OK */
         default:
@@ -580,7 +584,7 @@ init_data(data_t **data)
     //      inside function -> allow return
     //      inside while -> context aware code generation for defvar ?
 
-    return true;
+    return RET_OK;
 }
 
 void

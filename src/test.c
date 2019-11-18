@@ -186,6 +186,10 @@ print_token_type(token_t token)
     {
         printf("IDENTIFIER\n");
     }
+    else if (token.type == TOKEN_DOC)
+    {
+        printf("DOC\n");
+    }
     else
     {
         printf("Unnamed token type(%d)\n", token.type);
