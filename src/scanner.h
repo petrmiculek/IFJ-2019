@@ -59,11 +59,13 @@ enum state
     STATE_ASSIGN,
     STATE_IDENTIFIER,
     STATE_COMMENT,
-    STATE_BLOCK,
     STATE_BLOCK1,
     STATE_BLOCK2,
-    STATE_BLOCK_B,
+    STATE_BLOCK3,
     STATE_BLOCK_B1,
+    STATE_BLOCK_B2,
+    STATE_BLOCK_ES1,
+    STATE_BLOCK_ES2,
     STATE_LIT_H1,
     STATE_LIT_H,
     STATE_LIT_B,
@@ -117,6 +119,7 @@ typedef enum token_type
     TOKEN_EOL,
     TOKEN_EOF,
     TOKEN_IDENTIFIER,
+    TOKEN_DOC,
 } token_type;
 
 #endif

@@ -1,14 +1,14 @@
-STRING: if TYPE: IF
-STRING:  TYPE: EOL
-STRING:  TYPE: INDENT
-STRING: asdf TYPE: LIT
-STRING:  TYPE: SPACE
-STRING:  TYPE: N_EQUAL
-STRING:  TYPE: SPACE
-STRING: o TYPE: IDENTIFIER
-STRING:  TYPE: EOL
-STRING:  TYPE: DEDENT
-STRING: pass TYPE: PASS
-STRING:  TYPE: EOL
-STRING:  TYPE: EOF
-STRING:  TYPE: END
+str: if                                       type: IF
+str:                                          type: EOL
+str:                                          type: INDENT
+str: asdf                                     type: LIT
+str:                                          type: SPACE
+str:                                          type: N_EQUAL
+str:                                          type: SPACE
+str: o                                        type: IDENTIFIER
+str:                                          type: EOL
+str:                                          type: DEDENT
+str: pass                                     type: PASS
+str:                                          type: EOL
+str:                                          type: EOF
+str:                                          type: END

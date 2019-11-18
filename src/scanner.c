@@ -101,16 +101,19 @@ get_token(token_t *token, FILE *file)
             token->type = TOKEN_END;
             return RET_OK;
         }
+
     }
 
     while (1)
     {
+
         read = fgetc(file);
 
         switch (state)
         {
             case STATE_START:
-                if ('1' <= read && read <= '9')
+
+                if ('0' <= read && read <= '9')
                 {
                     state = STATE_INT;
                     APPEND
@@ -139,7 +142,7 @@ get_token(token_t *token, FILE *file)
                 }
                 else if (read == '"')
                 {
-                    state = STATE_BLOCK;
+                    state = STATE_BLOCK1;
                     break;
                 }
                 else if (read == '#')
@@ -299,6 +302,10 @@ get_token(token_t *token, FILE *file)
                 }
                 else
                 {
+                    if (token->string.str[0] == '0' && strlen(token->string.str) > 1)
+                    {
+                        RETURN_ERR
+                    }
                     token->type = TOKEN_INT;
                     ungetc(read, file);
                     return RET_OK;
@@ -316,7 +323,6 @@ get_token(token_t *token, FILE *file)
                     state = STATE_ERROR;
                     RETURN_ERR
                 }
-
             case STATE_FLOAT_D:
                 if ('0' <= read && read <= '9')
                 {
@@ -336,7 +342,6 @@ get_token(token_t *token, FILE *file)
                     ungetc(read, file);
                     return RET_OK;
                 }
-
             case STATE_FLOAT_E:
                 if ('1' <= read && read <= '9')
                 {
@@ -372,7 +377,6 @@ get_token(token_t *token, FILE *file)
                 }
                 else
                     RETURN_ERR
-
             case STATE_FLOAT_S:
                 if ('0' <= read && read <= '9')
                 {
@@ -407,7 +411,6 @@ get_token(token_t *token, FILE *file)
                 }
                 else
                     RETURN_ERR
-
             case STATE_LIT_B:
                 if (read == 'x')
                 {
@@ -432,7 +435,6 @@ get_token(token_t *token, FILE *file)
                 }
                 else
                     RETURN_ERR
-
             case STATE_LIT_H1:
                 if (('0' <= read && read <= '9')
                     || ('a' <= read && read <= 'f')
@@ -444,16 +446,6 @@ get_token(token_t *token, FILE *file)
                 }
                 else
                     RETURN_ERR
-
-            case STATE_BLOCK:
-                if (read == '"')
-                {
-                    state = STATE_BLOCK1;
-                    break;
-                }
-                else
-                    RETURN_ERR
-
             case STATE_BLOCK1:
                 if (read == '"')
                 {
@@ -462,11 +454,23 @@ get_token(token_t *token, FILE *file)
                 }
                 else
                     RETURN_ERR
-
             case STATE_BLOCK2:
                 if (read == '"')
                 {
-                    state = STATE_BLOCK_B;
+                    state = STATE_BLOCK3;
+                    break;
+                }
+                else
+                    RETURN_ERR
+            case STATE_BLOCK3:
+                if (read == '"')
+                {
+                    state = STATE_BLOCK_B1;
+                    break;
+                }
+                else if (read == '\\')
+                {
+                    state = STATE_BLOCK_ES1;
                     break;
                 }
                 else if (31 < read
@@ -474,16 +478,8 @@ get_token(token_t *token, FILE *file)
                     || read == '\n'
                     || read == '\t')
                 {
-                    state = STATE_BLOCK2;
-                    break;
-                }
-                else
-                    RETURN_ERR
-
-            case STATE_BLOCK_B:
-                if (read == '"')
-                {
-                    state = STATE_BLOCK_B1;
+                    APPEND
+                    state = STATE_BLOCK3;
                     break;
                 }
                 else
@@ -491,16 +487,57 @@ get_token(token_t *token, FILE *file)
             case STATE_BLOCK_B1:
                 if (read == '"')
                 {
-                    state = STATE_START;
+                    state = STATE_BLOCK_B2;
+                    break;
+                }
+                else if (read == '\\')
+                {
+                    state = STATE_BLOCK_ES1;
                     break;
                 }
                 else
-                    RETURN_ERR
+                {
+                    if (append_string(&(token->string), '"'))
+                    {
+                        return RET_INTERNAL_ERROR;
+                    }
+                    APPEND
+                    state = STATE_BLOCK3;
+                    break;
+                }
+            case STATE_BLOCK_B2:
+                if (read == '"')
+                {
+                    token->type = TOKEN_DOC;
+                    return RET_OK;
+                }
+                else if (read == '\\')
+                {
+                    state = STATE_BLOCK_ES1;
+                    break;
+                }
+                else
+                {
+                    if (append_string(&(token->string), '"'))
+                    {
+                        return RET_INTERNAL_ERROR;
+                    }
+                    if (append_string(&(token->string), '"'))
+                    {
+                        return RET_INTERNAL_ERROR;
+                    }
+                    APPEND
+                    state = STATE_BLOCK3;
+                    break;
+                }
 
+            case STATE_BLOCK_ES1:APPEND
+                state = STATE_BLOCK3;
+                break;
             case STATE_COMMENT:
                 if (read == '\n')
                 {
-                    state = STATE_START;
+                    state = STATE_EOL;
                     break;
                 }
                 else
@@ -508,7 +545,6 @@ get_token(token_t *token, FILE *file)
                     state = STATE_COMMENT;
                     break;
                 }
-
             case STATE_IDENTIFIER:
                 if ((read >= 'a' && read <= 'z')
                     || (read >= 'A' && read <= 'Z')
@@ -525,7 +561,6 @@ get_token(token_t *token, FILE *file)
                     token->type = check_keyword(token->string.str);
                     return RET_OK;
                 }
-
             case STATE_NEG:
                 if (read == '=')
                 {
@@ -534,7 +569,6 @@ get_token(token_t *token, FILE *file)
                 }
                 else
                     RETURN_ERR
-
             case STATE_ASSIGN:
                 if (read == '=')
                 {
@@ -547,7 +581,6 @@ get_token(token_t *token, FILE *file)
                     token->type = TOKEN_ASSIGN;
                     return RET_OK;
                 }
-
             case STATE_MORE:
                 if (read == '=')
                 {
@@ -560,7 +593,6 @@ get_token(token_t *token, FILE *file)
                     token->type = TOKEN_MORE;
                     return RET_OK;
                 }
-
             case STATE_LESS:
                 if (read == '=')
                 {
@@ -573,7 +605,6 @@ get_token(token_t *token, FILE *file)
                     token->type = TOKEN_LESS;
                     return RET_OK;
                 }
-
             case STATE_DIVISION:
                 if (read == '/')
                 {
