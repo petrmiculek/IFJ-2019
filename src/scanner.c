@@ -136,7 +136,6 @@ get_token(token_t *token, FILE *file)
                 }
                 else if (read == ' ')
                 {
-                    state = STATE_SPACE;
                     token->type = TOKEN_SPACE;
                     return RET_OK;
                 }
@@ -166,7 +165,7 @@ get_token(token_t *token, FILE *file)
                 }
                 else if (read == '0')
                 {
-                    RETURN_ERR;
+                    RETURN_ERR
                 }
                 else if (read == '=')
                 {
@@ -192,58 +191,47 @@ get_token(token_t *token, FILE *file)
                 }
                 else if (read == ':')
                 {
-                    state = STATE_COLON;
                     token->type = TOKEN_COLON;
                     return RET_OK;
                 }
                 else if (read == '-')
                 {
-                    state = STATE_MINUS;
                     token->type = TOKEN_MINUS;
                     return RET_OK;
                 }
                 else if (read == '+')
                 {
-                    state = STATE_PLUS;
                     token->type = TOKEN_PLUS;
                     return RET_OK;
                 }
                 else if (read == '(')
                 {
-                    state = STATE_LEFT;
                     token->type = TOKEN_LEFT;
                     return RET_OK;
                 }
                 else if (read == ')')
                 {
-                    state = STATE_RIGHT;
                     token->type = TOKEN_RIGHT;
                     return RET_OK;
                 }
                 else if (read == '*')
                 {
-                    state = STATE_MULTI;
                     token->type = TOKEN_MULTI;
                     return RET_OK;
                 }
                 else if (read == ',')
                 {
-                    state = STATE_COMMA;
                     token->type = TOKEN_COMMA;
                     return RET_OK;
                 }
                 else if (read == EOF)
                 {
                     spaces_num = -2;
-                    state = STATE_END;
                     token->type = TOKEN_EOF;
                     return RET_OK;
                 }
                 else
-                {
-                    state = STATE_ERROR;
                     RETURN_ERR
-                }
 
             case STATE_EOL:
 
@@ -320,7 +308,6 @@ get_token(token_t *token, FILE *file)
                 }
                 else
                 {
-                    state = STATE_ERROR;
                     RETURN_ERR
                 }
             case STATE_FLOAT_D:
