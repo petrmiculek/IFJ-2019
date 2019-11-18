@@ -9,16 +9,20 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -pedantic -Wextra")
 include_directories(.)
 
 add_executable(compiler
-        src/main.c # building the compiler
+        src/main.c
         src/err.h
         src/scanner.c src/scanner.h
         src/my_string.c src/my_string.h
-        src/parser.c src/parser.h)
+        src/stack.c src/stack.h
+        src/parser.c src/parser.h
+        src/token_queue.c src/token_queue.h)
 
 add_executable(compiler_tests
         src/test.c
         src/err.h
         src/scanner.c src/scanner.h
         src/my_string.c src/my_string.h
-        src/parser.c src/parser.h)
+        src/stack.c src/stack.h
+        src/parser.c src/parser.h
+        src/token_queue.c src/token_queue.h)
 

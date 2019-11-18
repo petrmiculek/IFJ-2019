@@ -30,6 +30,17 @@ init_string(string_t *string);
  */
 unsigned int
 append_string(string_t *string, char var);
+
+/**
+ * TODO missing doc comment
+ * Kod pouzit z jednoduchy_interpret
+ * @param dest
+ * @param src
+ * @return
+ */
+int
+copy_string(string_t *dest, string_t *src);
+
 /**
  * @brief free
  *

@@ -12,12 +12,9 @@
 #define RETURN_ERR do { state = STATE_ERROR; return RET_LEXICAL_ERROR; } while(0);
 #define APPEND if(append_string(&(token->string), read)){ return RET_INTERNAL_ERROR; }
 
-typedef struct
-{
-    unsigned int top;
-    unsigned int capacity;
-    unsigned int *array;
-} stack_t;
+// this can't go to stack.c/stack.h, as the variable it interacts with is static
+void
+free_static_stack();
 
 typedef struct
 {
@@ -35,28 +32,6 @@ typedef struct
  */
 unsigned int
 get_token(token_t *token, FILE *file);
-
-unsigned int
-push(stack_t *stack, unsigned int item);
-
-void
-pop(stack_t *stack);
-
-stack_t *
-init_stack();
-
-unsigned int
-initStack(stack_t *stack);
-
-/*
-void
-free_stack(stack_t *stack);
-
-// replaced by free_static_stack
-*/
-
-void
-free_static_stack();
 
 enum state
 {
