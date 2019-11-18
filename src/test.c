@@ -62,14 +62,6 @@ print_token_type(token_t token)
     {
         printf("FLOAT\n");
     }
-    else if (token.type == TOKEN_UP)
-    {
-        printf("UP\n");
-    }
-    else if (token.type == TOKEN_DOWN)
-    {
-        printf("DOWN\n");
-    }
     else if (token.type == TOKEN_LEFT)
     {
         printf("LEFT\n");
@@ -81,10 +73,6 @@ print_token_type(token_t token)
     else if (token.type == TOKEN_LIT)
     {
         printf("LIT\n");
-    }
-    else if (token.type == TOKEN_NEG)
-    {
-        printf("NEG\n");
     }
     else if (token.type == TOKEN_IS_EQUAL)
     {
