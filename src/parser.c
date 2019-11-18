@@ -184,12 +184,15 @@ function_def(data_t *data)
 
     if (!def_param_list(data))
         return false;
-
+/*
+    // right brace should be read from DEF_PARAM_LIST
     get_next_token(data, &res);
     RETURN_IF_ERR(res);
 
     if (data->token->type != TOKEN_RIGHT)
         return false;
+
+ */
 
     get_next_token(data, &res);
     RETURN_IF_ERR(res);
@@ -253,72 +256,77 @@ statement(data_t *data)
     }
     else
     {
-        // non LL1 decision:
-        // id = RHS eol
-        // RHS eol ( something like: id * id + 4 eol )
-
-        // checking if first token is an identifier doesn't tell us anything
-        // TODO Continue work here
-
-        q_enqueue(data->token, data->token_queue);
-        data->use_queue_for_read = false;
-
-        get_next_token(data, &read_result);
-        RETURN_IF_ERR(read_result);
-
-        if (data->token->type == TOKEN_ASSIGN)
+        if (data->token->type == TOKEN_IDENTIFIER)
         {
-            // STATEMENT -> id = ASSIGN_RHS eol
+            // RHS
+            // non LL1 decision:
+            // id = RHS eol
+            // RHS eol ( something like: id * id + 4 eol )
 
-            if (assign_rhs(data))
+            q_enqueue(data->token, data->token_queue); // identifier set aside
+            data->use_queue_for_read = false;
+
+            get_next_token(data, &read_result);
+            RETURN_IF_ERR(read_result);
+
+            if (data->token->type == TOKEN_ASSIGN)
             {
-                get_next_token(data, &read_result);
-                RETURN_IF_ERR(read_result);
+                // STATEMENT -> id = ASSIGN_RHS eol
 
-                if (data->token->type == TOKEN_EOL)
+                if (assign_rhs(data))
                 {
-                    // assign-statement complete, save info from tokens
-                    return true;
+                    get_next_token(data, &read_result);
+                    RETURN_IF_ERR(read_result);
+
+                    if (data->token->type == TOKEN_EOL)
+                    {
+                        // assign-statement complete, save info from tokens
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+
+            }
+            else
+            {
+                // STATEMENT -> ASSIGN_RHS eol
+
+                q_enqueue(data->token, data->token_queue); // token past identifier is set aside
+                data->use_queue_for_read = true;
+
+                if (assign_rhs(data))
+                {
+
+                    get_next_token(data, &read_result);
+                    RETURN_IF_ERR(read_result);
+
+                    if (data->token->type == TOKEN_EOL)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
                 else
                 {
                     return false;
                 }
             }
-            else
-            {
-                return false;
-            }
         }
-        else
+        else // data->token->type != TOKEN_IDENTIFIER
         {
-            // STATEMENT -> ASSIGN_RHS eol
-
-            q_enqueue(data->token, data->token_queue);
-
-            if (assign_rhs(data))
-            {
-
-                get_next_token(data, &read_result);
-                RETURN_IF_ERR(read_result);
-
-                if (data->token->type == TOKEN_EOL)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;
-            }
+            // TODO Don't forget about this
         }
-
     }
-
     return false; // TODO dead code, remove when done
 }
 

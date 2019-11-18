@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-std=c11 -Wall -Wextra -pedantic -g
 
 BIN=compiler
-BIN_TEST=tests
+BIN_TEST=test_bin
 RM=rm -f
 
 # vvvv add source files here vvvv

@@ -16,7 +16,7 @@ STATEMENT : ASSIGN_RHS eol
 | pass eol
 | RETURN /* contains eol */ ;
 
-ASSIGN_RHS : id "(" CALL_PARAM
+ASSIGN_RHS : id "(" CALL_PARAM_LIST
 | EXPRESSION ;
 
 IF_CLAUSE : if EXPRESSION ":" eol indent STATEMENT_LIST_NONEMPTY else ":" eol indent STATEMENT_LIST_NONEMPTY ;
