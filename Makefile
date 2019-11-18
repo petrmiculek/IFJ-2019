@@ -25,7 +25,10 @@ COMMON_OBJECTS = $(addprefix $(OBJECTS_DIR)/, $(COMMON_SOURCE_FILES:.c=.o) )
 BIN_OBJECTS = $(addprefix $(OBJECTS_DIR)/, $(BIN_SOURCE_FILES:.c=.o) )
 TEST_OBJECTS = $(addprefix $(OBJECTS_DIR)/, $(TEST_SOURCE_FILES:.c=.o) )
 
-all: $(BIN) $(BIN_TEST)
+all: $(OBJECTS_DIR) $(BIN) $(BIN_TEST)
+
+$(OBJECTS_DIR):
+	mkdir obj
 
 $(BIN): $(BIN_OBJECTS) $(COMMON_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
