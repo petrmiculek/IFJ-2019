@@ -113,7 +113,7 @@ get_token(token_t *token, FILE *file)
         {
             case STATE_START:
 
-                if ('1' <= read && read <= '9')
+                if ('0' <= read && read <= '9')
                 {
                     state = STATE_INT;
                     APPEND
@@ -142,7 +142,7 @@ get_token(token_t *token, FILE *file)
                 }
                 else if (read == '"')
                 {
-                    state = STATE_BLOCK;
+                    state = STATE_BLOCK1;
                     break;
                 }
                 else if (read == '#')
@@ -302,6 +302,10 @@ get_token(token_t *token, FILE *file)
                 }
                 else
                 {
+                    if (token->string.str[0] == '0' && strlen(token->string.str) > 1)
+                    {
+                        RETURN_ERR
+                    }
                     token->type = TOKEN_INT;
                     ungetc(read, file);
                     return RET_OK;
@@ -474,6 +478,7 @@ get_token(token_t *token, FILE *file)
                     || read == '\n'
                     || read == '\t')
                 {
+                    APPEND
                     state = STATE_BLOCK3;
                     break;
                 }
@@ -482,7 +487,7 @@ get_token(token_t *token, FILE *file)
             case STATE_BLOCK_B1:
                 if (read == '"')
                 {
-                    state = STATE_BLOCK2;
+                    state = STATE_BLOCK_B2;
                     break;
                 }
                 else if (read == '\\')
@@ -491,40 +496,48 @@ get_token(token_t *token, FILE *file)
                     break;
                 }
                 else
-                    RETURN_ERR
-            case STATE_BLOCK_B2:
-                if (read == '"')
                 {
-                    state = STATE_START;
-                    break;
-                }
-                else if (read == '\\')
-                {
-                    state = STATE_BLOCK_ES1;
-                    break;
-                }
-                else
-                    RETURN_ERR
-            case STATE_BLOCK_ES1:
-                if (read == '"')
-                {
-                    if (append_string(&(token->string), read))
+                    if (append_string(&(token->string), '"'))
                     {
                         return RET_INTERNAL_ERROR;
                     }
                     APPEND
-                    state = STATE_BLOCK_ES2;
+                    state = STATE_BLOCK3;
+                    break;
+                }
+            case STATE_BLOCK_B2:
+                if (read == '"')
+                {
+                    token->type = TOKEN_DOC;
+                    return RET_OK;
+                }
+                else if (read == '\\')
+                {
+                    state = STATE_BLOCK_ES1;
                     break;
                 }
                 else
                 {
+                    if (append_string(&(token->string), '"'))
+                    {
+                        return RET_INTERNAL_ERROR;
+                    }
+                    if (append_string(&(token->string), '"'))
+                    {
+                        return RET_INTERNAL_ERROR;
+                    }
+                    APPEND
                     state = STATE_BLOCK3;
                     break;
                 }
+
+            case STATE_BLOCK_ES1:APPEND
+                state = STATE_BLOCK3;
+                break;
             case STATE_COMMENT:
                 if (read == '\n')
                 {
-                    state = STATE_START;
+                    state = STATE_EOL;
                     break;
                 }
                 else

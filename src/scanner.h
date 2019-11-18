@@ -119,6 +119,7 @@ typedef enum token_type
     TOKEN_EOL,
     TOKEN_EOF,
     TOKEN_IDENTIFIER,
+    TOKEN_DOC,
 } token_type;
 
 #endif
