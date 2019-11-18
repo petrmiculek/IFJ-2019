@@ -1,6 +1,6 @@
 #! /bin/bash
 
-proj=../test
+scanner=tests
 
 
 inputs_scanner=./tests/scanner/input/*
@@ -11,8 +11,7 @@ echo "----------SCANNER TESTS ----------"
 for f in $inputs_scanner
 do
     
-    cat $f >input
-    test_output=$(./$proj) # test output
+    test_output=$(../$scanner $f) # test output
     
     proper_output=$(cat ./tests/scanner/output/out$((i+1)))
     
@@ -24,8 +23,9 @@ do
     else
         printf "ERROR\n"
         diff <( echo "$proper_output" ) <( echo "$test_output" )
-        #cat $f
-   fi 
+        
+   fi
+   printf "\n"
 done
 
 

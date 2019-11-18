@@ -1,21 +1,21 @@
-STRING: 23e12 TYPE: FLOAT
-STRING:  TYPE: EOL
-STRING:  TYPE: INDENT
-STRING: 12.2 TYPE: FLOAT
-STRING:  TYPE: SPACE
-STRING:  TYPE: SPACE
-STRING:  TYPE: EOL
-STRING:  TYPE: INDENT
-STRING: 5E+546 TYPE: FLOAT
-STRING:  TYPE: EOL
-STRING: 3e-48 TYPE: FLOAT
-STRING:  TYPE: EOL
-STRING:  TYPE: INDENT
-STRING: 3e2 TYPE: FLOAT
-STRING:  TYPE: EOL
-STRING:  TYPE: DEDENT
-STRING:  TYPE: DEDENT
-STRING:  TYPE: DEDENT
-STRING:  TYPE: EOL
-STRING:  TYPE: EOF
-STRING:  TYPE: END
+str: 23e12                                    type: FLOAT
+str:                                          type: EOL
+str:                                          type: INDENT
+str: 12.2                                     type: FLOAT
+str:                                          type: SPACE
+str:                                          type: SPACE
+str:                                          type: EOL
+str:                                          type: INDENT
+str: 5E+546                                   type: FLOAT
+str:                                          type: EOL
+str: 3e-48                                    type: FLOAT
+str:                                          type: EOL
+str:                                          type: INDENT
+str: 3e2                                      type: FLOAT
+str:                                          type: EOL
+str:                                          type: DEDENT
+str:                                          type: DEDENT
+str:                                          type: DEDENT
+str:                                          type: EOL
+str:                                          type: EOF
+str:                                          type: END

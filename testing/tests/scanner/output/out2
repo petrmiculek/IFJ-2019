@@ -1,45 +1,45 @@
-STRING: def TYPE: DEF
-STRING:  TYPE: SPACE
-STRING: var TYPE: IDENTIFIER
-STRING:  TYPE: SPACE
-STRING:  TYPE: COLON
-STRING:  TYPE: EOL
-STRING:  TYPE: INDENT
-STRING: while TYPE: WHILE
-STRING:  TYPE: SPACE
-STRING: b TYPE: IDENTIFIER
-STRING:  TYPE: IS_EQUAL
-STRING: c TYPE: IDENTIFIER
-STRING:  TYPE: EOL
-STRING:  TYPE: INDENT
-STRING: if TYPE: IF
-STRING:  TYPE: SPACE
-STRING: a TYPE: IDENTIFIER
-STRING:  TYPE: LESS
-STRING: b TYPE: IDENTIFIER
-STRING:  TYPE: COLON
-STRING:  TYPE: EOL
-STRING:  TYPE: INDENT
-STRING: return TYPE: RETURN
-STRING:  TYPE: SPACE
-STRING: g TYPE: IDENTIFIER
-STRING:  TYPE: EOL
-STRING:  TYPE: DEDENT
-STRING: else TYPE: ELSE
-STRING:  TYPE: SPACE
-STRING:  TYPE: COLON
-STRING:  TYPE: EOL
-STRING:  TYPE: INDENT
-STRING: b TYPE: IDENTIFIER
-STRING:  TYPE: SPACE
-STRING:  TYPE: ASSIGN
-STRING:  TYPE: SPACE
-STRING: b TYPE: IDENTIFIER
-STRING:  TYPE: PLUS
-STRING: a TYPE: IDENTIFIER
-STRING:  TYPE: EOL
-STRING:  TYPE: DEDENT
-STRING:  TYPE: DEDENT
-STRING:  TYPE: DEDENT
-STRING:  TYPE: EOF
-STRING:  TYPE: END
+str: def                                      type: DEF
+str:                                          type: SPACE
+str: var                                      type: IDENTIFIER
+str:                                          type: SPACE
+str:                                          type: COLON
+str:                                          type: EOL
+str:                                          type: INDENT
+str: while                                    type: WHILE
+str:                                          type: SPACE
+str: b                                        type: IDENTIFIER
+str:                                          type: IS_EQUAL
+str: c                                        type: IDENTIFIER
+str:                                          type: EOL
+str:                                          type: INDENT
+str: if                                       type: IF
+str:                                          type: SPACE
+str: a                                        type: IDENTIFIER
+str:                                          type: LESS
+str: b                                        type: IDENTIFIER
+str:                                          type: COLON
+str:                                          type: EOL
+str:                                          type: INDENT
+str: return                                   type: RETURN
+str:                                          type: SPACE
+str: g                                        type: IDENTIFIER
+str:                                          type: EOL
+str:                                          type: DEDENT
+str: else                                     type: ELSE
+str:                                          type: SPACE
+str:                                          type: COLON
+str:                                          type: EOL
+str:                                          type: INDENT
+str: b                                        type: IDENTIFIER
+str:                                          type: SPACE
+str:                                          type: ASSIGN
+str:                                          type: SPACE
+str: b                                        type: IDENTIFIER
+str:                                          type: PLUS
+str: a                                        type: IDENTIFIER
+str:                                          type: EOL
+str:                                          type: DEDENT
+str:                                          type: DEDENT
+str:                                          type: DEDENT
+str:                                          type: EOF
+str:                                          type: END
