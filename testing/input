@@ -1,0 +1,4 @@
+#ignor
+if
+    'asdf' != o
+pass
