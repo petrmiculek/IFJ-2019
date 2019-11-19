@@ -552,6 +552,10 @@ call_elem(data_t *data)
     {
         return RET_OK;
     }
+    else
+    {
+        return RET_SYNTAX_ERROR;
+    }
 }
 
 int
