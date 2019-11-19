@@ -44,7 +44,7 @@ main(int argc, char **argv)
             return RET_LEXICAL_ERROR;
         }
     }
-    while (token.type != TOKEN_END);
+    while (token.type != TOKEN_EOF);
 
     fclose(fp);
 
@@ -169,10 +169,6 @@ print_token_type(token_t token)
     else if (token.type == TOKEN_DEDENT)
     {
         printf("DEDENT\n");
-    }
-    else if (token.type == TOKEN_END)
-    {
-        printf("END\n");
     }
     else if (token.type == TOKEN_EOL)
     {

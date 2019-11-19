@@ -7,8 +7,6 @@
 #include <string.h>
 
 /*######################TODO LIST######################
-    Aktualne scanner nevynucuje, aby \r\n sly hned za sebou
-    Neni to priorita, ale tato podminka by tam spravne mela byt
 #######################################################
 */
 char *keywords[] = {"def", "else", "if", "None", "pass", "return", "while"};
@@ -43,6 +41,59 @@ free_static_stack()
     free(space_stack);
 }
 
+int
+generate_dedent(long long *spaces_num, token_t *token, int *previous_was_eol)
+{
+    if (*spaces_num >= 0)
+    {
+        if (space_stack->array[space_stack->top] < *spaces_num)
+        {
+            push(space_stack, (unsigned) *spaces_num);
+            *spaces_num = -1;
+            token->type = TOKEN_INDENT;
+            return RET_OK;
+        }
+        else if (space_stack->array[space_stack->top] == *spaces_num)
+        {
+            *spaces_num = -1;
+        }
+        else
+        {
+            pop(space_stack);
+            if (space_stack->array[space_stack->top] < *spaces_num)
+                return RET_LEXICAL_ERROR;
+            if (space_stack->array[space_stack->top] == *spaces_num)
+            {
+                *spaces_num = -1;
+            }
+            token->type = TOKEN_DEDENT;
+            return RET_OK;
+        }
+    }
+    else if (*spaces_num == -2)
+    {
+        if (!*previous_was_eol)
+        {
+            *previous_was_eol = 2;
+            token->type = TOKEN_EOL;
+            return RET_OK;
+        }
+        if (space_stack->array[space_stack->top] != 0)
+        {
+            pop(space_stack);
+            token->type = TOKEN_DEDENT;
+            return RET_OK;
+        }
+        else
+        {
+            token->type = TOKEN_EOF;
+            return RET_OK;
+        }
+
+    }
+    return 2;
+}
+
 unsigned int
 get_token(token_t *token, FILE *file)
 {
@@ -59,56 +110,29 @@ get_token(token_t *token, FILE *file)
         return RET_INTERNAL_ERROR;
     }
     static long long spaces_num = -1;
+    static int previous_was_eol = 0;
     unsigned int state = STATE_START;
     int read;
 
-    if (spaces_num >= 0)
+    int check_dedent = generate_dedent(&spaces_num, token, &previous_was_eol);
+    if (check_dedent == 1)
     {
-        if (space_stack->array[space_stack->top] < spaces_num)
-        {
-            push(space_stack, (unsigned) spaces_num);
-            spaces_num = -1;
-            token->type = TOKEN_INDENT;
-            return RET_OK;
-        }
-        else if (space_stack->array[space_stack->top] == spaces_num)
-        {
-            spaces_num = -1;
-        }
-        else
-        {
-            pop(space_stack);
-            if (space_stack->array[space_stack->top] < spaces_num)
-                RETURN_ERR
-            if (space_stack->array[space_stack->top] == spaces_num)
-            {
-                spaces_num = -1;
-            }
-            token->type = TOKEN_DEDENT;
-            return RET_OK;
-        }
+        RETURN_ERR
     }
-    else if (spaces_num == -2)
+    else if (check_dedent == 0)
     {
-        if (space_stack->array[space_stack->top] != 0)
-        {
-            pop(space_stack);
-            token->type = TOKEN_DEDENT;
-            return RET_OK;
-        }
-        else
-        {
-            token->type = TOKEN_END;
-            return RET_OK;
-        }
 
+        return RET_OK;
     }
 
     while (1)
     {
 
         read = fgetc(file);
-
+        if (previous_was_eol)
+        {
+            --previous_was_eol;
+        }
         switch (state)
         {
             case STATE_START:
@@ -223,8 +247,17 @@ get_token(token_t *token, FILE *file)
                 else if (read == EOF)
                 {
                     spaces_num = -2;
-                    token->type = TOKEN_EOF;
-                    return RET_OK;
+                    int check_dedent = generate_dedent(&spaces_num, token, &previous_was_eol);
+                    if (check_dedent == 1)
+                    {
+                        RETURN_ERR
+                    }
+                    else if (check_dedent == 0)
+                    {
+
+                        return RET_OK;
+                    }
+                    break;
                 }
                 else
                     RETURN_ERR
@@ -241,6 +274,7 @@ get_token(token_t *token, FILE *file)
                 {
                     ungetc(read, file);
                     token->type = TOKEN_EOL;
+                    previous_was_eol = 2;
                     return RET_OK;
                 }
 
@@ -262,6 +296,7 @@ get_token(token_t *token, FILE *file)
                 {
                     ungetc(read, file);
                     token->type = TOKEN_EOL;
+                    previous_was_eol = 2;
                     return RET_OK;
                 }
 
