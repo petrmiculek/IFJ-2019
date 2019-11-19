@@ -534,7 +534,7 @@ call_elem(data_t *data)
     }
     else if (data->token->type == TOKEN_IDENTIFIER)
     {
-
+        return RET_OK;
     }
     else if (data->token->type == TOKEN_INT)
     {

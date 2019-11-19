@@ -95,7 +95,6 @@ typedef enum token_type
     TOKEN_ASSIGN,
     TOKEN_INDENT,
     TOKEN_DEDENT,
-    TOKEN_END,
     TOKEN_EOL,
     TOKEN_EOF,
     TOKEN_IDENTIFIER,
