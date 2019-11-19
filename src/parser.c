@@ -87,7 +87,7 @@ parse(FILE *file)
 
     data_t *data = NULL;
 
-    if (!init_data(&data))
+    if (init_data(&data))
     {
         return RET_INTERNAL_ERROR;
     }
@@ -96,12 +96,12 @@ parse(FILE *file)
     // start syntax analysis with starting nonterminal
     res = statement_global(data);
 
-    printf((res) ? "ok" : "err");
+    printf((res == RET_OK) ? "ok" : "err");
 
     free_static_stack();
     clear_data(&data);
 
-    return RET_OK;
+    return res;
 }
 
 int
@@ -132,27 +132,32 @@ statement_list(data_t *data)
     }
     else
     {
+        q_enqueue(data->token, data->token_queue);
+        data->use_queue_for_read = true;
+
         if ((res = statement(data)) != RET_OK)
+        {
             return res;
+        }
 
         if ((res = statement_list(data)) != RET_OK)
+        {
             return res;
 
-        return RET_OK;
+        }
+
+        return RET_OK; // nothing failed
     }
 }
 
 int
 function_def(data_t *data)
 {
-    // FUNCTION_DEF -> def id ( DEF_PARAM_LIST ) : eol indent STATEMENT_LIST_NONEMPTY
+    // FUNCTION_DEF -> id ( DEF_PARAM_LIST ) : eol indent STATEMENT_LIST_NONEMPTY
+
     int res = 0;
 
-    get_next_token(data, &res);
-    RETURN_IF_ERR(res)
-
-    if (data->token->type != TOKEN_DEF)
-        return RET_SYNTAX_ERROR;
+    // IMPORTANT: def token was read in by callee
 
     get_next_token(data, &res);
     RETURN_IF_ERR(res)
@@ -171,24 +176,17 @@ function_def(data_t *data)
 
     if ((res = def_param_list(data)) != RET_OK)
         return res;
-/*
-    // right brace should be read from DEF_PARAM_LIST
-    get_next_token(data, &res);
-    RETURN_IF_ERR(res);
 
-    if (data->token->type != TOKEN_RIGHT)
-        return RET_SYNTAX_ERROR;
-
- */
+    // IMPORTANT: right brace read in inside def_param_list
 
     get_next_token(data, &res);
-    RETURN_IF_ERR(res);
+    RETURN_IF_ERR(res)
 
     if (data->token->type != TOKEN_COLON)
         return RET_SYNTAX_ERROR;
 
     get_next_token(data, &res);
-    RETURN_IF_ERR(res);
+    RETURN_IF_ERR(res)
 
     if (data->token->type != TOKEN_INDENT)
         return RET_SYNTAX_ERROR;
@@ -355,36 +353,39 @@ assign_rhs(data_t *data)
 int
 statement_global(data_t *data)
 {
-    // STATEMENT_GLOBAL -> FUNCTION_DEF STATEMENT_GLOBAL
-    // STATEMENT_GLOBAL -> STATEMENT_LIST STATEMENT_GLOBAL
     // STATEMENT_GLOBAL -> eof
+    // STATEMENT_GLOBAL -> def FUNCTION_DEF STATEMENT_GLOBAL
+    // STATEMENT_GLOBAL -> STATEMENT_LIST STATEMENT_GLOBAL
 
     int res = 0;
     get_next_token(data, &res);
 
     RETURN_IF_ERR(res);
 
-    if (function_def(data) == RET_OK)
+    if (data->token->type == TOKEN_EOF)
     {
-        return (statement_global(data));
-    }
-    else if (statement_list(data) == RET_OK)
-    {
-        // TODO solve repeated branch
-        ;
-        // solved
-        return (statement_global(data));
-
-    }
-    else if (data->token->type == TOKEN_EOF)
-    {
-        // TODO how to handle eof?
         return RET_OK;
+    }
+    else if (data->token->type == TOKEN_DEF)
+    {
+        if ((res = function_def(data)) == RET_OK)
+        {
+            return (statement_global(data));
+        }
+        else
+        {
+            return RET_SYNTAX_ERROR;
+        }
+    }
+    else if ((res = statement_list(data)) == RET_OK)
+    {
+        return (statement_global(data));
     }
     else
     {
         return RET_SYNTAX_ERROR;
     }
+
 }
 
 int
@@ -415,47 +416,142 @@ function_call(data_t *data)
 int
 def_param_list_next(data_t *data)
 {
-    (void) data;
     // DEF_PARAM_LIST_NEXT -> , id DEF_PARAM_LIST_NEXT
     // DEF_PARAM_LIST_NEXT -> )
-    return WARNING_NOT_IMPLEMENTED;
+
+    int res = 0;
+
+    get_next_token(data, &res);
+    RETURN_IF_ERR(res);
+
+    if (data->token->type == TOKEN_RIGHT)
+    {
+        return RET_OK;
+    }
+    else if (data->token->type == TOKEN_COMMA)
+    {
+        get_next_token(data, &res);
+        RETURN_IF_ERR(res);
+
+        if (data->token->type != TOKEN_IDENTIFIER)
+            return (RET_SYNTAX_ERROR);
+
+        return (def_param_list_next(data));
+    }
+    else
+    {
+        return RET_SYNTAX_ERROR;
+    }
+
 }
 
 int
 def_param_list(data_t *data)
 {
-    (void) data;
-    // DEF_PARAM_LIST -> id DEF_PARAM_LIST_NEXT
     // DEF_PARAM_LIST -> )
-    return WARNING_NOT_IMPLEMENTED;
+    // DEF_PARAM_LIST -> id DEF_PARAM_LIST_NEXT
+    int res = 0;
+
+    get_next_token(data, &res);
+    RETURN_IF_ERR(res);
+
+    if (data->token->type == TOKEN_RIGHT)
+    {
+        return RET_OK;
+    }
+    else if (data->token->type == TOKEN_IDENTIFIER)
+    {
+        return (def_param_list_next(data));
+    }
+    else
+    {
+        return RET_SYNTAX_ERROR;
+    }
 }
 
 int
 call_param_list(data_t *data)
 {
-    (void) data;
-    // CALL_PARAM_LIST -> CALL_ELEM CALL_PARAM_LIST_NEXT
     // CALL_PARAM_LIST -> )
-    return WARNING_NOT_IMPLEMENTED;
+    // CALL_PARAM_LIST -> CALL_ELEM CALL_PARAM_LIST_NEXT
+    int res = 0;
+
+    get_next_token(data, &res);
+    RETURN_IF_ERR(res);
+
+    if (data->token->type == TOKEN_RIGHT)
+    {
+        return RET_OK;
+    }
+    else if ((res = call_elem(data)) == RET_OK)
+    {
+        return (call_param_list_next(data));
+    }
+    else
+    {
+        return res;
+    }
 }
 
 int
 call_param_list_next(data_t *data)
 {
-    (void) data;
     // CALL_PARAM_LIST_NEXT -> , CALL_ELEM CALL_PARAM_LIST_NEXT
     // CALL_PARAM_LIST_NEXT -> )
-    return WARNING_NOT_IMPLEMENTED;
+
+    int res = 0;
+
+    get_next_token(data, &res);
+    RETURN_IF_ERR(res);
+
+    if (data->token->type == TOKEN_RIGHT)
+    {
+        return RET_OK;
+    }
+    else if (data->token->type == TOKEN_COMMA)
+    {
+        if ((res = call_elem(data)) != RET_OK)
+            return res;
+
+        return (call_param_list_next(data));
+    }
+    else
+    {
+        return RET_SYNTAX_ERROR;
+    }
 }
 
 int
 call_elem(data_t *data)
 {
-    (void) data;
     // CALL_ELEM -> id
     // CALL_ELEM -> literal
     // CALL_ELEM -> none
-    return WARNING_NOT_IMPLEMENTED;
+
+    if (data->token->type == TOKEN_NONE)
+    {
+        return RET_OK;
+    }
+    else if (data->token->type == TOKEN_IDENTIFIER)
+    {
+
+    }
+    else if (data->token->type == TOKEN_INT)
+    {
+        return RET_OK;
+    }
+    else if (data->token->type == TOKEN_FLOAT)
+    {
+        return RET_OK;
+    }
+    else if (data->token->type == TOKEN_DOC)
+    {
+        return RET_OK;
+    }
+    else if (data->token->type == TOKEN_LIT)
+    {
+        return RET_OK;
+    }
 }
 
 int
@@ -571,9 +667,10 @@ init_data(data_t **data)
             return RET_INTERNAL_ERROR;
         case 0:
             /* nothing failed -> OK */
+            break;
         default:
 
-            printf("%s:%u:init_state: invalid value\n", __func__, __LINE__);
+            printf("%s:%u:init_state: invalid value (%d)\n", __func__, __LINE__, init_state);
             break;
     }
 
