@@ -7,6 +7,9 @@
 #include <string.h>
 
 /*######################TODO LIST######################
+ * Otazky:
+ * Co ak pride v literaly '\' z za nim bude nasledovat space
+ *
 #######################################################
 */
 char *keywords[] = {"def", "else", "if", "None", "pass", "return", "while"};
@@ -39,6 +42,19 @@ void
 free_static_stack()
 {
     free(space_stack);
+}
+
+int
+convert_char(int read, token_t *token)
+{
+    char c[4];
+    sprintf(c, "\\0%.2d", read);
+    for (int i = 0; i < 4; ++i)
+    {
+        read = c[i];
+        APPEND
+    }
+    return 0;
 }
 
 int
@@ -113,6 +129,7 @@ get_token(token_t *token, FILE *file)
     static int previous_was_eol = 0;
     unsigned int state = STATE_START;
     int read;
+    char var[2];
 
     int check_dedent = generate_dedent(&spaces_num, token, &previous_was_eol);
     if (check_dedent == 1)
@@ -146,7 +163,6 @@ get_token(token_t *token, FILE *file)
                 else if (read == '\r')
                 {
                     break;
-                    // TODO gotta handle windows eol \r\n
                 }
                 else if (read == '\n')
                 {
@@ -247,7 +263,7 @@ get_token(token_t *token, FILE *file)
                 else if (read == EOF)
                 {
                     spaces_num = -2;
-                    int check_dedent = generate_dedent(&spaces_num, token, &previous_was_eol);
+                    check_dedent = generate_dedent(&spaces_num, token, &previous_was_eol);
                     if (check_dedent == 1)
                     {
                         RETURN_ERR
@@ -413,7 +429,6 @@ get_token(token_t *token, FILE *file)
                 if (read == '\\')
                 {
                     state = STATE_LIT_B;
-                    APPEND
                     break;
                 }
                 else if (read == '\'')
@@ -423,8 +438,18 @@ get_token(token_t *token, FILE *file)
                 }
                 else if (31 < read)
                 {
+                    if (read == 32 || read == 35)
+                    {
+                        if (convert_char(read, token))
+                        {
+                            return RET_INTERNAL_ERROR;
+                        }
+                    }
+                    else
+                    {
+                        APPEND
+                    }
                     state = STATE_LIT;
-                    APPEND
                     break;
                 }
                 else
@@ -433,13 +458,44 @@ get_token(token_t *token, FILE *file)
                 if (read == 'x')
                 {
                     state = STATE_LIT_H;
-                    APPEND
                     break;
                 }
                 else
                 {
                     state = STATE_LIT;
-                    APPEND
+                    if (read == 'n' || read == 't' || read == '\\')
+                    {
+                        switch (read)
+                        {
+                            case 'n': read = '\n';
+                                break;
+                            case 't': read = '\t';
+                                break;
+                            case '\\': read = '\\';
+                                break;
+                            default:break;
+                        }
+                        if (convert_char(read, token))
+                        {
+                            return RET_INTERNAL_ERROR;
+                        }
+                    }
+                    else if (read == '\"')
+                    {
+                        APPEND
+                    }
+                    else if (read == '\'')
+                    {
+                        APPEND
+                    }
+                    else
+                    {
+                        if (append_string(&(token->string), '\\'))
+                        {
+                            return RET_INTERNAL_ERROR;
+                        }
+                        APPEND
+                    }
                     break;
                 }
             case STATE_LIT_H:
@@ -448,7 +504,7 @@ get_token(token_t *token, FILE *file)
                     || ('A' <= read && read <= 'F'))
                 {
                     state = STATE_LIT_H1;
-                    APPEND
+                    var[0] = read;
                     break;
                 }
                 else
@@ -459,7 +515,9 @@ get_token(token_t *token, FILE *file)
                     || ('A' <= read && read <= 'F'))
                 {
                     state = STATE_LIT;
-                    APPEND
+                    var[1] = read;
+                    long dec_num = strtol(var, NULL, 16);
+                    convert_char(dec_num, token);
                     break;
                 }
                 else

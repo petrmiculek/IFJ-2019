@@ -1,5 +1,5 @@
 # For CLion use, don't touch if you don't need it pls
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.14)
 project(compiler C)
 
 set(CMAKE_C_STANDARD 11)
