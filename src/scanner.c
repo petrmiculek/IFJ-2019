@@ -53,7 +53,7 @@ convert_char(int read, token_t *token)
     for (int i = 0; i < 4; ++i)
     {
         read = c[i];
-        APPEND
+        APPEND(read)
     }
     return RET_OK;
 }
@@ -129,7 +129,7 @@ get_token(token_t *token, FILE *file)
     static long long spaces_num = -1;
     static int previous_was_eol = 0;
     unsigned int state = STATE_START;
-    int read;
+    int read, flag_block_es = 0;
     char var[2];
 
     int check_dedent = generate_dedent(&spaces_num, token, &previous_was_eol);
@@ -158,7 +158,7 @@ get_token(token_t *token, FILE *file)
                 if ('0' <= read && read <= '9')
                 {
                     state = STATE_INT;
-                    APPEND
+                    APPEND(read)
                     break;
                 }
                 else if (read == '\r')
@@ -195,7 +195,7 @@ get_token(token_t *token, FILE *file)
                     || (read == '_'))
                 {
                     state = STATE_IDENTIFIER;
-                    APPEND
+                    APPEND(read)
 
                     break;
                 }
@@ -321,19 +321,19 @@ get_token(token_t *token, FILE *file)
                 if (read == '.')
                 {
                     state = STATE_FLOAT;
-                    APPEND
+                    APPEND(read)
                     break;
                 }
                 else if ('0' <= read && read <= '9')
                 {
                     state = STATE_INT;
-                    APPEND
+                    APPEND(read)
                     break;
                 }
                 else if (read == 'e' || read == 'E')
                 {
                     state = STATE_FLOAT_E;
-                    APPEND
+                    APPEND(read)
                     break;
                 }
                 else
@@ -351,7 +351,7 @@ get_token(token_t *token, FILE *file)
                 if ('0' <= read && read <= '9')
                 {
                     state = STATE_FLOAT_D;
-                    APPEND
+                    APPEND(read)
                     break;
                 }
                 else
@@ -362,13 +362,13 @@ get_token(token_t *token, FILE *file)
                 if ('0' <= read && read <= '9')
                 {
                     state = STATE_FLOAT_D;
-                    APPEND
+                    APPEND(read)
                     break;
                 }
                 else if (read == 'e' || read == 'E')
                 {
                     state = STATE_FLOAT_E;
-                    APPEND
+                    APPEND(read)
                     break;
                 }
                 else
@@ -381,7 +381,7 @@ get_token(token_t *token, FILE *file)
                 if ('1' <= read && read <= '9')
                 {
                     state = STATE_FLOAT_S;
-                    APPEND
+                    APPEND(read)
                     break;
                 }
                 else if (read == '0')
@@ -392,7 +392,7 @@ get_token(token_t *token, FILE *file)
                 else if (read == '+' || read == '-')
                 {
                     state = STATE_FLOAT_Z;
-                    APPEND
+                    APPEND(read)
                     break;
                 }
                 else
@@ -402,7 +402,7 @@ get_token(token_t *token, FILE *file)
                 if ('1' <= read && read <= '9')
                 {
                     state = STATE_FLOAT_S;
-                    APPEND
+                    APPEND(read)
                     break;
                 }
                 else if (read == '0')
@@ -416,7 +416,7 @@ get_token(token_t *token, FILE *file)
                 if ('0' <= read && read <= '9')
                 {
                     state = STATE_FLOAT_S;
-                    APPEND
+                    APPEND(read)
                     break;
                 }
                 else
@@ -439,13 +439,13 @@ get_token(token_t *token, FILE *file)
                 }
                 else if (31 < read)
                 {
-                    if (read == 32 || read == 35)
+                    if (read == ' ' || read == '#')
                     {
                         APPEND_SPECIAL(read)
                     }
                     else
                     {
-                        APPEND
+                        APPEND(read)
                     }
                     state = STATE_LIT;
                     break;
@@ -461,7 +461,7 @@ get_token(token_t *token, FILE *file)
                 else
                 {
                     state = STATE_LIT;
-                    if (read == 'n' || read == 't' || read == '\\')
+                    if (read == 'n' || read == 't' || read == '\\' || read == '#')
                     {
                         switch (read)
                         {
@@ -471,26 +471,24 @@ get_token(token_t *token, FILE *file)
                                 break;
                             case '\\': read = '\\';
                                 break;
+                            case '#': read = '#';
                             default:break;
                         }
-                       APPEND_SPECIAL(read)
+                        APPEND_SPECIAL(read)
                     }
-                    else if (read == '\"')
+                    else if (read == '\"' || read == '\'')
                     {
-                        APPEND
-                    }
-                    else if (read == '\'')
-                    {
-                        APPEND
+                        APPEND(read)
                     }
                     else if (read == ' ')
                     {
+                        APPEND_SPECIAL('\\')
                         APPEND_SPECIAL(' ')
                     }
                     else
                     {
                         APPEND_SPECIAL('\\')
-                        APPEND
+                        APPEND(read)
                     }
                     break;
                 }
@@ -542,15 +540,19 @@ get_token(token_t *token, FILE *file)
                 }
                 else if (read == '\\')
                 {
+                    flag_block_es = 1;
                     state = STATE_BLOCK_ES1;
                     break;
                 }
-                else if (31 < read
-                    || read == '\r'
-                    || read == '\n'
-                    || read == '\t')
+                else if (read == '\r' || read == '\n' || read == '\t' || read == '#' || read == ' ')
                 {
-                    APPEND
+                    APPEND_SPECIAL(read)
+                    state = STATE_BLOCK3;
+                    break;
+                }
+                else if (31 < read)
+                {
+                    APPEND(read)
                     state = STATE_BLOCK3;
                     break;
                 }
@@ -564,16 +566,22 @@ get_token(token_t *token, FILE *file)
                 }
                 else if (read == '\\')
                 {
+                    APPEND('"')
+                    flag_block_es = 1;
                     state = STATE_BLOCK_ES1;
                     break;
                 }
                 else
                 {
-                    if (append_string(&(token->string), '"'))
+                    APPEND('"')
+                    if (read == ' ' || read == '\r' || read == '\n' || read == '\t' || read == '#')
                     {
-                        return RET_INTERNAL_ERROR;
+                        APPEND_SPECIAL(read)
                     }
-                    APPEND
+                    else
+                    {
+                        APPEND(read)
+                    }
                     state = STATE_BLOCK3;
                     break;
                 }
@@ -585,27 +593,57 @@ get_token(token_t *token, FILE *file)
                 }
                 else if (read == '\\')
                 {
+                    APPEND('"')
+                    APPEND('"')
+                    state = STATE_BLOCK_ES1;
+                    flag_block_es = 1;
+                    break;
+                }
+                else
+                {
+                    APPEND('"')
+                    APPEND('"')
+                    if (read == ' ' || read == '\r' || read == '\n' || read == '\t' || read == '#')
+                    {
+                        APPEND_SPECIAL(read)
+                    }
+                    else
+                    {
+                        APPEND(read)
+                    }
+                    state = STATE_BLOCK3;
+                    break;
+                }
+
+            case STATE_BLOCK_ES1:
+                if (read == '\\')
+                {
+                    if (flag_block_es)
+                    {
+                        APPEND_SPECIAL('\\')
+                    }
+                    flag_block_es = 0;
+                    APPEND_SPECIAL(read)
                     state = STATE_BLOCK_ES1;
                     break;
                 }
                 else
                 {
-                    if (append_string(&(token->string), '"'))
+                    if (read != '"' && flag_block_es)
                     {
-                        return RET_INTERNAL_ERROR;
+                        APPEND_SPECIAL('\\')
                     }
-                    if (append_string(&(token->string), '"'))
+                    if (read == ' ' || read == '\r' || read == '\n' || read == '\t' || read == '#')
                     {
-                        return RET_INTERNAL_ERROR;
+                        APPEND_SPECIAL(read)
                     }
-                    APPEND
+                    else
+                    {
+                        APPEND(read)
+                    }
                     state = STATE_BLOCK3;
                     break;
                 }
-
-            case STATE_BLOCK_ES1:APPEND
-                state = STATE_BLOCK3;
-                break;
             case STATE_COMMENT:
                 if (read == '\n')
                 {
@@ -617,6 +655,7 @@ get_token(token_t *token, FILE *file)
                     state = STATE_COMMENT;
                     break;
                 }
+
             case STATE_IDENTIFIER:
                 if ((read >= 'a' && read <= 'z')
                     || (read >= 'A' && read <= 'Z')
@@ -624,7 +663,7 @@ get_token(token_t *token, FILE *file)
                     || (read >= '0' && read <= '9'))
                 {
                     state = STATE_IDENTIFIER;
-                    APPEND
+                    APPEND(read)
                     break;
                 }
                 else
