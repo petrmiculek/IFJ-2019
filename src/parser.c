@@ -561,18 +561,39 @@ call_elem(data_t *data)
 int
 return_statement(data_t *data)
 {
-    (void) data;
     // RETURN -> return RETURN_EXPRESSION
-    return WARNING_NOT_IMPLEMENTED;
+    if (data->token->type != TOKEN_RETURN)
+        return RET_SYNTAX_ERROR;
+
 }
 
 int
 return_expression(data_t *data)
 {
-    (void) data;
     // RETURN_EXPRESSION -> eol
     // RETURN_EXPRESSION -> EXPRESSION eol
-    return WARNING_NOT_IMPLEMENTED;
+
+    int res;
+
+    if (data->token->type == TOKEN_EOL)
+    {
+        return RET_OK;
+    }
+    else
+    {
+        if ((res = expression(data)) != RET_OK)
+            return res;
+
+        if (data->token->type == TOKEN_EOL)
+        {
+            return RET_OK;
+        }
+        else
+        {
+            return RET_SYNTAX_ERROR;
+        }
+    }
+
 }
 
 int
