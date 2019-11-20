@@ -47,14 +47,15 @@ free_static_stack()
 int
 convert_char(int read, token_t *token)
 {
-    char c[4];
+    char c[5];
     sprintf(c, "\\0%.2d", read);
+
     for (int i = 0; i < 4; ++i)
     {
         read = c[i];
         APPEND
     }
-    return 0;
+    return RET_OK;
 }
 
 int
@@ -440,10 +441,7 @@ get_token(token_t *token, FILE *file)
                 {
                     if (read == 32 || read == 35)
                     {
-                        if (convert_char(read, token))
-                        {
-                            return RET_INTERNAL_ERROR;
-                        }
+                        APPEND_SPECIAL(read)
                     }
                     else
                     {
@@ -475,10 +473,7 @@ get_token(token_t *token, FILE *file)
                                 break;
                             default:break;
                         }
-                        if (convert_char(read, token))
-                        {
-                            return RET_INTERNAL_ERROR;
-                        }
+                       APPEND_SPECIAL(read)
                     }
                     else if (read == '\"')
                     {
@@ -488,12 +483,13 @@ get_token(token_t *token, FILE *file)
                     {
                         APPEND
                     }
+                    else if (read == ' ')
+                    {
+                        APPEND_SPECIAL(' ')
+                    }
                     else
                     {
-                        if (append_string(&(token->string), '\\'))
-                        {
-                            return RET_INTERNAL_ERROR;
-                        }
+                        APPEND_SPECIAL('\\')
                         APPEND
                     }
                     break;
@@ -517,7 +513,7 @@ get_token(token_t *token, FILE *file)
                     state = STATE_LIT;
                     var[1] = read;
                     long dec_num = strtol(var, NULL, 16);
-                    convert_char(dec_num, token);
+                    APPEND_SPECIAL(dec_num)
                     break;
                 }
                 else
