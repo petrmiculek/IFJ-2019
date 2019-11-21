@@ -10,7 +10,8 @@
 #define STACK_REALLOC 20
 
 #define RETURN_ERR do { state = STATE_ERROR; return RET_LEXICAL_ERROR; } while(0);
-#define APPEND if(append_string(&(token->string), read)){ return RET_INTERNAL_ERROR; }
+#define APPEND(read) if(append_string(&(token->string), read)){ return RET_INTERNAL_ERROR; }
+#define APPEND_SPECIAL(read)  if(convert_char(read, token)) {return RET_INTERNAL_ERROR;}
 
 // this can't go to stack.c/stack.h, as the variable it interacts with is static
 void
