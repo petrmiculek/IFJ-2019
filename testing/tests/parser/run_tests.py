@@ -1,24 +1,24 @@
 """
-This runs the binary
+This runs the binary with all files in input_dir (snippets),
+shows its output
+and return code (r:_)
 """
 
 import os
 import subprocess
 
-binary = compiler
-input_dir = "../../../snippets"
-dir = os.listdir(input_dir)
-
-print(input_dir + 'content:')
-print(dir)
+main_dir = "../../../"
+binary = "compiler"
+input_dir = "snippets"
+dir = os.listdir(main_dir + input_dir)
 
 for file_name in dir:
-    args = ("../../../" + binary, (input_dir + '/' + file_name))
+    current_file = (main_dir + input_dir + '/' + file_name)
+    print(file_name)
+    args = (main_dir + binary, current_file)
 
     popen = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
     popen.wait()
     output = popen.stdout.read()
     returnCode = popen.poll()
-    print(output + '\nr:', returnCode)
-
-print('---finished---')
+    print(output + 'r:', returnCode, '\n---\n')

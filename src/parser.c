@@ -31,7 +31,7 @@ parse(FILE *file)
     // start syntax analysis with starting nonterminal
     res = statement_global(data);
 
-    printf((res == RET_OK) ? "ok" : "err");
+    printf((res == RET_OK) ? "ok\n" : "err\n");
 
     free_static_stack();
     clear_data(&data);
@@ -116,6 +116,12 @@ function_def(data_t *data)
     RETURN_IF_ERR(res)
 
     if (data->token->type != TOKEN_COLON)
+        return RET_SYNTAX_ERROR;
+
+    get_next_token(data, &res);
+    RETURN_IF_ERR(res)
+
+    if (data->token->type != TOKEN_EOL)
         return RET_SYNTAX_ERROR;
 
     get_next_token(data, &res);
@@ -283,11 +289,10 @@ statement_global(data_t *data)
 {
     // STATEMENT_GLOBAL -> eof
     // STATEMENT_GLOBAL -> def FUNCTION_DEF STATEMENT_GLOBAL
-    // STATEMENT_GLOBAL -> STATEMENT_LIST STATEMENT_GLOBAL
+    // STATEMENT_GLOBAL -> STATEMENT STATEMENT_GLOBAL
 
     int res = 0;
     get_next_token(data, &res);
-
     RETURN_IF_ERR(res)
 
     if (data->token->type == TOKEN_EOF)
@@ -305,15 +310,20 @@ statement_global(data_t *data)
             return RET_SYNTAX_ERROR;
         }
     }
-    else if ((res = statement_list(data)) == RET_OK)
-    {
-        return (statement_global(data));
-    }
     else
     {
-        return RET_SYNTAX_ERROR;
-    }
+        q_enqueue(data->token, data->token_queue);
+        data->use_queue_for_read = true;
 
+        if ((res = statement(data)) == RET_OK)
+        {
+            return (statement_global(data));
+        }
+        else
+        {
+            return RET_SYNTAX_ERROR;
+        }
+    }
 }
 
 int
@@ -329,9 +339,6 @@ if_clause(data_t *data)
     {
         return RET_SYNTAX_ERROR;
     }
-
-    get_next_token(data, &res);
-    RETURN_IF_ERR(res)
 
     if ((res = expression(data)) != RET_OK)
     {
@@ -362,9 +369,6 @@ if_clause(data_t *data)
         return RET_SYNTAX_ERROR;
     }
 
-    get_next_token(data, &res);
-    RETURN_IF_ERR(res)
-
     if ((res = statement_list_nonempty(data)) != RET_OK)
     {
         return res;
@@ -386,6 +390,22 @@ if_clause(data_t *data)
     RETURN_IF_ERR(res)
 
     if (data->token->type != TOKEN_COLON)
+    {
+        return RET_SYNTAX_ERROR;
+    }
+
+    get_next_token(data, &res);
+    RETURN_IF_ERR(res)
+
+    if (data->token->type != TOKEN_EOL)
+    {
+        return RET_SYNTAX_ERROR;
+    }
+
+    get_next_token(data, &res);
+    RETURN_IF_ERR(res)
+
+    if (data->token->type != TOKEN_INDENT)
     {
         return RET_SYNTAX_ERROR;
     }
@@ -436,9 +456,6 @@ while_clause(data_t *data)
     {
         return RET_SYNTAX_ERROR;
     }
-
-    get_next_token(data, &res);
-    RETURN_IF_ERR(res)
 
     return statement_list_nonempty(data);
 }
@@ -630,6 +647,9 @@ return_expression(data_t *data)
             return res;
         }
 
+        get_next_token(data, &res);
+        RETURN_IF_ERR(res)
+
         if (data->token->type == TOKEN_EOL)
         {
             return RET_OK;
@@ -663,9 +683,9 @@ expression(data_t *data)
 
         // until end of expression is reached
     }
-    while (data->token->type != TOKEN_EOL && data->token->type != TOKEN_EOF);
+    while (data->token->type != TOKEN_EOL && data->token->type != TOKEN_EOF && data->token->type != TOKEN_COLON);
 
-    // unget eol/eof token
+    // unget eol/eof/: token
     q_enqueue(data->token, data->token_queue);
     data->use_queue_for_read = true;
 
@@ -678,7 +698,7 @@ get_next_token(data_t *data, int *res)
 {
     if (data->use_queue_for_read)
     {
-        if (data->token_queue->first)
+        if (data->token_queue->first != NULL)
         {
             data->token = q_pop(data->token_queue);
             *res = RET_OK;
@@ -688,12 +708,22 @@ get_next_token(data_t *data, int *res)
             // queue is empty, stop reading from it
             // and read token like usual
             data->use_queue_for_read = false;
-            *res = (int) get_token(data->token, data->file);
+            do
+            {
+                *res = (int) get_token(data->token, data->file);
+
+            }
+            while (*res == RET_OK && data->token->type == TOKEN_SPACE);
         }
     }
     else
     {
-        *res = (int) get_token(data->token, data->file);
+        do
+        {
+            *res = (int) get_token(data->token, data->file);
+
+        }
+        while (*res == RET_OK && data->token->type == TOKEN_SPACE);
     }
 }
 

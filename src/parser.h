@@ -7,7 +7,7 @@
 int
 parse(FILE *file);
 
-typedef struct
+struct _struct_data_t
 {
     FILE *file;
     token_queue_t *token_queue;
@@ -18,7 +18,8 @@ typedef struct
     // symtable
     // flags (in fun, if, while)
 
-} data_t;
+};
+typedef struct _struct_data_t data_t;
 
 int
 function_def(data_t *data);

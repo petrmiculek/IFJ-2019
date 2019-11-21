@@ -36,70 +36,70 @@ get_token(token_t *token, FILE *file);
 
 enum state
 {
-    STATE_LIT,
-    STATE_INT,
-    STATE_FLOAT,
-    STATE_FLOAT_D,
-    STATE_FLOAT_E,
-    STATE_FLOAT_S,
-    STATE_FLOAT_Z,
-    STATE_DIVISION,
-    STATE_LESS,
-    STATE_MORE,
-    STATE_NEG,
-    STATE_ASSIGN,
-    STATE_IDENTIFIER,
-    STATE_COMMENT,
-    STATE_BLOCK1,
-    STATE_BLOCK2,
-    STATE_BLOCK3,
-    STATE_BLOCK_B1,
-    STATE_BLOCK_B2,
-    STATE_BLOCK_ES1,
-    STATE_LIT_H1,
-    STATE_LIT_H,
-    STATE_LIT_B,
-    STATE_ERROR,
-    STATE_START,
-    STATE_EOL,
-    STATE_EOL_SP,
+    STATE_LIT, // 0
+    STATE_INT, // 1
+    STATE_FLOAT, // 2
+    STATE_FLOAT_D, // 3
+    STATE_FLOAT_E, // 4
+    STATE_FLOAT_S, // 5
+    STATE_FLOAT_Z, // 6
+    STATE_DIVISION, // 7
+    STATE_LESS, // 8
+    STATE_MORE, // 9
+    STATE_NEG, // 10
+    STATE_ASSIGN, // 11
+    STATE_IDENTIFIER, // 12
+    STATE_COMMENT, // 13
+    STATE_BLOCK1, // 14
+    STATE_BLOCK2, // 15
+    STATE_BLOCK3, // 16
+    STATE_BLOCK_B1, // 17
+    STATE_BLOCK_B2, // 18
+    STATE_BLOCK_ES1, // 19
+    STATE_LIT_H1, // 20
+    STATE_LIT_H, // 21
+    STATE_LIT_B, // 22
+    STATE_ERROR, // 23
+    STATE_START, // 24
+    STATE_EOL, // 25
+    STATE_EOL_SP, // 26
 };
 
 typedef enum token_type
 {
-    TOKEN_INT,
-    TOKEN_FLOAT,
-    TOKEN_LEFT,
-    TOKEN_RIGHT,
-    TOKEN_LIT,
-    TOKEN_IS_EQUAL,
-    TOKEN_N_EQUAL,
-    TOKEN_MORE,
-    TOKEN_MORE_E,
-    TOKEN_LESS,
-    TOKEN_LESS_E,
-    TOKEN_MULTI,
-    TOKEN_DIVISION,
-    TOKEN_FLOR_DIV,
-    TOKEN_MINUS,
-    TOKEN_PLUS,
-    TOKEN_NONE,
-    TOKEN_PASS,
-    TOKEN_RETURN,
-    TOKEN_COMMA,
-    TOKEN_COLON,
-    TOKEN_SPACE,
-    TOKEN_DEF,
-    TOKEN_IF,
-    TOKEN_ELSE,
-    TOKEN_WHILE,
-    TOKEN_ASSIGN,
-    TOKEN_INDENT,
-    TOKEN_DEDENT,
-    TOKEN_EOL,
-    TOKEN_EOF,
-    TOKEN_IDENTIFIER,
-    TOKEN_DOC,
+    TOKEN_INT, // 0
+    TOKEN_FLOAT, // 1
+    TOKEN_LEFT, // 2
+    TOKEN_RIGHT, // 3
+    TOKEN_LIT, // 4
+    TOKEN_IS_EQUAL, // 5
+    TOKEN_N_EQUAL, // 6
+    TOKEN_MORE, // 7
+    TOKEN_MORE_E, // 8
+    TOKEN_LESS, // 9
+    TOKEN_LESS_E, // 10
+    TOKEN_MULTI, // 11
+    TOKEN_DIVISION, // 12
+    TOKEN_FLOR_DIV, // 13
+    TOKEN_MINUS, // 14
+    TOKEN_PLUS, // 15
+    TOKEN_NONE, // 16
+    TOKEN_PASS, // 17
+    TOKEN_RETURN, // 18
+    TOKEN_COMMA, // 19
+    TOKEN_COLON, // 20
+    TOKEN_SPACE, // 21
+    TOKEN_DEF, // 22
+    TOKEN_IF, // 23
+    TOKEN_ELSE, // 24
+    TOKEN_WHILE, // 25
+    TOKEN_ASSIGN, // 26
+    TOKEN_INDENT, // 27
+    TOKEN_DEDENT, // 28
+    TOKEN_EOL, // 29
+    TOKEN_EOF, // 30
+    TOKEN_IDENTIFIER, // 31
+    TOKEN_DOC, // 32
 } token_type;
 
 #endif

@@ -5,5 +5,4 @@ x
 variable
 """
 mojePromenna = inputs()
-
 mojePromenna = None

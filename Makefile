@@ -25,10 +25,10 @@ COMMON_OBJECTS = $(addprefix $(OBJECTS_DIR)/, $(COMMON_SOURCE_FILES:.c=.o) )
 BIN_OBJECTS = $(addprefix $(OBJECTS_DIR)/, $(BIN_SOURCE_FILES:.c=.o) )
 TEST_OBJECTS = $(addprefix $(OBJECTS_DIR)/, $(TEST_SOURCE_FILES:.c=.o) )
 
-all: $(OBJECTS_DIR) $(BIN) $(BIN_TEST)
+all: $(BIN) $(BIN_TEST)
 
 $(OBJECTS_DIR):
-	mkdir obj
+	mkdir -p $@
 
 $(BIN): $(BIN_OBJECTS) $(COMMON_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
@@ -36,7 +36,7 @@ $(BIN): $(BIN_OBJECTS) $(COMMON_OBJECTS)
 $(BIN_TEST): $(TEST_OBJECTS) $(COMMON_OBJECTS)
 	$(CC) $(CFLAGS) -o  $@ $^
 
-$(OBJECTS_DIR)/%.o: $(SOURCES_DIR)/%.c
+$(OBJECTS_DIR)/%.o: $(SOURCES_DIR)/%.c | $(OBJECTS_DIR)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 .PHONY: clean test tests

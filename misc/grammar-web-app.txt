@@ -1,5 +1,6 @@
 %token dedent def else eof eol expr pass id if indent literal none pass return while
 %% /* LL(1) */
+% /* TODO propagate changes from grammar */
 STATEMENT_GLOBAL : FUNCTION_DEF STATEMENT_GLOBAL
 | STATEMENT_LIST_NONEMPTY STATEMENT_GLOBAL
 |   eof ;
