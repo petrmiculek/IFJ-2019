@@ -113,6 +113,7 @@ copy_token(token_t *token)
     if (NULL != (new_token = malloc(sizeof(token_t))))
     {
         new_token->type = token->type;
+        init_string(&new_token->string);
         if (RET_OK != copy_string(&new_token->string, &token->string))
         {
             return NULL;

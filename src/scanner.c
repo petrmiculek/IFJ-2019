@@ -8,7 +8,7 @@
 
 /*######################TODO LIST######################
  * Otazky:
- * Co ak pride v literaly '\' z za nim bude nasledovat space
+ * Co ak pride v literaly '\' a za nim bude nasledovat space
  *
 #######################################################
 */
@@ -41,6 +41,7 @@ check_keyword(char *str)
 void
 free_static_stack()
 {
+    free(space_stack->array);
     free(space_stack);
 }
 
@@ -122,10 +123,18 @@ get_token(token_t *token, FILE *file)
         }
     }
 
-    if (init_string(&token->string))
+    if (token != NULL)
+    {
+        if (init_string(&token->string) != RET_OK)
+        {
+            return RET_INTERNAL_ERROR;
+        }
+    }
+    else
     {
         return RET_INTERNAL_ERROR;
     }
+
     static long long spaces_num = -1;
     static int previous_was_eol = 0;
     unsigned int state = STATE_START;
@@ -498,7 +507,7 @@ get_token(token_t *token, FILE *file)
                     || ('A' <= read && read <= 'F'))
                 {
                     state = STATE_LIT_H1;
-                    var[0] = read;
+                    var[0] = (char) read;
                     break;
                 }
                 else
@@ -509,7 +518,7 @@ get_token(token_t *token, FILE *file)
                     || ('A' <= read && read <= 'F'))
                 {
                     state = STATE_LIT;
-                    var[1] = read;
+                    var[1] = (char) read;
                     long dec_num = strtol(var, NULL, 16);
                     APPEND_SPECIAL(dec_num)
                     break;

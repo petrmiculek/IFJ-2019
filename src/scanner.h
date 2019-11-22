@@ -19,7 +19,7 @@ free_static_stack();
 
 typedef struct
 {
-    string_t string;
+    string_t string; // TODO should this not be a ptr?
     unsigned int type;
 } token_t;
 
@@ -101,5 +101,7 @@ typedef enum token_type
     TOKEN_IDENTIFIER, // 31
     TOKEN_DOC, // 32
 } token_type;
+
+#define TOKEN_INVALID 404
 
 #endif

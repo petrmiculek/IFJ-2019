@@ -22,9 +22,9 @@ parse(FILE *file)
 
     data_t *data = NULL;
 
-    if (init_data(&data))
+    if ((res = init_data(&data)) != RET_OK)
     {
-        return RET_INTERNAL_ERROR;
+        return res;
     }
 
     data->file = file;
@@ -46,7 +46,7 @@ statement_list_nonempty(data_t *data)
 
     int res;
 
-    if ((res = statement(data)) != RET_OK)
+    if ((res = statement(data)) != RET_OK) // TMP: token already loaded ?
     {
         return res;
     }
@@ -74,7 +74,7 @@ statement_list(data_t *data)
         q_enqueue(data->token, data->token_queue);
         data->use_queue_for_read = true;
 
-        if ((res = statement(data)) != RET_OK)
+        if ((res = statement(data)) != RET_OK) // TMP: token in queue ( AND loaded )
         {
             return res;
         }
@@ -130,7 +130,7 @@ function_def(data_t *data)
     if (data->token->type != TOKEN_INDENT)
         return RET_SYNTAX_ERROR;
 
-    return statement_list_nonempty(data);
+    return statement_list_nonempty(data); // TMP: token not loaded
 }
 
 int
@@ -177,7 +177,7 @@ statement(data_t *data)
     }
     else
     {
-        // TODO here I must check if token is a valid start of expression
+        // TODO must check if token is a valid start of expression
 
         if (data->token->type == TOKEN_IDENTIFIER)
         {
@@ -185,19 +185,17 @@ statement(data_t *data)
             // id = RHS eol
             // RHS eol ( something like: id * id + 4 eol )
 
-            q_enqueue(data->token, data->token_queue); // identifier set aside
-            data->use_queue_for_read = false;
+            q_enqueue(data->token, data->token_queue);
+            data->use_queue_for_read = false; // keep in queue
 
             get_next_token(data, &res);
             RETURN_IF_ERR(res)
-
-            // TODO next time, start here
 
             if (data->token->type == TOKEN_ASSIGN)
             {
                 // STATEMENT -> id = ASSIGN_RHS eol
 
-                if ((res = assign_rhs(data)) != RET_OK)
+                if ((res = assign_rhs(data)) != RET_OK) // cannot use queue
                     return res;
 
                 get_next_token(data, &res);
@@ -205,11 +203,25 @@ statement(data_t *data)
 
                 if (data->token->type == TOKEN_EOL)
                 {
-                    // assign-statement complete, save info from tokens
+                    data->use_queue_for_read = true;
+
+                    get_next_token(data, &res);
+                    RETURN_IF_ERR(res)
+
+                    // read info from token == identifier
+
                     return RET_OK;
                 }
                 else
                 {
+                    data->use_queue_for_read = true;
+
+                    get_next_token(data, &res);
+                    RETURN_IF_ERR(res)
+
+                    // possibly read info from token == identifier
+                    // but here it's a syntax error
+
                     return RET_SYNTAX_ERROR;
                 }
             }
@@ -217,9 +229,8 @@ statement(data_t *data)
             {
                 // STATEMENT -> ASSIGN_RHS eol
 
-                q_enqueue(data->token, data->token_queue); // token past identifier is set aside
+                q_enqueue(data->token, data->token_queue); // token past identifier
                 data->use_queue_for_read = true;
-                // data->use_queue_for_read turns back to false after queue is emptied
 
                 if ((res = assign_rhs(data)) != RET_OK)
                     return res;
@@ -235,11 +246,12 @@ statement(data_t *data)
                 {
                     return RET_SYNTAX_ERROR;
                 }
-
             }
         }
-        else // data->token->type != TOKEN_IDENTIFIER
+        else
         {
+            // data->token->type != TOKEN_IDENTIFIER
+
             q_enqueue(data->token, data->token_queue);
             data->use_queue_for_read = true;
 
@@ -270,19 +282,17 @@ assign_rhs(data_t *data)
     int res = 0;
     get_next_token(data, &res);
     RETURN_IF_ERR(res)
+    // TMP: queue should be empty at this point
+
+    token_t local_token = *data->token;
 
     if (data->token->type == TOKEN_IDENTIFIER)
     {
-        q_enqueue(data->token, data->token_queue);
-        // set token(= identifier) aside, but don't start reading from queue
-
         get_next_token(data, &res);
         RETURN_IF_ERR(res)
 
         if (data->token->type == TOKEN_LEFT)
         {
-            // WARNING token with identifier is in queue, waiting
-            // but will not be read immediately
             return call_param_list(data);
         }
         else
@@ -295,6 +305,8 @@ assign_rhs(data_t *data)
     }
     else
     {
+
+        q_enqueue(&local_token, data->token_queue);
         q_enqueue(data->token, data->token_queue);
         data->use_queue_for_read = true;
 
@@ -313,7 +325,8 @@ statement_global(data_t *data)
     get_next_token(data, &res);
     RETURN_IF_ERR(res)
 
-    if (data->token->type == TOKEN_EOF)
+    if (data->token->type == TOKEN_EOF
+        || data->token->type == TOKEN_EOL) // TODO Not in grammar -> check validity
     {
         return RET_OK;
     }
@@ -333,7 +346,7 @@ statement_global(data_t *data)
         q_enqueue(data->token, data->token_queue);
         data->use_queue_for_read = true;
 
-        if ((res = statement(data)) == RET_OK)
+        if ((res = statement(data)) == RET_OK) // TMP: token in queue ( AND loaded )
         {
             return (statement_global(data));
         }
@@ -388,7 +401,7 @@ if_clause(data_t *data)
         return RET_SYNTAX_ERROR;
     }
 
-    if ((res = statement_list_nonempty(data)) != RET_OK)
+    if ((res = statement_list_nonempty(data)) != RET_OK) // TMP: token not loaded
     {
         return res;
     }
@@ -429,7 +442,7 @@ if_clause(data_t *data)
         return RET_SYNTAX_ERROR;
     }
 
-    return statement_list_nonempty(data);
+    return statement_list_nonempty(data); // TMP: token not loaded
 }
 
 int
@@ -445,10 +458,10 @@ while_clause(data_t *data)
     {
         return RET_SYNTAX_ERROR;
     }
-
+/*
     get_next_token(data, &res);
     RETURN_IF_ERR(res)
-
+*/
     if ((res = expression(data)) != RET_OK)
     {
         return res;
@@ -478,7 +491,7 @@ while_clause(data_t *data)
         return RET_SYNTAX_ERROR;
     }
 
-    return statement_list_nonempty(data);
+    return statement_list_nonempty(data); // TMP: token not loaded
 }
 
 int
@@ -770,19 +783,28 @@ init_data(data_t **data)
         goto cleanup;
     }
 
+    (*data)->token->type = TOKEN_INVALID;
+
+    (*data)->token->string.length = 0;
+    (*data)->token->string.size = 0;
+    (*data)->token->string.str = NULL;
+
+    // WARNING: token is not fully initialized until get_token() is run
+/*
+    // This was replaced by the lines above
+    // Scanner initializes the needed string on its own, so this only leaked memory
     if (RET_OK != init_string(&(*data)->token->string))
     {
         init_state = 3;
         goto cleanup;
     }
-
+*/
     // queue
     if (NULL == ((*data)->token_queue = q_init_queue()))
     {
         init_state = 4;
         goto cleanup;
     }
-
 
     // switch cases don't contain break statement on purpose
     // fall-through makes sure all the neccessary objects are cleaned
@@ -796,7 +818,10 @@ init_data(data_t **data)
             // falls through
         case 4:
 
-            free_string(&(*data)->token->string);
+            /*
+             free_string(&(*data)->token->string);
+             // see block of comments 10 lines up for explanation
+             */
             // falls through
         case 3:
 
@@ -820,6 +845,7 @@ init_data(data_t **data)
     }
 
     // add more init from data_t
+    (*data)->use_queue_for_read = false;
 
     return RET_OK;
 }
