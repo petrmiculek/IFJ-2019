@@ -139,10 +139,10 @@ statement(data_t *data)
     // STATEMENT -> id = ASSIGN_RHS eol
     // STATEMENT -> ASSIGN_RHS eol
     //
-    //STATEMENT -> pass eol
-    //STATEMENT -> IF_CLAUSE
-    //STATEMENT -> WHILE_CLAUSE
-    //STATEMENT -> RETURN_STATEMENT
+    // STATEMENT -> pass eol
+    // STATEMENT -> IF_CLAUSE
+    // STATEMENT -> WHILE_CLAUSE
+    // STATEMENT -> RETURN_STATEMENT
 
     int res = 0;
 
@@ -177,9 +177,10 @@ statement(data_t *data)
     }
     else
     {
+        // TODO here I must check if token is a valid start of expression
+
         if (data->token->type == TOKEN_IDENTIFIER)
         {
-            // RHS
             // non LL1 decision:
             // id = RHS eol
             // RHS eol ( something like: id * id + 4 eol )
@@ -189,6 +190,8 @@ statement(data_t *data)
 
             get_next_token(data, &res);
             RETURN_IF_ERR(res)
+
+            // TODO next time, start here
 
             if (data->token->type == TOKEN_ASSIGN)
             {
@@ -237,12 +240,25 @@ statement(data_t *data)
         }
         else // data->token->type != TOKEN_IDENTIFIER
         {
+            q_enqueue(data->token, data->token_queue);
+            data->use_queue_for_read = true;
 
-            if ((res = assign_rhs(data)) != RET_OK)
+            if ((res = expression(data)) != RET_OK)
                 return res;
+
+            get_next_token(data, &res);
+            RETURN_IF_ERR(res)
+
+            if (data->token->type == TOKEN_EOL)
+            {
+                return RET_OK;
+            }
+            else
+            {
+                return RET_SYNTAX_ERROR;
+            }
         }
     }
-    return RET_SYNTAX_ERROR; // TODO dead code, remove when done
 }
 
 int
@@ -265,6 +281,8 @@ assign_rhs(data_t *data)
 
         if (data->token->type == TOKEN_LEFT)
         {
+            // WARNING token with identifier is in queue, waiting
+            // but will not be read immediately
             return call_param_list(data);
         }
         else
@@ -280,7 +298,7 @@ assign_rhs(data_t *data)
         q_enqueue(data->token, data->token_queue);
         data->use_queue_for_read = true;
 
-        return call_param_list(data);
+        return expression(data);
     }
 }
 
@@ -332,7 +350,8 @@ if_clause(data_t *data)
     // IF_CLAUSE -> if EXPRESSION : eol indent STATEMENT_LIST_NONEMPTY
     // else : eol indent STATEMENT_LIST_NONEMPTY
 
-    // token read in by callee
+    // token already read in by callee
+
     int res = 0;
 
     if (data->token->type != TOKEN_IF)
@@ -419,6 +438,8 @@ while_clause(data_t *data)
     // WHILE_CLAUSE -> while EXPRESSION : eol indent STATEMENT_LIST_NONEMPTY
 
     int res = 0;
+
+    // token already read in by callee
 
     if (data->token->type != TOKEN_WHILE)
     {
@@ -557,6 +578,9 @@ call_param_list_next(data_t *data)
     }
     else if (data->token->type == TOKEN_COMMA)
     {
+        get_next_token(data, &res);
+        RETURN_IF_ERR(res)
+
         if ((res = call_elem(data)) != RET_OK)
             return res;
 
@@ -610,7 +634,7 @@ return_statement(data_t *data)
 {
     // RETURN -> return RETURN_EXPRESSION
 
-    // token read in by callee
+    // token already read in by callee
 
     if (data->token->type != TOKEN_RETURN)
     {
@@ -795,12 +819,7 @@ init_data(data_t **data)
             break;
     }
 
-    // Feature ideas:
-
-    //      symtable
-    //      flags
-    //      inside function -> allow return
-    //      inside while -> context aware code generation for defvar ?
+    // add more init from data_t
 
     return RET_OK;
 }

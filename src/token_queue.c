@@ -91,15 +91,19 @@ q_pop(token_queue_t *queue)
 void
 q_free_queue(token_queue_t *queue)
 {
+    if (!queue)
+        return;
+
     while (queue->first)
     {
         token_elem_t *tmp = queue->first;
         queue->first = queue->first->next;
         free(tmp);
     }
-    assert(queue->last == NULL);
+    queue->last = NULL;
+
     free(queue);
-    // cannot set queue to NULL
+    // FIXME cannot set queue to NULL
 }
 
 token_t *

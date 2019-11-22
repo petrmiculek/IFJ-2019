@@ -42,6 +42,10 @@ append_string(string_t *string, char var)
 int
 copy_string(string_t *dest, string_t *src)
 {
+    if (!dest || !src)
+    {
+        return RET_INTERNAL_ERROR;
+    }
     unsigned int new_length = src->length;
     if (new_length >= dest->size)
     {

@@ -14,9 +14,13 @@ struct _struct_data_t
     token_t *token;
     int use_queue_for_read;
 
-    // stack_t stack;
-    // symtable
-    // flags (in fun, if, while)
+    // Feature ideas:
+
+    //      symtable
+    //      flags
+    //      inside function -> allow return
+    //      inside while -> context aware code generation for defvar ?
+
 
 };
 typedef struct _struct_data_t data_t;
