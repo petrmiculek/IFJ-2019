@@ -68,22 +68,22 @@
     RETURN
 
 # Built-in function Print											
-   # LABEL $print													
-   # PUSHFRAME														
-   # DEFVAR LF@%retval
-   # MOVE LF@%retval nil@nil
+    LABEL $print													
+    PUSHFRAME														
+    DEFVAR LF@%retval
+    MOVE LF@%retval nil@nil
    # DEFVAR LF@print_loop_cond
    # DEFVAR LF@pr_arg
    # LABEL $print$loop									
    # GT LF@print_loop_cond LF@%0 int@0							
    # JUMPIFEQ $end$loop LF@print_loop_cond bool@false
-   # WRITE LF@pr_arg
-   # WRITE string@\032
+    WRITE LF@%0
+    WRITE string@\032
    # WRITE string@\010        
    # JUMP $print$loop
    # LABEL $end$loop
-   # POPFRAME														
-   # RETURN
+    POPFRAME														
+    RETURN
 
 # Built-in function Length											
     LABEL $length													
