@@ -14,7 +14,7 @@ main(int argc, char **argv)
     if (argc == 1)
     {
         perror("No input file given\n");
-        return RET_INTERNAL_ERROR; // TODO idk which ret_code to use
+        return RET_INTERNAL_ERROR;
     }
     if ((file = fopen(argv[1], "r")) == NULL)
     {

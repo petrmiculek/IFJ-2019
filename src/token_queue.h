@@ -1,5 +1,5 @@
-#ifndef TOKEN_QUEUE_H
-#define TOKEN_QUEUE_H
+#ifndef HEADER_TOKEN_QUEUE
+#define HEADER_TOKEN_QUEUE
 
 #include "scanner.h"
 
@@ -35,4 +35,4 @@ q_pop(token_queue_t *queue);
 void
 q_free_queue(token_queue_t *queue);
 
-#endif //TOKEN_QUEUE_H
+#endif //HEADER_TOKEN_QUEUE
