@@ -28,6 +28,7 @@ parse(FILE *file)
     }
 
     data->file = file;
+
     // start syntax analysis with starting nonterminal
     res = statement_global();
 
@@ -72,6 +73,53 @@ get_next_token()
 
         }
         while (data->res == RET_OK && data->token->type == TOKEN_SPACE);
+    }
+}
+
+int
+read_eol(bool check_for_first_eol)
+{
+    // check for first eol token
+    // skip further eol tokens
+
+    if (check_for_first_eol)
+    {
+        GET_TOKEN()
+
+        if (data->token->type != TOKEN_EOL)
+        {
+            return RET_SYNTAX_ERROR;
+        }
+    }
+
+    do
+    {
+        GET_TOKEN()
+    }
+    while (data->token->type == TOKEN_EOL);
+
+    q_enqueue(data->token, data->token_queue);
+    data->use_queue_for_read = true;
+
+    return RET_OK;
+}
+
+int
+is_expression_start()
+{
+    if (data->token->type == TOKEN_IDENTIFIER
+        || data->token->type == TOKEN_INT
+        || data->token->type == TOKEN_FLOAT
+        || data->token->type == TOKEN_LIT
+        || data->token->type == TOKEN_DOC
+        || data->token->type == TOKEN_LEFT
+        || data->token->type == TOKEN_NONE)
+    {
+        return RET_OK;
+    }
+    else
+    {
+        return RET_SYNTAX_ERROR;
     }
 }
 
@@ -210,10 +258,10 @@ statement()
         {
             // non LL1 decision:
             // id = RHS eol
-            // RHS eol ( something like: id * id + 4 eol )
+            // id ( CALL_PARAM_LIST eol
+            // expression eol ( something like: id * id + 4 eol )
 
-            q_enqueue(data->token, data->token_queue);
-            data->use_queue_for_read = false; // keep token in queue
+            token_t lhs_identifier = *data->token;
 
             GET_TOKEN()
 
@@ -224,43 +272,30 @@ statement()
                 if ((res = assign_rhs()) != RET_OK)
                     return res;
 
-                GET_TOKEN()
+                return read_eol(true);
 
-                if (data->token->type == TOKEN_EOL)
-                {
-                    data->use_queue_for_read = true;
+            }
+            else if (data->token->type == TOKEN_LEFT)
+            {
+                // STATEMENT -> id ( CALL_PARAM_LIST eol
 
-                    GET_TOKEN()
+                if ((res = call_param_list()) != RET_OK)
+                    return res;
 
-                    // read info from token == identifier
-
-                    read_eol(false);
-
-                    return RET_OK;
-                }
-                else
-                {
-                    data->use_queue_for_read = true;
-
-                    GET_TOKEN()
-
-                    // possibly read info from token == identifier
-                    // but here it's a syntax error
-
-                    return RET_SYNTAX_ERROR;
-                }
+                return read_eol(true);
             }
             else
             {
-                // STATEMENT -> ASSIGN_RHS eol
+                // STATEMENT -> EXPRESSION eol
 
+                q_enqueue(&lhs_identifier, data->token_queue); // token past identifier
                 q_enqueue(data->token, data->token_queue); // token past identifier
                 data->use_queue_for_read = true;
 
-                if ((res = assign_rhs()) != RET_OK)
+                if ((res = expression()) != RET_OK)
                     return res;
 
-                read_eol(true);
+                return read_eol(true);
             }
         }
         else
@@ -274,75 +309,16 @@ statement()
             if ((res = expression()) != RET_OK)
                 return res;
 
-            // TODO read in EOL after expression?
-
-            GET_TOKEN()
-
-            if (data->token->type == TOKEN_EOL)
-            {
-                return RET_OK;
-            }
-            else
-            {
-                return RET_SYNTAX_ERROR;
-            }
+            return read_eol(true);
         }
     }
     else
     {
-        // unexpected token
-        return RET_SYNTAX_ERROR;
-    }
-
-    return RET_SYNTAX_ERROR;
-}
-
-int
-read_eol(bool check_for_first_eol)
-{
-    // check for first eol token
-    // skip further eol tokens
-
-    if (check_for_first_eol)
-    {
-        GET_TOKEN()
-
-        if (data->token->type != TOKEN_EOL)
-        {
-            return RET_SYNTAX_ERROR;
-        }
-    }
-
-    do
-    {
-        GET_TOKEN()
-    }
-    while (data->token->type == TOKEN_EOL);
-
-    q_enqueue(data->token, data->token_queue);
-    data->use_queue_for_read = true;
-
-    return RET_OK;
-}
-
-int
-is_expression_start()
-{
-    if (data->token->type == TOKEN_IDENTIFIER
-        || data->token->type == TOKEN_INT
-        || data->token->type == TOKEN_FLOAT
-        || data->token->type == TOKEN_LIT
-        || data->token->type == TOKEN_DOC
-        || data->token->type == TOKEN_LEFT
-        || data->token->type == TOKEN_NONE)
-    {
-        return RET_OK;
-    }
-    else
-    {
+        // unexpected token type
         return RET_SYNTAX_ERROR;
     }
 }
+
 
 int
 assign_rhs()
@@ -350,12 +326,9 @@ assign_rhs()
     // ASSIGN_RHS -> id ( CALL_PARAM_LIST
     // ASSIGN_RHS -> EXPRESSION
 
-    int res = 0; // TODO check why unused
-
     GET_TOKEN()
-    // TMP: queue should be empty at this point
 
-    token_t local_token = *data->token;
+    token_t token_tmp = *data->token;
 
     if (data->token->type == TOKEN_IDENTIFIER)
     {
@@ -367,6 +340,7 @@ assign_rhs()
         }
         else
         {
+            q_enqueue(&token_tmp, data->token_queue);
             q_enqueue(data->token, data->token_queue);
             data->use_queue_for_read = true;
 
@@ -375,9 +349,7 @@ assign_rhs()
     }
     else
     {
-
-        q_enqueue(&local_token, data->token_queue);
-        q_enqueue(data->token, data->token_queue);
+        q_enqueue(&token_tmp, data->token_queue);
         data->use_queue_for_read = true;
 
         return expression();
@@ -746,27 +718,17 @@ return_expression()
 int
 expression()
 {
-    // mock rule:
-    // EXPRESSION -> expr
-    // TODO delete rule when done
-
     // call PSA here
 
 
     // temporary solution:
     // --------- simulate PSA ---------
-    int res = 0;
-
     do
     {
-        // skip tokens
         GET_TOKEN()
-
-        // until end of expression is reached
     }
     while (data->token->type != TOKEN_EOL && data->token->type != TOKEN_EOF && data->token->type != TOKEN_COLON);
 
-    // unget eol/eof/: token
     q_enqueue(data->token, data->token_queue);
     data->use_queue_for_read = true;
 
