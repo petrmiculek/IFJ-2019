@@ -272,8 +272,6 @@ statement()
                 if ((res = assign_rhs()) != RET_OK)
                     return res;
 
-                GET_TOKEN()
-
                 return read_eol(true);
 
             }
