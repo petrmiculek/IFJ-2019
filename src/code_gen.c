@@ -1,12 +1,13 @@
 #include "my_string.h"
 #include "code_gen.h"
 #include "stdio.h"
+#include "stdbool.h"
 
 #define ADD_INST(_inst)														\
-	if (!dynamic_string_add_const_str(&code, (_inst "\n"))) return false
+	if (!append_string(&code, (_inst "\n"))) return false
 
 #define ADD_CODE(_code)														\
-	if (!dynamic_string_add_const_str(&code, (_code))) return false
+	if (!append_string(&code, (_code))) return false
 
 #define ADD_CODE_INT(_code)													\
 	do {																	\
@@ -178,4 +179,60 @@
  "\n POPFRAME"\
  "\n RETURN"\
 							
+string_t code;
 
+static bool insert_built_in_functions()
+{
+	ADD_INST(BUILD_IN_FUNCTIONS);
+
+	return true;
+}
+
+static bool generate_file_header()
+{
+	ADD_INST(HEADER);
+
+	return true;
+}
+
+bool generate_main_scope_start()
+{
+	ADD_INST(MAIN_START);
+
+	return true;
+}
+
+bool generate_main_scope_end()
+{
+	ADD_INST(MAIN_END);
+
+	return true;
+}
+
+bool generate_function_start(char *function_id)
+{
+	ADD_CODE("\n# Start of function "); ADD_CODE(function_id); ADD_CODE("\n");
+
+	ADD_CODE("LABEL $"); ADD_CODE(function_id); ADD_CODE("\n");
+	ADD_INST("PUSHFRAME");
+
+	return true;
+}
+
+bool generate_function_end(char *function_id)
+{
+	ADD_CODE("# End of function "); ADD_CODE(function_id); ADD_CODE("\n");
+
+	ADD_CODE("LABEL $"); ADD_CODE(function_id); ADD_CODE("%return\n");
+	ADD_INST("POPFRAME");
+	ADD_INST("RETURN");
+
+	return true;
+}
+
+bool generate_var_declare(char *var_id)
+{
+	ADD_CODE("DEFVAR LF@"); ADD_CODE(var_id); ADD_CODE("\n");
+
+	return true;
+}
