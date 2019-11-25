@@ -5,9 +5,10 @@
 /*
   // How to initialize
  	ptrht = (tHTable *) malloc(sizeof(tHTable));
-	htInit(ptrht);
+	ht_init(ptrht);
 
  */
+static int hash_table_size = MAX_HTSIZE;
 
 unsigned int
 hash(const char *str)
@@ -22,7 +23,7 @@ hash(const char *str)
 }
 
 table_t *
-htInit()
+ht_init()
 {
     table_t *ptrht = malloc(sizeof(table_t));
     if (ptrht == NULL)
@@ -31,7 +32,7 @@ htInit()
         return NULL;
     }
 
-    for (int i = 0; i < HTSIZE; ++i)
+    for (int i = 0; i < hash_table_size; ++i)
     {
         (*ptrht)[i] = NULL;
     }
@@ -40,7 +41,7 @@ htInit()
 }
 
 ht_item_t *
-htSearch(table_t *ptrht, char *key)
+ht_search(table_t *ptrht, char *key)
 {
     unsigned int keyHash = hash(key);
 
@@ -62,9 +63,9 @@ htSearch(table_t *ptrht, char *key)
 }
 
 void
-htInsert(table_t *ptrht, char *key, data_t data)
+ht_insert(table_t *ptrht, char *key, sym_table_item data)
 {
-    ht_item_t *searched_item = htSearch(ptrht, key);
+    ht_item_t *searched_item = ht_search(ptrht, key);
 
     if (searched_item)
     {
@@ -92,10 +93,10 @@ htInsert(table_t *ptrht, char *key, data_t data)
     }
 }
 
-data_t *
-htRead(table_t *ptrht, char *key)
+sym_table_item *
+ht_get_data(table_t *ptrht, char *key)
 {
-    ht_item_t *item = htSearch(ptrht, key);
+    ht_item_t *item = ht_search(ptrht, key);
 
     if (item)
     {
@@ -108,7 +109,7 @@ htRead(table_t *ptrht, char *key)
 }
 
 void
-htDelete(table_t *ptrht, char *key)
+ht_delete(table_t *ptrht, char *key)
 {
     unsigned int keyHash = hash(key);
 
@@ -147,9 +148,9 @@ htDelete(table_t *ptrht, char *key)
 }
 
 void
-htClearAll(table_t *ptrht)
+ht_clear_all(table_t *ptrht)
 {
-    for (int i = 0; i < HTSIZE; ++i)
+    for (int i = 0; i < hash_table_size; ++i)
     {
         ht_item_t *tmp = (ht_item_t *) (*ptrht)[i];
         ht_item_t *prev_item = NULL;

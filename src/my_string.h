@@ -1,5 +1,5 @@
-#ifndef MY_STRING
-#define MY_STRING
+#ifndef HEADER_MY_STRING
+#define HEADER_MY_STRING
 
 #define INITIAL_SIZE 20
 #define REALLOC_SIZE 5
@@ -68,4 +68,4 @@ copy_string(string_t *dest, string_t *src);
  */
 void
 free_string(string_t *string);
-#endif
+#endif // HEADER_MY_STRING

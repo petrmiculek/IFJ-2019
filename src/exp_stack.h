@@ -1,3 +1,6 @@
+#ifndef HEADER_EXP_STACK
+#define HEADER_EXP_STACK
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "psa.h"
@@ -5,30 +8,36 @@
 
 #define MAX_STACK 100
 
-typedef struct sym_stack
-{
-    unsigned int top;
-    sem_t atr[MAX_STACK];
-}sym_stack;
-
 typedef struct sem_t
 {
     unsigned int type;
     unsigned int d_type;
     string_t sem_data;
-}sem_t;
+} sem_t;
+
+typedef struct sym_stack
+{
+    int top;
+    sem_t atr[MAX_STACK];
+} sym_stack;
 
 typedef enum d_type
 {
     INT,
     FLOAT,
     STRING
-}d_type;
+} d_type;
 
-unsigned int init(sym_stack *Stack);
+unsigned int
+init(sym_stack *Stack);
 
-void pop(sym_stack *Stack);
+void
+stack_expr_pop(sym_stack *Stack);
 
-unsigned int push(sym_stack *Stack, sem_t *sym);
+unsigned int
+stack_expr_push(sym_stack *Stack, sem_t *sym);
 
-sem_t get_term(sym_stack *Stack);
+sem_t
+get_term(sym_stack *Stack);
+
+#endif // HEADER_EXP_STACK

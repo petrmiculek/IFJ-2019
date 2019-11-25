@@ -1,6 +1,6 @@
 
-#ifndef SCANNER
-#define SCANNER
+#ifndef HEADER_SCANNER
+#define HEADER_SCANNER
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -104,4 +104,4 @@ typedef enum token_type
 
 #define TOKEN_INVALID 404
 
-#endif
+#endif // HEADER_SCANNER

@@ -32,7 +32,10 @@ parse(FILE *file)
     // start syntax analysis with starting nonterminal
     res = statement_global();
 
-    printf((res == RET_OK) ? "ok\n" : "err\n");
+    if (res != RET_OK)
+    {
+        printf("err: %d\n", res);
+    }
 
     free_static_stack();
     clear_data();
@@ -123,6 +126,98 @@ is_expression_start()
     }
 }
 
+int
+init_data()
+{
+    int init_state = 0;
+
+    if (NULL == (data = malloc(sizeof(sym_table_item))))
+    {
+        init_state = 1;
+        goto cleanup;
+    }
+
+    // token and its contents
+
+    if ((data->token = malloc(sizeof(token_t))) == NULL)
+    {
+        init_state = 2;
+        goto cleanup;
+    }
+
+    data->token->type = TOKEN_INVALID;
+
+    data->token->string.length = 0;
+    data->token->string.size = 0;
+    data->token->string.str = NULL;
+
+    // WARNING: token is not fully initialized until get_token() is run
+/*
+    // This was replaced by the lines above
+    // Scanner initializes the needed string on its own, so this only leaked memory
+    if (RET_OK != init_string(&data->token->string))
+    {
+        init_state = 3;
+        goto cleanup;
+    }
+*/
+    // queue
+    if (NULL == (data->token_queue = q_init_queue()))
+    {
+        init_state = 4;
+        goto cleanup;
+    }
+
+    if (NULL == (data->sym_table = ht_init()))
+    {
+        init_state = 4;
+        goto cleanup;
+    }
+
+    // switch cases don't contain break statement on purpose
+    // fall-through makes sure all the neccessary objects are cleaned
+    cleanup:
+    switch (init_state)
+    {
+        case 5:
+
+            // unreachable code, it's here for future extending of inititialization
+            q_free_queue(&data->token_queue);
+            // falls through
+        case 4:
+
+            /*
+             free_string(&data->token->string);
+             // see block of comments 10 lines up for explanation
+             */
+            // falls through
+        case 3:
+
+            free(data->token);
+            // falls through
+        case 2:
+
+            free(data);
+            data = NULL;
+            // falls through
+        case 1:
+            /* first alloc failed, nothing to free */
+            return RET_INTERNAL_ERROR;
+        case 0:
+            /* nothing failed -> OK */
+            break;
+        default:
+
+            printf("%s:%u:init_state: invalid value (%d)\n", __func__, __LINE__, init_state);
+            break;
+    }
+
+    // add more init from data_t
+    data->use_queue_for_read = false;
+
+    return RET_OK;
+}
+
 void
 clear_data()
 {
@@ -145,7 +240,12 @@ statement_list_nonempty()
         return res;
     }
 
-    return statement_list();
+    if ((res = statement_list()) != RET_OK)
+    {
+        return res;
+    }
+
+    return RET_OK;
 }
 
 int
@@ -172,7 +272,12 @@ statement_list()
             return res;
         }
 
-        return statement_list();
+        if ((res = statement_list()) != RET_OK)
+        {
+            return res;
+        }
+
+        return RET_OK;
     }
 }
 
@@ -268,7 +373,7 @@ statement()
             if (data->token->type == TOKEN_ASSIGN)
             {
                 // STATEMENT -> id = ASSIGN_RHS eol
-                // _SEM add variable to sym_table 
+                // _SEM add variable to sym_table
                 if ((res = assign_rhs()) != RET_OK)
                     return res;
 
@@ -331,7 +436,7 @@ assign_rhs()
 
     if (data->token->type == TOKEN_IDENTIFIER)
     {
-        // _SEM check if ID is declared 
+        // _SEM check if ID is declared
         GET_TOKEN()
 
         if (data->token->type == TOKEN_LEFT)
@@ -344,7 +449,12 @@ assign_rhs()
             q_enqueue(data->token, data->token_queue);
             data->use_queue_for_read = true;
 
-            return expression();
+            if ((data->res = expression()) != RET_OK)
+            {
+                return data->res;
+            }
+
+            return (RET_OK);
         }
     }
     else
@@ -352,7 +462,12 @@ assign_rhs()
         q_enqueue(&token_tmp, data->token_queue);
         data->use_queue_for_read = true;
 
-        return expression();
+        if ((data->res = expression()) != RET_OK)
+        {
+            return data->res;
+        }
+
+        return (RET_OK);
     }
 }
 
@@ -374,7 +489,13 @@ statement_global()
     {
         if ((data->res = function_def()) == RET_OK)
         {
-            return (statement_global());
+            if ((data->res = statement_global()) != RET_OK)
+            {
+                return data->res;
+            }
+
+            return (RET_OK);
+
         }
         else
         {
@@ -388,7 +509,12 @@ statement_global()
 
         if ((data->res = statement()) == RET_OK)
         {
-            return (statement_global());
+            if ((data->res = statement_global()) != RET_OK)
+            {
+                return data->res;
+            }
+
+            return (RET_OK);
         }
         else
         {
@@ -473,7 +599,12 @@ if_clause()
         return RET_SYNTAX_ERROR;
     }
 
-    return statement_list_nonempty();
+    if ((data->res = statement_list_nonempty()) != RET_OK)
+    {
+        return data->res;
+    }
+
+    return RET_OK;
 }
 
 int
@@ -516,7 +647,12 @@ while_clause()
         return RET_SYNTAX_ERROR;
     }
 
-    return statement_list_nonempty();
+    if ((data->res = statement_list_nonempty()) != RET_OK)
+    {
+        return data->res;
+    }
+
+    return RET_OK;
 }
 
 int
@@ -536,19 +672,23 @@ def_param_list_next()
     else if (data->token->type == TOKEN_COMMA)
     {
         GET_TOKEN()
-         
+
         if (data->token->type != TOKEN_IDENTIFIER)
             return (RET_SYNTAX_ERROR);
-        
+
         //_SEM token contains next param
-        // param is added to sym_table        
-        return (def_param_list_next());
+        // param is added to sym_table
+
+        if ((data->res = def_param_list_next()) != RET_OK)
+        {
+            return data->res;
+        }
+        return RET_OK;
     }
     else
     {
         return RET_SYNTAX_ERROR;
     }
-
 }
 
 int
@@ -565,7 +705,11 @@ def_param_list()
     }
     else if (data->token->type == TOKEN_IDENTIFIER)
     {
-        return (def_param_list_next());
+        if ((data->res = def_param_list_next()) != RET_OK)
+        {
+            return data->res;
+        }
+        return RET_OK;
     }
     else
     {
@@ -587,7 +731,11 @@ call_param_list()
     }
     else if ((data->res = call_elem()) == RET_OK)
     {
-        return (call_param_list_next());
+        if ((data->res = call_param_list_next()) != RET_OK)
+        {
+            return data->res;
+        }
+        return RET_OK;
     }
     else
     {
@@ -616,7 +764,11 @@ call_param_list_next()
         if ((res = call_elem()) != RET_OK)
             return res;
 
-        return (call_param_list_next());
+        if ((data->res = call_param_list_next()) != RET_OK)
+        {
+            return data->res;
+        }
+        return RET_OK;
     }
     else
     {
@@ -673,7 +825,12 @@ return_statement()
         return RET_SYNTAX_ERROR;
     }
 
-    return return_expression();
+    if ((data->res = return_expression()) != RET_OK)
+    {
+        return data->res;
+    }
+
+    return RET_OK;
 }
 
 int
@@ -734,90 +891,4 @@ expression()
 
     return RET_OK;
     // -------------- end --------------
-}
-
-int
-init_data()
-{
-    int init_state = 0;
-
-    if (NULL == (data = malloc(sizeof(data_t))))
-    {
-        init_state = 1;
-        goto cleanup;
-    }
-
-    // token and its contents
-
-    if ((data->token = malloc(sizeof(token_t))) == NULL)
-    {
-        init_state = 2;
-        goto cleanup;
-    }
-
-    data->token->type = TOKEN_INVALID;
-
-    data->token->string.length = 0;
-    data->token->string.size = 0;
-    data->token->string.str = NULL;
-
-    // WARNING: token is not fully initialized until get_token() is run
-/*
-    // This was replaced by the lines above
-    // Scanner initializes the needed string on its own, so this only leaked memory
-    if (RET_OK != init_string(&data->token->string))
-    {
-        init_state = 3;
-        goto cleanup;
-    }
-*/
-    // queue
-    if (NULL == (data->token_queue = q_init_queue()))
-    {
-        init_state = 4;
-        goto cleanup;
-    }
-
-    // switch cases don't contain break statement on purpose
-    // fall-through makes sure all the neccessary objects are cleaned
-    cleanup:
-    switch (init_state)
-    {
-        case 5:
-
-            // unreachable code, it's here for future extending of inititialization
-            q_free_queue(&data->token_queue);
-            // falls through
-        case 4:
-
-            /*
-             free_string(&data->token->string);
-             // see block of comments 10 lines up for explanation
-             */
-            // falls through
-        case 3:
-
-            free(data->token);
-            // falls through
-        case 2:
-
-            free(data);
-            data = NULL;
-            // falls through
-        case 1:
-            /* first alloc failed, nothing to free */
-            return RET_INTERNAL_ERROR;
-        case 0:
-            /* nothing failed -> OK */
-            break;
-        default:
-
-            printf("%s:%u:init_state: invalid value (%d)\n", __func__, __LINE__, init_state);
-            break;
-    }
-
-    // add more init from data_t
-    data->use_queue_for_read = false;
-
-    return RET_OK;
 }

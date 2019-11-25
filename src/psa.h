@@ -1,10 +1,13 @@
+#ifndef HEADER_PSA
+#define HEADER_PSA
+
 #include "scanner.h"
 
-unsigned int get_symbol(token_t *token);
+unsigned int
+get_symbol(token_t *token);
 
 #define EXP 42
 #define SHIFT 21
-
 
 typedef enum
 {
@@ -43,4 +46,5 @@ typedef enum rules
     R_EQ,
     R_NE,
     R_BRACKETS
-}rules;
+} rules;
+#endif // HEADER_PSA

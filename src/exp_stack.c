@@ -12,7 +12,7 @@ unsigned int init_val(sym_stack *Stack)
         return RET_INTERNAL_ERROR;
     }
     Stack->top = -1;
-    return RET_OK; 
+    return RET_OK;
 }
 
 void pop_val(sym_stack *Stack)
@@ -25,7 +25,6 @@ void pop_val(sym_stack *Stack)
     {
         Stack->top--;
     }
-    return;
 }
 
 unsigned int push_val(sym_stack *Stack, sem_t atr)
@@ -44,7 +43,7 @@ unsigned int push_val(sym_stack *Stack, sem_t atr)
 }
 
 unsigned int init(sym_stack *Stack)
-{  
+{
     if(Stack == NULL)
     {
         return RET_INTERNAL_ERROR;
@@ -53,9 +52,10 @@ unsigned int init(sym_stack *Stack)
     return RET_OK;
 }
 
-void pop(sym_stack *Stack)
+void
+stack_expr_pop(sym_stack *Stack)
 {
-    if(Stack->top == -1)
+    if (Stack->top == -1)
     {
         return;
     }
@@ -63,18 +63,18 @@ void pop(sym_stack *Stack)
     {
         Stack->top--;
     }
-    return;
 }
 
-unsigned int push(sym_stack *Stack, sem_t *sym)
+unsigned int
+stack_expr_push(sym_stack *Stack, sem_t *sym)
 {
-    if(Stack->top == MAX_STACK-1)
+    if (Stack->top == MAX_STACK - 1)
     {
         return RET_INTERNAL_ERROR;
     }
     else
     {
-        Stack->atr[Stack->top+1] = *sym;
+        Stack->atr[Stack->top + 1] = *sym;
         Stack->top++;
 
     }
@@ -91,5 +91,5 @@ sem_t get_term(sym_stack *Stack)
         tmp = Stack->atr[i];
     }
     return Stack->atr[i];
-    
+
 }

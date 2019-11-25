@@ -1,14 +1,9 @@
-//
-// Created by petrmiculek on 17.11.19.
-//
-
 #include <string.h>
 #include <stdlib.h>
-#include <stdio.h>
-#include "my_string.h"
 #include "err.h"
 #include "scanner.h"
 #include "stack.h"
+
 unsigned int
 initStack(stack_t *stack)
 {
@@ -21,6 +16,7 @@ initStack(stack_t *stack)
     stack->array[stack->top] = 0;
     return RET_OK;
 }
+
 stack_t *
 init_stack()
 {
@@ -37,7 +33,7 @@ init_stack()
 }
 
 unsigned int
-push(stack_t *stack, unsigned int item)
+stack_push(stack_t *stack, unsigned int item)
 {
     if (stack->capacity - 1 == stack->top)
     {
@@ -50,8 +46,9 @@ push(stack_t *stack, unsigned int item)
     stack->array[++stack->top] = item;
     return RET_OK;
 }
+
 void
-pop(stack_t *stack)
+stack_pop(stack_t *stack)
 {
     if (stack->top != 0)
         stack->top--;

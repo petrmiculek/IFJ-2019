@@ -1,9 +1,5 @@
-//
-// Created by petrmiculek on 17.11.19.
-//
-
-#ifndef STACK_H
-#define STACK_H
+#ifndef HEADER_STACK_H
+#define HEADER_STACK_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,9 +26,9 @@ free_stack(stack_t *stack);
 */
 
 unsigned int
-push(stack_t *stack, unsigned int item);
+stack_push(stack_t *stack, unsigned int item);
 
 void
-pop(stack_t *stack);
+stack_pop(stack_t *stack);
 
-#endif //STACK_H
+#endif //HEADER_STACK_H

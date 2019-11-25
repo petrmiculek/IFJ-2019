@@ -1,5 +1,5 @@
-#ifndef ERROR_STATES
-#define ERROR_STATES
+#ifndef HEADER_ERROR_STATES
+#define HEADER_ERROR_STATES
 
 enum RET_CODES
 {
@@ -14,4 +14,4 @@ enum RET_CODES
     WARNING_NOT_IMPLEMENTED = 404
 };
 
-#endif
+#endif // HEADER_ERROR_STATES

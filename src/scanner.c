@@ -66,7 +66,7 @@ generate_dedent(long long *spaces_num, token_t *token, int *previous_was_eol)
     {
         if (space_stack->array[space_stack->top] < *spaces_num)
         {
-            push(space_stack, (unsigned) *spaces_num);
+            stack_push(space_stack, (unsigned) *spaces_num);
             *spaces_num = -1;
             token->type = TOKEN_INDENT;
             return RET_OK;
@@ -77,7 +77,7 @@ generate_dedent(long long *spaces_num, token_t *token, int *previous_was_eol)
         }
         else
         {
-            pop(space_stack);
+            stack_pop(space_stack);
             if (space_stack->array[space_stack->top] < *spaces_num)
                 return RET_LEXICAL_ERROR;
             if (space_stack->array[space_stack->top] == *spaces_num)
@@ -98,7 +98,7 @@ generate_dedent(long long *spaces_num, token_t *token, int *previous_was_eol)
         }
         if (space_stack->array[space_stack->top] != 0)
         {
-            pop(space_stack);
+            stack_pop(space_stack);
             token->type = TOKEN_DEDENT;
             return RET_OK;
         }
@@ -743,7 +743,6 @@ get_token(token_t *token, FILE *file)
                 state = STATE_ERROR;
                 fprintf(stderr, "%s, %u: reached default state", __func__, __LINE__);
                 break;
-                // FIXME default case unreachable code?
         }
     }
 
