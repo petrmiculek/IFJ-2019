@@ -10,7 +10,6 @@ struct _token_elem_t
     token_t *token;
     token_elem_t *next;
     token_elem_t *prev;
-
 };
 
 typedef struct
