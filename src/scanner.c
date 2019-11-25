@@ -46,7 +46,7 @@ free_static_stack()
 }
 
 int
-convert_char(int read, token_t *token)
+convert_char_to_hexcode(int read, token_t *token)
 {
     char c[5];
     sprintf(c, "\\0%.2d", read);
@@ -450,7 +450,7 @@ get_token(token_t *token, FILE *file)
                 {
                     if (read == ' ' || read == '#')
                     {
-                        APPEND_SPECIAL(read)
+                        APPEND_HEXCODE(read)
                     }
                     else
                     {
@@ -483,7 +483,7 @@ get_token(token_t *token, FILE *file)
                             case '#': read = '#';
                             default:break;
                         }
-                        APPEND_SPECIAL(read)
+                        APPEND_HEXCODE(read)
                     }
                     else if (read == '\"' || read == '\'')
                     {
@@ -491,12 +491,12 @@ get_token(token_t *token, FILE *file)
                     }
                     else if (read == ' ')
                     {
-                        APPEND_SPECIAL('\\')
-                        APPEND_SPECIAL(' ')
+                        APPEND_HEXCODE('\\')
+                        APPEND_HEXCODE(' ')
                     }
                     else
                     {
-                        APPEND_SPECIAL('\\')
+                        APPEND_HEXCODE('\\')
                         APPEND(read)
                     }
                     break;
@@ -520,7 +520,7 @@ get_token(token_t *token, FILE *file)
                     state = STATE_LIT;
                     var[1] = (char) read;
                     long dec_num = strtol(var, NULL, 16);
-                    APPEND_SPECIAL(dec_num)
+                    APPEND_HEXCODE(dec_num)
                     break;
                 }
                 else
@@ -555,7 +555,7 @@ get_token(token_t *token, FILE *file)
                 }
                 else if (read == '\r' || read == '\n' || read == '\t' || read == '#' || read == ' ')
                 {
-                    APPEND_SPECIAL(read)
+                    APPEND_HEXCODE(read)
                     state = STATE_BLOCK3;
                     break;
                 }
@@ -585,7 +585,7 @@ get_token(token_t *token, FILE *file)
                     APPEND('"')
                     if (read == ' ' || read == '\r' || read == '\n' || read == '\t' || read == '#')
                     {
-                        APPEND_SPECIAL(read)
+                        APPEND_HEXCODE(read)
                     }
                     else
                     {
@@ -614,7 +614,7 @@ get_token(token_t *token, FILE *file)
                     APPEND('"')
                     if (read == ' ' || read == '\r' || read == '\n' || read == '\t' || read == '#')
                     {
-                        APPEND_SPECIAL(read)
+                        APPEND_HEXCODE(read)
                     }
                     else
                     {
@@ -629,10 +629,10 @@ get_token(token_t *token, FILE *file)
                 {
                     if (flag_block_es)
                     {
-                        APPEND_SPECIAL('\\')
+                        APPEND_HEXCODE('\\')
                     }
                     flag_block_es = 0;
-                    APPEND_SPECIAL(read)
+                    APPEND_HEXCODE(read)
                     state = STATE_BLOCK_ES1;
                     break;
                 }
@@ -640,11 +640,11 @@ get_token(token_t *token, FILE *file)
                 {
                     if (read != '"' && flag_block_es)
                     {
-                        APPEND_SPECIAL('\\')
+                        APPEND_HEXCODE('\\')
                     }
                     if (read == ' ' || read == '\r' || read == '\n' || read == '\t' || read == '#')
                     {
-                        APPEND_SPECIAL(read)
+                        APPEND_HEXCODE(read)
                     }
                     else
                     {

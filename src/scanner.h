@@ -10,8 +10,8 @@
 #define STACK_REALLOC 20
 
 #define RETURN_ERR do { state = STATE_ERROR; return RET_LEXICAL_ERROR; } while(0);
-#define APPEND(read) if(append_string(&(token->string), read)){ return RET_INTERNAL_ERROR; }
-#define APPEND_SPECIAL(read)  if(convert_char(read, token)) {return RET_INTERNAL_ERROR;}
+#define APPEND(read) if(append_char_to_string(&(token->string), read)) { return RET_INTERNAL_ERROR; }
+#define APPEND_HEXCODE(read)  if(convert_char_to_hexcode(read, token)) { return RET_INTERNAL_ERROR; }
 
 // this can't go to stack.c/stack.h, as the variable it interacts with is static
 void
@@ -19,7 +19,7 @@ free_static_stack();
 
 typedef struct
 {
-    string_t string; // TODO should this not be a ptr?
+    string_t string;
     unsigned int type;
 } token_t;
 

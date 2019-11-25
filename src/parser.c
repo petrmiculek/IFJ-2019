@@ -126,7 +126,7 @@ is_expression_start()
 void
 clear_data()
 {
-    q_free_queue(data->token_queue);
+    q_free_queue(&data->token_queue);
     free_string(&data->token->string);
     free(data->token);
     free(data);
@@ -140,7 +140,7 @@ statement_list_nonempty()
 
     int res;
 
-    if ((res = statement()) != RET_OK) // TMP: token already loaded ?
+    if ((res = statement()) != RET_OK)
     {
         return res;
     }
@@ -167,7 +167,7 @@ statement_list()
         q_enqueue(data->token, data->token_queue);
         data->use_queue_for_read = true;
 
-        if ((res = statement()) != RET_OK) // TMP: token in queue ( AND loaded )
+        if ((res = statement()) != RET_OK)
         {
             return res;
         }
@@ -218,7 +218,7 @@ function_def()
     if (data->token->type != TOKEN_INDENT)
         return RET_SYNTAX_ERROR;
 
-    return statement_list_nonempty(); // TMP: token not loaded
+    return statement_list_nonempty();
 }
 
 int
@@ -319,7 +319,6 @@ statement()
     }
 }
 
-
 int
 assign_rhs()
 {
@@ -363,7 +362,6 @@ statement_global()
     // STATEMENT_GLOBAL -> def FUNCTION_DEF STATEMENT_GLOBAL
     // STATEMENT_GLOBAL -> STATEMENT STATEMENT_GLOBAL
 
-    int res = 0;
     GET_TOKEN()
 
     if (data->token->type == TOKEN_EOF
@@ -379,7 +377,7 @@ statement_global()
         }
         else
         {
-            return RET_SYNTAX_ERROR;
+            return data->res;
         }
     }
     else
@@ -387,13 +385,13 @@ statement_global()
         q_enqueue(data->token, data->token_queue);
         data->use_queue_for_read = true;
 
-        if ((data->res = statement()) == RET_OK) // TMP: token in queue ( AND loaded )
+        if ((data->res = statement()) == RET_OK)
         {
             return (statement_global());
         }
         else
         {
-            return RET_SYNTAX_ERROR;
+            return data->res;
         }
     }
 }
@@ -402,7 +400,9 @@ int
 if_clause()
 {
     // IF_CLAUSE -> if EXPRESSION : eol indent STATEMENT_LIST_NONEMPTY
-    // else : eol indent STATEMENT_LIST_NONEMPTY
+    //              else : eol indent STATEMENT_LIST_NONEMPTY
+
+    // STATEMENT_LIST_NONEMPTY includes eol dedent
 
     // token already read in by callee
 
@@ -439,14 +439,10 @@ if_clause()
         return RET_SYNTAX_ERROR;
     }
 
-    if ((res = statement_list_nonempty()) != RET_OK) // TMP: token not loaded
+    if ((res = statement_list_nonempty()) != RET_OK)
     {
         return res;
     }
-
-    // make sure statement_list is properly terminated
-
-    // eol is read in inside statements
 
     GET_TOKEN()
 
@@ -476,7 +472,7 @@ if_clause()
         return RET_SYNTAX_ERROR;
     }
 
-    return statement_list_nonempty(); // TMP: token not loaded
+    return statement_list_nonempty();
 }
 
 int
@@ -519,7 +515,7 @@ while_clause()
         return RET_SYNTAX_ERROR;
     }
 
-    return statement_list_nonempty(); // TMP: token not loaded
+    return statement_list_nonempty();
 }
 
 int
@@ -555,7 +551,6 @@ def_param_list()
 {
     // DEF_PARAM_LIST -> )
     // DEF_PARAM_LIST -> id DEF_PARAM_LIST_NEXT
-    int res = 0;
 
     GET_TOKEN()
 
@@ -736,8 +731,6 @@ expression()
     // -------------- end --------------
 }
 
-
-
 int
 init_data()
 {
@@ -788,7 +781,7 @@ init_data()
         case 5:
 
             // unreachable code, it's here for future extending of inititialization
-            q_free_queue(data->token_queue);
+            q_free_queue(&data->token_queue);
             // falls through
         case 4:
 

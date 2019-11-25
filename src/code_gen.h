@@ -1,0 +1,4 @@
+#ifndef HEADER_CODE_GEN
+#define HEADER_CODE_GEN
+
+#endif // HEADER_CODE_GEN

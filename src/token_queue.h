@@ -33,6 +33,6 @@ token_t *
 q_pop(token_queue_t *queue);
 
 void
-q_free_queue(token_queue_t *queue);
+q_free_queue(token_queue_t **queue);
 
 #endif //HEADER_TOKEN_QUEUE

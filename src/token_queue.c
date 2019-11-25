@@ -36,17 +36,14 @@ q_enqueue(token_t *token, token_queue_t *queue)
 
     if (queue->last == NULL)
     {
-
         /* If the queue was previously empty, both the first and
          * last must be pointed at the new entry */
 
         queue->first = token_elem;
         queue->last = token_elem;
-
     }
     else
     {
-
         /* The current entry at the last must have next pointed to this
          * new entry */
 
@@ -56,7 +53,6 @@ q_enqueue(token_t *token, token_queue_t *queue)
 
         queue->last = token_elem;
     }
-
     return RET_OK;
 }
 
@@ -68,9 +64,9 @@ q_pop(token_queue_t *queue)
         return NULL;
     }
 
-    token_elem_t *tmp_elem = queue->first;
+    token_elem_t *token_elem_tmp = queue->first;
 
-    token_t *tmp_token = tmp_elem->token;
+    token_t *token_tmp = token_elem_tmp->token;
 
     queue->first = queue->first->next;
 
@@ -83,27 +79,27 @@ q_pop(token_queue_t *queue)
         queue->first->prev = NULL;
     }
 
-    free(tmp_elem);
+    free(token_elem_tmp);
 
-    return tmp_token;
+    return token_tmp;
 }
 
 void
-q_free_queue(token_queue_t *queue)
+q_free_queue(token_queue_t **queue)
 {
-    if (!queue)
+    if (!(*queue))
         return;
 
-    while (queue->first)
+    while ((*queue)->first)
     {
-        token_elem_t *tmp = queue->first;
-        queue->first = queue->first->next;
+        token_elem_t *tmp = (*queue)->first;
+        (*queue)->first = (*queue)->first->next;
         free(tmp);
     }
-    queue->last = NULL;
+    (*queue)->last = NULL;
 
-    free(queue);
-    // FIXME cannot set queue to NULL
+    free((*queue));
+    *queue = NULL;
 }
 
 token_t *

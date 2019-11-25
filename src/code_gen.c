@@ -3,11 +3,11 @@
 #include "stdio.h"
 #include "stdbool.h"
 
-#define ADD_INST(_inst)														\
-	if (!append_string(&code, (_inst "\n"))) return false
+#define ADD_INST(_inst)                                                        \
+    if (!append_c_string_to_string(&code, (_inst "\n"))) return false;
 
-#define ADD_CODE(_code)														\
-	if (!append_string(&code, (_code))) return false
+#define ADD_CODE(_code)                                                        \
+    if (!append_c_string_to_string(&code, (_code))) return false;
 
 #define ADD_CODE_INT(_code)													\
 	do {																	\
@@ -16,7 +16,7 @@
 		ADD_CODE(str);														\
 	} while (0)
 
-#define HEADER\
+#define HEADER \
 "\n .IFJcode19"\
 "\n DEFVAR GF@%tmp_op1"\
 "\n DEFVAR GF@%tmp_op2"\
@@ -24,18 +24,18 @@
 "\n DEFVAR GF@%exp_result"\
 "\n JUMP $$main"\
 
-#define MAIN_START\
+#define MAIN_START \
 "\n # Main scope"\
 "\n LABEL $$main"\
 "\n CREATEFRAME"\
 "\n PUSHFRAME"\
 
-#define MAIN_END\
+#define MAIN_END \
 "\n # End of main scope"\
 "\n POPFRAME"\
 "\n CLEARS"\
 
-#define BUILD_IN_FUNCTIONS\
+#define BUILD_IN_FUNCTIONS \
  "\n# Built-in function Ord"\
  "\n LABEL $ord"\
  "\n PUSHFRAME"\
@@ -178,21 +178,23 @@
  "\n LABEL $substr$return"\
  "\n POPFRAME"\
  "\n RETURN"\
-							
-string_t code;
 
-static bool insert_built_in_functions()
+string_t code; // TODO init string
+
+static bool
+insert_built_in_functions()
 {
-	ADD_INST(BUILD_IN_FUNCTIONS);
+    ADD_INST(BUILD_IN_FUNCTIONS);
 
-	return true;
+    return true;
 }
 
-static bool generate_file_header()
+static bool
+generate_file_header()
 {
-	ADD_INST(HEADER);
+    ADD_INST(HEADER);
 
-	return true;
+    return true;
 }
 
 bool generate_main_scope_start()

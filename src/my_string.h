@@ -3,7 +3,6 @@
 
 #define INITIAL_SIZE 20
 #define REALLOC_SIZE 5
-#define STRING_END "\0"
 
 typedef struct
 {
@@ -24,12 +23,32 @@ init_string(string_t *string);
 /**
  * @brief add one character at end of string
  *
- * @param string string to which will be appended
- * @param var Char which is to be appended
+ * @param dest string to which will be appended
+ * @param src Char which is to be appended
  * @return unsigned int INTERNAL_ERROR if realloc fails, otherwise OK
  */
 unsigned int
-append_string(string_t *string, char var);
+append_char_to_string(string_t *dest, char src);
+
+/**
+ * @brief concatenate strings
+ *
+ * @param dest string to which will be appended
+ * @param src string which is to be appended
+ * @return unsigned int INTERNAL_ERROR if realloc fails, otherwise OK
+ */
+unsigned int
+append_string_to_string(string_t *dest, string_t *src);
+
+/**
+ * @brief concatenate strings
+ *
+ * @param dest string to which will be appended
+ * @param src c_string (char*) which is to be appended
+ * @return unsigned int INTERNAL_ERROR if realloc fails, otherwise OK
+ */
+unsigned int
+append_c_string_to_string(string_t *dest, const char *src);
 
 /**
  * TODO missing doc comment

@@ -15,9 +15,11 @@ binary = "compiler"
 input_dir = "snippets"
 dir = os.listdir(main_dir + input_dir)
 
+error_count = 0
+
 for file_name in dir:
     current_file_args = (main_dir + input_dir + '/' + file_name)
-    print(file_name)
+    # print(file_name)
 
     # vvv this line determines the way the binary is run
     args = (main_dir + binary, current_file_args)
@@ -26,4 +28,15 @@ for file_name in dir:
     popen.wait()
     output = popen.stdout.read()
     returnCode = popen.poll()
-    print(output + 'r:', returnCode, '\n---\n')
+
+    # print(output + 'r:', returnCode, '\n---\n')
+    # ^^^ print output
+
+    if returnCode != 0:
+        print(file_name, ' returned ' + returnCode)
+        error_count += 1
+
+if error_count == 0:
+    print('All passed')
+
+exit(error_count)
