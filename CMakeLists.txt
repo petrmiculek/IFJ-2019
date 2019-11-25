@@ -16,7 +16,8 @@ add_executable(compiler
         src/stack.c src/stack.h
         src/parser.c src/parser.h
         src/token_queue.c src/token_queue.h
-        src/code_gen.c src/code_gen.h)
+        src/code_gen.c src/code_gen.h
+        src/sym_table.c src/sym_table.h)
 
 add_executable(compiler_tests
         src/test.c
@@ -26,5 +27,6 @@ add_executable(compiler_tests
         src/stack.c src/stack.h
         src/parser.c src/parser.h
         src/token_queue.c src/token_queue.h
-        src/code_gen.c src/code_gen.h)
+        src/code_gen.c src/code_gen.h
+        src/sym_table.c src/sym_table.h)
 
