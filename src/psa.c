@@ -156,6 +156,111 @@ unsigned int get_symbol(token_t *token)
     
 }
 
+unsigned int get_rule(sym_stack *Stack,int *count, unsigned int *rule)
+{
+    int i = Stack->top+1;
+    sem_t tmp = Stack->atr[i];
+    while (tmp.type != SHIFT)
+    {
+        i--;
+        count++;
+        tmp = Stack->atr[i];
+    }
+    if(*count == 1)
+    {
+        sem_t sym1 = Stack->atr[i];
+        if(sym1.type = EXP)
+        {
+            *rule = R_I;
+            return RET_OK;
+        }
+        else
+        {
+            return RET_SYNTAX_ERROR;
+        }
+    }
+    else if(*count == 3)
+    {
+        i = Stack->top+1;
+        sem_t sym1 = Stack->atr[i];
+        sem_t sym2 = Stack->atr[i-1];
+        sem_t sym3 = Stack->atr[i-2];
+        if(sym1.type == R_BRAC || sym2.type == EXP || sym3.type == L_BRAC)
+        {
+            *rule = R_BRACKETS;
+            return RET_OK;
+        }
+        else if(sym1.type == EXP || sym3.type == EXP)
+        {
+            switch (sym2.type)
+            {
+            case PLUS:
+            { 
+                *rule = R_PLUS;
+                return RET_OK;
+            }
+            case MIN:
+            {
+                *rule = R_MIN;
+                return RET_OK;
+            }
+            case MUL:
+            {
+                *rule = R_MUL;
+                return RET_OK;
+            }
+            case DIV:
+            {
+                *rule = R_DIV;
+                return RET_OK;
+            }
+            case IDIV:
+            {
+                *rule = R_IDIV;
+                return RET_OK;
+            }
+            case A:
+            {
+                *rule = R_A;
+                return RET_OK;
+            }
+            case EA:
+            {
+                *rule = R_EA;
+                return RET_OK;
+            }
+            case L:
+            {
+                *rule = R_L;
+                return RET_OK;
+            }
+            case EL:
+            {
+                *rule = R_EL;
+                return RET_OK;
+            }
+            case EQ:
+            {
+                *rule = R_EQ;
+                return RET_OK;
+            }
+            case NE:
+            {
+                *rule = R_NE;
+                return RET_OK;
+            }
+            default:
+                return RET_SYNTAX_ERROR;
+            }
+        }
+    }
+    else
+    {
+        return RET_SYNTAX_ERROR;
+    }
+    
+}
+
 sym_stack* Stack;
 
 unsigned int solve_exp(data_t *data)
@@ -187,8 +292,21 @@ unsigned int solve_exp(data_t *data)
         {   
             case S:
             {
-                new->type = SHIFT;
-                push(Stack, new);
+
+                sem_t tmp = Stack->atr[Stack->top];
+                if(tmp.type == EXP)
+                {
+                    pop(Stack);
+                    new->type = SHIFT;
+                    push(Stack, new);
+                    push(Stack, &tmp);
+                }
+                else
+                {  
+                    new->type = SHIFT;
+                    push(Stack, new);
+
+                }
                 new->type = sym;
                 switch(sym)
                 {
@@ -224,7 +342,22 @@ unsigned int solve_exp(data_t *data)
             }
             case R:
             {
-                
+                int count;
+                unsigned int rule = 0;
+                get_rule(Stack, &count, &rule);
+                if(rule == R_I)
+                {
+                    //sem-test
+                    pop(Stack);
+                    pop(Stack);
+                }
+                else if()
+                {
+                    pop(Stack);
+                    pop(Stack);
+                    pop(Stack);
+                    pop(Stack);
+                }
             }
             case B:
             {
