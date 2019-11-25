@@ -155,6 +155,141 @@ unsigned int get_symbol(token_t *token)
 
     
 }
+unsigned int check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type* final_type)
+{
+    bool retype_sym1_to_double = false;
+	bool retype_sym3_to_double = false;
+	bool retype_sym1_to_integer = false;
+	bool retype_sym3_to_integer = false;
+
+	if (rule == R_I)
+	{
+		//check if the operand is defined probably sym table
+        //return RET_SEMANTICAL_ERROR
+		
+	}
+
+	if (rule == R_BRACKETS)
+	{
+		// check sym_table
+	}
+
+	if (rule != R_I && rule != R_BRACKETS)
+	{
+		//check sym_table
+	}
+
+	switch (rule)
+	{
+	case R_I:
+        *final_type =sym1->d_type;
+		break;
+
+	case R_BRACKETS:
+        *final_type = sym2->d_type;
+		break;
+
+	case R_PLUS:
+	case R_MIN:
+	case R_MUL:
+        if (sym1->d_type == STRING && sym3->d_type == STRING && rule == R_PLUS)
+		{
+			*final_type = STRING;
+			break;
+		}
+
+		if (sym1->d_type == INT && sym3->d_type == INT)
+		{
+			*final_type = INT;
+			break;
+		}
+
+		if (sym1->d_type == STRING || sym3->d_type == STRING)
+			return RET_SEMANTICAL_RUNTIME_ERROR;
+
+		*final_type = FLOAT;
+
+		if (sym1->d_type == INT)
+			retype_sym1_to_double = true;
+
+		if (sym3->d_type == INT)
+			retype_sym3_to_double = true;
+
+		break;
+
+	case R_DIV:
+		*final_type = FLOAT;
+
+		if (sym1->d_type == STRING || sym3->d_type == STRING)
+			return RET_SEMANTICAL_RUNTIME_ERROR;
+
+		if (sym1->d_type == INT)
+			retype_sym1_to_double = true;
+
+		if (sym3->d_type == INT)
+			retype_sym3_to_double = true;
+
+		break;
+
+	case R_IDIV:
+		*final_type = INT;
+
+		if (sym1->d_type == STRING || sym3->d_type == STRING)
+			return RET_SEMANTICAL_RUNTIME_ERROR;
+
+		if (sym1->d_type == FLOAT)
+			retype_sym1_to_integer = true;
+
+		if (sym3->d_type == FLOAT)
+			retype_sym3_to_integer = true;
+
+		break;
+
+	case R_EQ:
+	case R_NE:
+	case R_EL:
+	case R_L:
+	case R_EA:
+	case R_A:
+		*final_type = INT;
+
+		if (sym1->d_type == INT && sym3->d_type == FLOAT)
+			retype_sym1_to_double = true;
+
+		else if (sym1->d_type == FLOAT && sym3->d_type == INT)
+			retype_sym3_to_double = true;
+
+		else if (sym1->d_type != sym3->d_type)
+			return RET_SEMANTICAL_RUNTIME_ERROR;
+
+		break;
+
+	default:
+		break;
+	}
+
+	if (retype_sym1_to_double)
+	{
+		//GENERATE_CODE(generate_stack_sym2_to_douboe);
+	}
+
+	if (retype_sym3_to_double)
+	{
+		//GENERATE_CODE(generate_stack_sym1_to_double);
+	}
+
+	if (retype_sym1_to_integer)
+	{
+		//GENERATE_CODE(generate_stack_sym2_to_inteoer);
+	}
+
+	if (retype_sym3_to_integer)
+	{
+		//GENERATE_CODE(generate_stack_sym1_to_integer);
+	}
+
+	return RET_OK;
+}
 
 unsigned int get_rule(sym_stack *Stack,int *count, unsigned int *rule)
 {
