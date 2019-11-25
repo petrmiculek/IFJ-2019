@@ -190,7 +190,7 @@ function_def()
     if (data->token->type != TOKEN_IDENTIFIER)
         return RET_SYNTAX_ERROR;
 
-    // identifier to symtable
+    // _SEM identifier to symtable and check redefinition
     // check redefinition
 
     GET_TOKEN()
@@ -268,7 +268,7 @@ statement()
             if (data->token->type == TOKEN_ASSIGN)
             {
                 // STATEMENT -> id = ASSIGN_RHS eol
-
+                // _SEM add variable to sym_table 
                 if ((res = assign_rhs()) != RET_OK)
                     return res;
 
@@ -278,7 +278,7 @@ statement()
             else if (data->token->type == TOKEN_LEFT)
             {
                 // STATEMENT -> id ( CALL_PARAM_LIST eol
-
+                // _SEM check if id is defined
                 if ((res = call_param_list()) != RET_OK)
                     return res;
 
@@ -331,6 +331,7 @@ assign_rhs()
 
     if (data->token->type == TOKEN_IDENTIFIER)
     {
+        // _SEM check if ID is declared 
         GET_TOKEN()
 
         if (data->token->type == TOKEN_LEFT)
@@ -524,6 +525,8 @@ def_param_list_next()
     // DEF_PARAM_LIST_NEXT -> , id DEF_PARAM_LIST_NEXT
     // DEF_PARAM_LIST_NEXT -> )
 
+    //_SEM token contains first param
+    // param is added to sym_table
     GET_TOKEN()
 
     if (data->token->type == TOKEN_RIGHT)
@@ -533,10 +536,12 @@ def_param_list_next()
     else if (data->token->type == TOKEN_COMMA)
     {
         GET_TOKEN()
-
+         
         if (data->token->type != TOKEN_IDENTIFIER)
             return (RET_SYNTAX_ERROR);
-
+        
+        //_SEM token contains next param
+        // param is added to sym_table        
         return (def_param_list_next());
     }
     else
