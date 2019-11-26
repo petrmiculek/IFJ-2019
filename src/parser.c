@@ -1,3 +1,10 @@
+/**
+ * @name IFJ19Compiler
+ * @authors xmicul08 (Mičulek Petr)
+            xjacko04 (Jacko Daniel)
+            xsetin00 (Setinský Jiří)
+            xsisma01 (Šišma Vojtěch)
+ */
 #include "parser.h"
 #include "scanner.h"
 #include "err.h"
@@ -13,6 +20,8 @@ data_t *data = NULL;
     shorter way of expressing: return from function when things go wrong
     typically used after reading from scanner, but can be utilized anywhere
  */
+int
+symtable_insert();
 #define RETURN_IF_ERR(res) do { if ((res) != RET_OK) { return (res);} } while(0);
 
 #define GET_TOKEN() do { get_next_token(); RETURN_IF_ERR(data->res) } while(0);
@@ -184,7 +193,7 @@ init_data()
     
     if ((data->ID = malloc(sizeof(ht_item_t))) == NULL)
     {
-        init_state = 4;
+        init_state = 5;
         goto cleanup;
     }
 
@@ -324,6 +333,7 @@ function_def()
     
     // _SEM identifier to symtable and check redefinition
     // check redefinition
+    symtable_insert();
 
     GET_TOKEN()
 
@@ -351,6 +361,23 @@ function_def()
         return RET_SYNTAX_ERROR;
 
     return statement_list_nonempty();
+}
+int
+symtable_insert(token_t *token)
+{
+    if (data->sym_table == NULL
+        || token->type != TOKEN_IDENTIFIER)
+    {
+        return RET_INTERNAL_ERROR;
+    }
+
+    sym_table_item *new_item;
+
+    //ht_insert(data->sym_table, token->string, *new_item);
+    // TODO Continue work here
+    // THIS IS NOT DONE, YET
+    return RET_OK;
+
 }
 
 int

@@ -1,4 +1,11 @@
-#include "sym_table.h"
+/**
+ * @name IFJ19Compiler
+ * @authors xmicul08 (Mičulek Petr)
+            xjacko04 (Jacko Daniel)
+            xsetin00 (Setinský Jiří)
+            xsisma01 (Šišma Vojtěch)
+ */
+#include "symtable.h"
 #include <stdlib.h>
 #include <stdio.h>
 

@@ -1,7 +1,15 @@
+/**
+ * @name IFJ19Compiler
+ * @authors xmicul08 (Mičulek Petr)
+            xjacko04 (Jacko Daniel)
+            xsetin00 (Setinský Jiří)
+            xsisma01 (Šišma Vojtěch)
+ */
 #include "my_string.h"
 #include "code_gen.h"
 #include "stdio.h"
 #include "stdbool.h"
+#include <stdlib.h>
 
 #define ADD_INST(_inst)                                                        \
     if (!append_c_string_to_string(&code, (_inst "\n"))) return false;
@@ -229,12 +237,45 @@ bool generate_function_end(char *function_id)
 	ADD_INST("POPFRAME");
 	ADD_INST("RETURN");
 
-	return true;
+    return true;
 }
 
-bool generate_var_declare(char *var_id)
+bool
+generate_var_declare(char *var_id)
 {
-	ADD_CODE("DEFVAR LF@"); ADD_CODE(var_id); ADD_CODE("\n");
+    ADD_CODE("DEFVAR LF@");
+    ADD_CODE(var_id);
+    ADD_CODE("\n");
 
-	return true;
+    return true;
 }
+
+int
+generate_unique_number()
+{
+    static int current_result = 0;
+    return ++current_result;
+}
+
+string_t *
+generate_unique_identifier(const char *prefix_scope, const char *prefix_type)
+{
+    string_t *dest;
+    if (NULL == (dest = malloc(sizeof(string_t))))
+        return NULL;
+
+    init_string(dest);
+
+    append_c_string_to_string(dest, prefix_scope);
+    append_char_to_string(dest, '$');
+    append_c_string_to_string(dest, prefix_type);
+
+    int tmp_buffer_size = 10;
+    char tmp[tmp_buffer_size];
+
+    snprintf(tmp, tmp_buffer_size, "%d", generate_unique_number());
+    append_c_string_to_string(dest, tmp);
+
+    return dest;
+}
+

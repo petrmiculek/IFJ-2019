@@ -1,6 +1,14 @@
 #ifndef HEADER_SYM_TABLE_H
 #define HEADER_SYM_TABLE_H
+/**
+ * @name IFJ19Compiler
+ * @authors xmicul08 (Mičulek Petr)
+            xjacko04 (Jacko Daniel)
+            xsetin00 (Setinský Jiří)
+            xsisma01 (Šišma Vojtěch)
+ */
 
+#include <stdbool.h>
 #include "my_string.h"
 #include <stdbool.h>
 
@@ -8,9 +16,17 @@
 
 typedef struct _sym_table_item_t
 {
-    char *identifier;
-    bool function_id;
-    int param_count;
+    string_t identifier;
+    bool is_function;
+    bool is_function_defined;
+    unsigned int function_params_count;
+
+
+
+    /**
+     * if a function does not have any return statement, we should simulate one?
+     */
+    bool function_contains_return;
 
 } sym_table_item;
 
@@ -19,7 +35,7 @@ typedef struct _hash_table_item_t ht_item_t;
 struct _hash_table_item_t
 {
     char *key;
-    sym_table_item data;
+    sym_table_item *data;
     ht_item_t *next;
 };
 

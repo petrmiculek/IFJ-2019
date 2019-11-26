@@ -1,5 +1,12 @@
 #ifndef HEADER_ERROR_STATES
 #define HEADER_ERROR_STATES
+/**
+ * @name IFJ19Compiler
+ * @authors xmicul08 (Mičulek Petr)
+            xjacko04 (Jacko Daniel)
+            xsetin00 (Setinský Jiří)
+            xsisma01 (Šišma Vojtěch)
+ */
 
 enum RET_CODES
 {
