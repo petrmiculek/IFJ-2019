@@ -11,7 +11,7 @@
 #include <stdbool.h>
 #include "scanner.h"
 #include "token_queue.h"
-#include "sym_table.h"
+#include "symtable.h"
 
 struct _struct_data_t
 {

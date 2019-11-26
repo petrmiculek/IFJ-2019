@@ -5,7 +5,7 @@
             xsetin00 (Setinský Jiří)
             xsisma01 (Šišma Vojtěch)
  */
-#include "sym_table.h"
+#include "symtable.h"
 #include <stdlib.h>
 #include <stdio.h>
 
