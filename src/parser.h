@@ -4,9 +4,7 @@
 #include <stdbool.h>
 #include "scanner.h"
 #include "token_queue.h"
-
-int
-parse(FILE *file);
+#include "sym_table.h"
 
 struct _struct_data_t
 {
@@ -15,11 +13,12 @@ struct _struct_data_t
     token_t *token;
     int use_queue_for_read;
 
+    table_t *sym_table;
+
     int res; // result of most-recent operation
 
     // Feature ideas:
 
-    //      symtable
     //      flags
     //      inside function -> allow return
     //      inside while -> context aware code generation for defvar ?
@@ -27,6 +26,14 @@ struct _struct_data_t
 
 };
 typedef struct _struct_data_t data_t;
+
+/**
+ * @brief initialize and start syntax analysis
+ * @param file
+ * @return
+ */
+int
+parse(FILE *file);
 
 /**
  * @brief Wrapper for get_token
@@ -57,6 +64,10 @@ get_next_token();
 int
 read_eol(bool check_for_first_eol);
 
+/**
+ * check that token is a valid start of expression
+ * @return
+ */
 int
 is_expression_start();
 
@@ -73,6 +84,7 @@ init_data();
  */
 void
 clear_data();
+
 
 // ---------vvv--------- GRAMMAR RULES FUNCTIONS ---------vvv---------
 

@@ -41,6 +41,11 @@ main(int argc, char **argv)
 
         printf("str: %-40s type: ", token->string.str);
         print_token_type(token);
+
+        if (res != RET_OK)
+        {
+            printf(" --possibly invalid\n");
+        }
         // ^^^ might print invalid data on lexical error, but at least we get some info?
 
         free_string(&token->string);
@@ -62,138 +67,138 @@ print_token_type(token_t *token)
 {
     if (token->type == TOKEN_INT)
     {
-        printf("INT\n");
+        printf("INT");
     }
     else if (token->type == TOKEN_FLOAT)
     {
-        printf("FLOAT\n");
+        printf("FLOAT");
     }
     else if (token->type == TOKEN_LEFT)
     {
-        printf("LEFT\n");
+        printf("LEFT");
     }
     else if (token->type == TOKEN_RIGHT)
     {
-        printf("RIGHT\n");
+        printf("RIGHT");
     }
     else if (token->type == TOKEN_LIT)
     {
-        printf("LIT\n");
+        printf("LIT");
     }
     else if (token->type == TOKEN_IS_EQUAL)
     {
-        printf("IS_EQUAL\n");
+        printf("IS_EQUAL");
     }
     else if (token->type == TOKEN_N_EQUAL)
     {
-        printf("N_EQUAL\n");
+        printf("N_EQUAL");
     }
     else if (token->type == TOKEN_MORE)
     {
-        printf("MORE\n");
+        printf("MORE");
     }
     else if (token->type == TOKEN_MORE_E)
     {
-        printf("MORE_E\n");
+        printf("MORE_E");
     }
     else if (token->type == TOKEN_LESS)
     {
-        printf("LESS\n");
+        printf("LESS");
     }
     else if (token->type == TOKEN_LESS_E)
     {
-        printf("LESS_E\n");
+        printf("LESS_E");
     }
     else if (token->type == TOKEN_MULTI)
     {
-        printf("MULTI\n");
+        printf("MULTI");
     }
     else if (token->type == TOKEN_DIVISION)
     {
-        printf("DIVISION\n");
+        printf("DIVISION");
     }
     else if (token->type == TOKEN_FLOR_DIV)
     {
-        printf("FLOR_DIV\n");
+        printf("FLOR_DIV");
     }
     else if (token->type == TOKEN_MINUS)
     {
-        printf("MINUS\n");
+        printf("MINUS");
     }
     else if (token->type == TOKEN_PLUS)
     {
-        printf("PLUS\n");
+        printf("PLUS");
     }
     else if (token->type == TOKEN_NONE)
     {
-        printf("NONE\n");
+        printf("NONE");
     }
     else if (token->type == TOKEN_PASS)
     {
-        printf("PASS\n");
+        printf("PASS");
     }
     else if (token->type == TOKEN_RETURN)
     {
-        printf("RETURN\n");
+        printf("RETURN");
     }
     else if (token->type == TOKEN_COMMA)
     {
-        printf("COMMA\n");
+        printf("COMMA");
     }
     else if (token->type == TOKEN_COLON)
     {
-        printf("COLON\n");
+        printf("COLON");
     }
     else if (token->type == TOKEN_SPACE)
     {
-        printf("SPACE\n");
+        printf("SPACE");
     }
     else if (token->type == TOKEN_DEF)
     {
-        printf("DEF\n");
+        printf("DEF");
     }
     else if (token->type == TOKEN_IF)
     {
-        printf("IF\n");
+        printf("IF");
     }
     else if (token->type == TOKEN_ELSE)
     {
-        printf("ELSE\n");
+        printf("ELSE");
     }
     else if (token->type == TOKEN_WHILE)
     {
-        printf("WHILE\n");
+        printf("WHILE");
     }
     else if (token->type == TOKEN_ASSIGN)
     {
-        printf("ASSIGN\n");
+        printf("ASSIGN");
     }
     else if (token->type == TOKEN_INDENT)
     {
-        printf("INDENT\n");
+        printf("INDENT");
     }
     else if (token->type == TOKEN_DEDENT)
     {
-        printf("DEDENT\n");
+        printf("DEDENT");
     }
     else if (token->type == TOKEN_EOL)
     {
-        printf("EOL\n");
+        printf("EOL");
     }
     else if (token->type == TOKEN_EOF)
     {
-        printf("EOF\n");
+        printf("EOF");
     }
     else if (token->type == TOKEN_IDENTIFIER)
     {
-        printf("IDENTIFIER\n");
+        printf("IDENTIFIER");
     }
     else if (token->type == TOKEN_DOC)
     {
-        printf("DOC\n");
+        printf("DOC");
     }
     else
     {
-        printf("Unnamed token type(%d)\n", token->type);
+        printf("Unnamed token type(%d)", token->type);
     }
 }
