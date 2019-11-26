@@ -644,6 +644,10 @@ unsigned int solve_exp(data_t *data)
                 }
                 else if(rule == R_EA || rule == R_A || rule == R_L || rule == R_EL || rule == R_EQ || rule == R_NE)
                 {
+                    new.type = EXP;
+                    new.d_type = finaltype;
+                    if(tmp_var( &new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used) == RET_INTERNAL_ERROR)
+                        return RET_INTERNAL_ERROR;
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
