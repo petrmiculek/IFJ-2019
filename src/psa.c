@@ -403,12 +403,11 @@ unsigned int get_rule(sym_stack *Stack,int *count, unsigned int *rule)
 
 unsigned int tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
 {
-    string_t string;
-    init_string(&string);
+    init_string(string);
     if(*tmp1 == 0 && *tmp2 == 0 && *tmp3 == 0)
     {
         char *c = "tmp1";
-        if(append_c_string_to_string(&string, c) == RET_INTERNAL_ERROR)
+        if(append_c_string_to_string(string, c) == RET_INTERNAL_ERROR)
         {
             return RET_INTERNAL_ERROR;
         }
@@ -421,7 +420,7 @@ unsigned int tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
     else if (*tmp1 == 1 && *tmp2 == 0 && *tmp3 == 0)
     {
         char *c = "tmp2";
-        if(append_c_string_to_string(&string, c) == RET_INTERNAL_ERROR)
+        if(append_c_string_to_string(string, c) == RET_INTERNAL_ERROR)
         {
             return RET_INTERNAL_ERROR;
         }
@@ -435,7 +434,7 @@ unsigned int tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
     else if (*tmp1 ==0  && *tmp2 ==0  && *tmp3 == 1)
     {
         char *c = "tmp1";
-        if(append_c_string_to_string(&string, c) == RET_INTERNAL_ERROR)
+        if(append_c_string_to_string(string, c) == RET_INTERNAL_ERROR)
         {
             return RET_INTERNAL_ERROR;
         }
@@ -448,7 +447,7 @@ unsigned int tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
     else if (*tmp1 ==0  && *tmp2 ==1  && *tmp3 == 0)
     {
         char *c = "tmp1";
-        if(append_c_string_to_string(&string, c) == RET_INTERNAL_ERROR)
+        if(append_c_string_to_string(string, c) == RET_INTERNAL_ERROR)
         {
             return RET_INTERNAL_ERROR;
         }
@@ -461,7 +460,7 @@ unsigned int tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
     else if (*tmp1 == 1 && *tmp2 == 1 && *tmp3 == 0)
     {
         char *c = "tmp3";
-        if(append_c_string_to_string(&string, c) == RET_INTERNAL_ERROR)
+        if(append_c_string_to_string(string, c) == RET_INTERNAL_ERROR)
         {
             return RET_INTERNAL_ERROR;
         }
@@ -476,7 +475,7 @@ unsigned int tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
     else if (*tmp1 == 0 && *tmp2 == 1 && *tmp3 == 1)
     {
         char *c = "tmp1";
-        if(append_c_string_to_string(&string, c) == RET_INTERNAL_ERROR)
+        if(append_c_string_to_string(string, c) == RET_INTERNAL_ERROR)
         {
             return RET_INTERNAL_ERROR;
         }
@@ -491,7 +490,7 @@ unsigned int tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
     else if (*tmp1 == 1 && *tmp2 == 0 && *tmp3 == 1)
     {
         char *c = "tmp2";
-        if(append_c_string_to_string(&string, c) == RET_INTERNAL_ERROR)
+        if(append_c_string_to_string(string, c) == RET_INTERNAL_ERROR)
         {
             return RET_INTERNAL_ERROR;
         }
@@ -508,6 +507,11 @@ unsigned int tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
         printf("wrong algorithm for asinging tmp_var");
         return RET_INTERNAL_ERROR;
     }
+    else
+    {
+        return WARNING_NOT_IMPLEMENTED;
+    }
+    
 }
 sym_stack* Stack;
 
@@ -586,6 +590,7 @@ unsigned int solve_exp(data_t *data)
                 stack_expr_push(Stack, new);
                 get_next_token(data, &res);
                 RETURN_IF_ERR(res)
+                break;
 
             }
             case E:
@@ -605,6 +610,7 @@ unsigned int solve_exp(data_t *data)
                 stack_expr_push(Stack, new);
                 get_next_token(data, &res);
                 RETURN_IF_ERR(res)
+                break;
             }
             case R:
             {
@@ -640,7 +646,7 @@ unsigned int solve_exp(data_t *data)
                     stack_expr_pop(Stack);
                     stack_expr_push(Stack, new);
                 }
-                else if(rule = R_BRACKETS)
+                else if(rule == R_BRACKETS)
                 {
                     sem_t new = Stack->atr[i-1];
                     stack_expr_pop(Stack);
@@ -661,6 +667,7 @@ unsigned int solve_exp(data_t *data)
                     stack_expr_pop(Stack);
                     stack_expr_push(Stack, new);
                 }
+                break;
             }
             case B:
             {
