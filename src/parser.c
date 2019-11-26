@@ -168,11 +168,20 @@ init_data()
         goto cleanup;
     }
 
-    if (NULL == (data->sym_table = ht_init()))
+    //init sym_tables
+    if (NULL == (data->global_sym_table = ht_init()))
     {
         init_state = 4;
         goto cleanup;
     }
+    
+    if (NULL == (data->local_sym_table = ht_init()))
+    {
+        init_state = 4;
+        goto cleanup;
+    }
+    
+    data->ID=NULL;
 
     // switch cases don't contain break statement on purpose
     // fall-through makes sure all the neccessary objects are cleaned
@@ -295,6 +304,21 @@ function_def()
     if (data->token->type != TOKEN_IDENTIFIER)
         return RET_SYNTAX_ERROR;
 
+    
+    data->ID=ht_search(data->global_sym_table,data->token->string.str);
+    if (data->ID==NULL)
+    {
+        sym_table_item function_def;
+        function_def.identifier=data->token->string.str;
+        function_def.function_id=true;
+        ht_insert(data->global_sym_table,data->token->string.str, function_def );
+    }
+    else
+    {
+        if(data->ID->data.function_id=true)
+            return RET_SEMANTICAL_ERROR;/* code */
+    }
+    
     // _SEM identifier to symtable and check redefinition
     // check redefinition
 
@@ -372,6 +396,16 @@ statement()
 
             if (data->token->type == TOKEN_ASSIGN)
             {
+                data->ID=ht_search(data->global_sym_table,data->token->string.str);
+                if (data->ID==NULL)
+                {
+                    sym_table_item variable_id;
+                    variable_id.identifier=data->token->string.str;
+                    variable_id.function_id=false;
+                    ht_insert(data->global_sym_table,data->token->string.str, variable_id);
+                }
+                
+
                 // STATEMENT -> id = ASSIGN_RHS eol
                 // _SEM add variable to sym_table
                 if ((res = assign_rhs()) != RET_OK)
@@ -383,6 +417,16 @@ statement()
             else if (data->token->type == TOKEN_LEFT)
             {
                 // STATEMENT -> id ( CALL_PARAM_LIST eol
+                data->ID=ht_search(data->global_sym_table,data->token->string.str);
+                if (data->ID==NULL)
+                {
+                    return RET_SEMANTICAL_ERROR;
+                }
+                else if (data->ID->data.function_id==false)
+                {
+                    return RET_SEMANTICAL_ERROR;
+                }
+                
                 // _SEM check if id is defined
                 if ((res = call_param_list()) != RET_OK)
                     return res;
@@ -436,6 +480,17 @@ assign_rhs()
 
     if (data->token->type == TOKEN_IDENTIFIER)
     {
+        
+        data->ID=ht_search(data->global_sym_table,data->token->string.str);
+        if (data->ID==NULL)
+        {
+            return RET_SEMANTICAL_ERROR;
+        }
+        else if (data->ID->data.function_id==false)
+        {
+            return RET_SEMANTICAL_ERROR;
+        }
+        
         // _SEM check if ID is declared
         GET_TOKEN()
 

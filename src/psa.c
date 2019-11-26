@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <stdbool.h>
 
+
 #define TABLE_SIZE 7
 #define RETURN_IF_ERR(res) do { if ((res) != RET_OK) {return (res);} } while(0);
 
@@ -160,9 +161,11 @@ unsigned int check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, 
 	bool retype_sym1_to_integer = false;
 	bool retype_sym3_to_integer = false;
 
+    //ht_item_t operand;
 	if (rule == R_I)
 	{
-		//check if the operand is defined probably sym table
+		//operand=ht_search()    
+        //check if the operand is defined probably sym table
         //return RET_SEMANTICAL_ERROR
 
 	}
@@ -174,7 +177,7 @@ unsigned int check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, 
 
 	if (rule != R_I && rule != R_BRACKETS)
 	{
-		//check sym_table
+		// no need of this section
 	}
 
 	switch (rule)

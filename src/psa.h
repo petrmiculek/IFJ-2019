@@ -6,6 +6,9 @@
 unsigned int
 get_symbol(token_t *token);
 
+unsigned int 
+check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type* final_type);
+
 #define EXP 42
 #define SHIFT 21
 

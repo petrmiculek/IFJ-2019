@@ -2,16 +2,26 @@
 #define HEADER_SYM_TABLE_H
 
 #include "my_string.h"
+#include <stdbool.h>
 
 #define MAX_HTSIZE 101 // FIXME find suitable prime number
 
 typedef struct _sym_table_item_t
 {
-    string_t identifier;
+    char *identifier;
+    bool function_id;
+    params parametrs;
 
 } sym_table_item;
 
 typedef struct _hash_table_item_t ht_item_t;
+
+typedef struct params
+{
+    char **param;
+    int param_count;
+
+}params;
 
 struct _hash_table_item_t
 {
