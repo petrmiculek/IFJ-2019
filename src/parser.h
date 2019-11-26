@@ -22,6 +22,8 @@ struct _struct_data_t
 
     table_t *sym_table;
 
+    bool in_function; // TODO only allow return statement inside f-definition
+
     int res; // result of most-recent operation
 
     // Feature ideas:

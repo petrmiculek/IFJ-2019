@@ -8,6 +8,7 @@
             xsisma01 (Šišma Vojtěch)
  */
 
+#include <stdbool.h>
 #include "my_string.h"
 
 #define MAX_HTSIZE 101 // FIXME find suitable prime number
@@ -15,6 +16,16 @@
 typedef struct _sym_table_item_t
 {
     string_t identifier;
+    bool is_function;
+    bool is_function_defined;
+    unsigned int function_params_count;
+
+
+
+    /**
+     * if a function does not have any return statement, we should simulate one?
+     */
+    bool function_contains_return;
 
 } sym_table_item;
 
@@ -23,7 +34,7 @@ typedef struct _hash_table_item_t ht_item_t;
 struct _hash_table_item_t
 {
     char *key;
-    sym_table_item data;
+    sym_table_item *data;
     ht_item_t *next;
 };
 

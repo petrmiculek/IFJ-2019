@@ -429,7 +429,7 @@ unsigned int tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
         {
             *tmp2 = 1;
             return RET_OK;
-        }     
+        }
     }
 
     else if (*tmp1 ==0  && *tmp2 ==0  && *tmp3 == 1)
@@ -443,7 +443,7 @@ unsigned int tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
         {
             *tmp1 = 1;
             return RET_OK;
-        }     
+        }
     }
     else if (*tmp1 ==0  && *tmp2 ==1  && *tmp3 == 0)
     {
@@ -456,7 +456,7 @@ unsigned int tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
         {
             *tmp1 = 1;
             return RET_OK;
-        }     
+        }
     }
     else if (*tmp1 == 1 && *tmp2 == 1 && *tmp3 == 0)
     {
@@ -471,7 +471,7 @@ unsigned int tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
             *tmp1 = 0;
             *tmp2 = 0;
             return RET_OK;
-        }     
+        }
     }
     else if (*tmp1 == 0 && *tmp2 == 1 && *tmp3 == 1)
     {
@@ -486,7 +486,7 @@ unsigned int tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
             *tmp1 = 1;
             *tmp2 = 0;
             return RET_OK;
-        }     
+        }
     }
     else if (*tmp1 == 1 && *tmp2 == 0 && *tmp3 == 1)
     {
@@ -501,7 +501,7 @@ unsigned int tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
             *tmp1 = 0;
             *tmp2 = 1;
             return RET_OK;
-        }     
+        }
     }
     else if (*tmp1 == 1 && *tmp2 == 1 && *tmp3 == 1)
     {
@@ -509,14 +509,15 @@ unsigned int tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
         return RET_INTERNAL_ERROR;
     }
 }
-sym_stack* Stack;
+
+sym_stack *Stack; // TODO move global to a more visible place
 
 
 
-unsigned int solve_exp(data_t *data)
-
+unsigned int
+solve_exp(data_t *data)
 {
-    Stack = (sym_stack*) malloc(sizeof(sym_stack));
+    Stack = (sym_stack *) malloc(sizeof(sym_stack));
 
     int res;
 

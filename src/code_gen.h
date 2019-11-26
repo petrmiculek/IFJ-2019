@@ -7,5 +7,10 @@
             xsetin00 (Setinský Jiří)
             xsisma01 (Šišma Vojtěch)
  */
+int
+generate_unique_number();
+
+string_t *
+generate_unique_identifier(const char *prefix_scope, const char *prefix_type);
 
 #endif // HEADER_CODE_GEN
