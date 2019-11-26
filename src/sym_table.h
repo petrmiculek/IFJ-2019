@@ -10,18 +10,11 @@ typedef struct _sym_table_item_t
 {
     char *identifier;
     bool function_id;
-    params parametrs;
+    int param_count;
 
 } sym_table_item;
 
 typedef struct _hash_table_item_t ht_item_t;
-
-typedef struct params
-{
-    char **param;
-    int param_count;
-
-}params;
 
 struct _hash_table_item_t
 {

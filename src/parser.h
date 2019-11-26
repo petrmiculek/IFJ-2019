@@ -16,6 +16,8 @@ struct _struct_data_t
     table_t *global_sym_table;
     table_t *local_sym_table;
     ht_item_t* ID;
+    bool local;
+    int par_cnt;
     
 
     int res; // result of most-recent operation
