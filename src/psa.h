@@ -54,4 +54,6 @@ typedef enum rules
     R_NE,
     R_BRACKETS
 } rules;
+
+unsigned int tmp_var();
 #endif // HEADER_PSA
