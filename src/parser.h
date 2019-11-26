@@ -29,6 +29,8 @@ struct _struct_data_t
 
     bool in_function; // TODO only allow return statement inside f-definition
 
+    bool in_function; // TODO only allow return statement inside f-definition
+
     int res; // result of most-recent operation
 
     // Feature ideas:

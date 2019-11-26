@@ -186,7 +186,7 @@ init_data()
     
     if (NULL == (data->local_sym_table = ht_init()))
     {
-        init_state = 4;
+        init_state = 5;
         goto cleanup;
     }
     
