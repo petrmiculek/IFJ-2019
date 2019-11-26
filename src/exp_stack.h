@@ -35,7 +35,7 @@ void
 stack_expr_pop(sym_stack *Stack);
 
 unsigned int
-stack_expr_push(sym_stack *Stack, sem_t *sym);
+stack_expr_push(sym_stack *Stack, sem_t sym);
 
 sem_t
 get_term(sym_stack *Stack);

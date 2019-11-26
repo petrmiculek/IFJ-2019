@@ -302,7 +302,7 @@ unsigned int get_rule(sym_stack *Stack,int *count, unsigned int *rule)
     if(*count == 1)
     {
         sem_t sym1 = Stack->atr[i];
-        if (sym1.type = EXP) // FIXME assign, not comparison; is this intended?
+        if (sym1.type == EXP) // FIXME assign, not comparison; is this intended?
         {
             *rule = R_I;
             return RET_OK;
@@ -393,16 +393,137 @@ unsigned int get_rule(sym_stack *Stack,int *count, unsigned int *rule)
     return WARNING_NOT_IMPLEMENTED; // FIXME
 }
 
+
+unsigned int tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
+{
+    string_t string;
+    init_string(&string);
+    if(*tmp1 == 0 && *tmp2 == 0 && *tmp3 == 0)
+    {
+        char *c = "tmp1";
+        if(append_c_string_to_string(&string, c) == RET_INTERNAL_ERROR)
+        {
+            return RET_INTERNAL_ERROR;
+        }
+        else
+        {
+            *tmp1 = 1;
+            return RET_OK;
+        }
+    }
+    else if (*tmp1 == 1 && *tmp2 == 0 && *tmp3 == 0)
+    {
+        char *c = "tmp2";
+        if(append_c_string_to_string(&string, c) == RET_INTERNAL_ERROR)
+        {
+            return RET_INTERNAL_ERROR;
+        }
+        else
+        {
+            *tmp2 = 1;
+            return RET_OK;
+        }     
+    }
+
+    else if (*tmp1 ==0  && *tmp2 ==0  && *tmp3 == 1)
+    {
+        char *c = "tmp1";
+        if(append_c_string_to_string(&string, c) == RET_INTERNAL_ERROR)
+        {
+            return RET_INTERNAL_ERROR;
+        }
+        else
+        {
+            *tmp1 = 1;
+            return RET_OK;
+        }     
+    }
+    else if (*tmp1 ==0  && *tmp2 ==1  && *tmp3 == 0)
+    {
+        char *c = "tmp1";
+        if(append_c_string_to_string(&string, c) == RET_INTERNAL_ERROR)
+        {
+            return RET_INTERNAL_ERROR;
+        }
+        else
+        {
+            *tmp1 = 1;
+            return RET_OK;
+        }     
+    }
+    else if (*tmp1 == 1 && *tmp2 == 1 && *tmp3 == 0)
+    {
+        char *c = "tmp3";
+        if(append_c_string_to_string(&string, c) == RET_INTERNAL_ERROR)
+        {
+            return RET_INTERNAL_ERROR;
+        }
+        else
+        {
+            *tmp3 = 1;
+            *tmp1 = 0;
+            *tmp2 = 0;
+            return RET_OK;
+        }     
+    }
+    else if (*tmp1 == 0 && *tmp2 == 1 && *tmp3 == 1)
+    {
+        char *c = "tmp1";
+        if(append_c_string_to_string(&string, c) == RET_INTERNAL_ERROR)
+        {
+            return RET_INTERNAL_ERROR;
+        }
+        else
+        {
+            *tmp3 = 0;
+            *tmp1 = 1;
+            *tmp2 = 0;
+            return RET_OK;
+        }     
+    }
+    else if (*tmp1 == 1 && *tmp2 == 0 && *tmp3 == 1)
+    {
+        char *c = "tmp2";
+        if(append_c_string_to_string(&string, c) == RET_INTERNAL_ERROR)
+        {
+            return RET_INTERNAL_ERROR;
+        }
+        else
+        {
+            *tmp3 = 0;
+            *tmp1 = 0;
+            *tmp2 = 1;
+            return RET_OK;
+        }     
+    }
+    else if (*tmp1 == 1 && *tmp2 == 1 && *tmp3 == 1)
+    {
+        printf("wrong algorithm for asinging tmp_var");
+        return RET_INTERNAL_ERROR;
+    }
+}
 sym_stack* Stack;
+
+
 
 unsigned int solve_exp(data_t *data)
 
 {
     Stack = (sym_stack*) malloc(sizeof(sym_stack));
+
     int res;
+
     res = 0;
-    sem_t *new = malloc(sizeof(sem_t));
-    new->type = DOLAR;
+
+    sem_t new;
+
+    unsigned int finaltype;
+
+    int tmp1_used = 0;
+    int tmp2_used = 0;
+    int tmp3_used = 0;
+
+    new.type = DOLAR;
     if (init(Stack) == RET_INTERNAL_ERROR)
     {
         return RET_INTERNAL_ERROR;
@@ -418,6 +539,10 @@ unsigned int solve_exp(data_t *data)
 
         unsigned int sym = get_symbol(data->token);
         sem_t stack_term = get_term(Stack);
+        sem_t sym1;
+        sem_t sym2;
+        sem_t sym3;
+        int i = Stack->top;
 
 
         switch(prec_table[get_table_index(stack_term.type)][get_table_index(sym)])
@@ -429,23 +554,24 @@ unsigned int solve_exp(data_t *data)
                 if(tmp.type == EXP)
                 {
                     stack_expr_pop(Stack);
-                    new->type = SHIFT;
+                    new.type = SHIFT;
                     stack_expr_push(Stack, new);
-                    stack_expr_push(Stack, &tmp);
+                    stack_expr_push(Stack, tmp);
                 }
                 else
                 {
-                    new->type = SHIFT;
+                    new.type = SHIFT;
                     stack_expr_push(Stack, new);
 
                 }
-                new->type = sym;
+                new.type = sym;
                 switch(sym)
                 {
                     case OP_INT:
                     case OP_STR:
                     case OP_FLOAT:
-                        new->sem_data = data->token->string;
+                    case OP_ID:
+                        new.sem_data = data->token->string;
                         break;
                     default:
                         break;
@@ -457,13 +583,14 @@ unsigned int solve_exp(data_t *data)
             }
             case E:
             {
-                new->type = sym;
+                new.type = sym;
                 switch(sym)
                 {
                     case OP_INT:
                     case OP_STR:
                     case OP_FLOAT:
-                        new->sem_data = data->token->string;
+                    case OP_ID:
+                        new.sem_data = data->token->string;
                         break;
                     default:
                         break;
@@ -479,25 +606,58 @@ unsigned int solve_exp(data_t *data)
                 get_rule(Stack, &count, &rule);
                 if (rule == R_I)
                 {
-                    //sem-test
+                    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype) != RET_OK)
+                        return RET_SEMANTICAL_RUNTIME_ERROR;
+                    new.type = EXP;
+                    new.d_type = finaltype;
+                    if(tmp_var( &new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used) == RET_INTERNAL_ERROR)
+                        return RET_INTERNAL_ERROR;
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
+                    stack_expr_push(Stack, new);
                 }
-                else if (1) // FIXME just wanted to pass build
+                else if (rule == R_PLUS || rule == R_MIN || rule == R_MUL || rule == R_DIV || rule == R_IDIV) // FIXME just wanted to pass build
+                {
+                    sym1 = Stack->atr[i];
+                    sym2 = Stack->atr[i-1];
+                    sym3 = Stack->atr[i-2];
+                    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype) != RET_OK)
+                        return RET_SEMANTICAL_RUNTIME_ERROR;
+                    new.type = EXP;
+                    new.d_type = finaltype;
+                    if(tmp_var( &new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used) == RET_INTERNAL_ERROR)
+                        return RET_INTERNAL_ERROR;
+                    stack_expr_pop(Stack);
+                    stack_expr_pop(Stack);
+                    stack_expr_pop(Stack);
+                    stack_expr_pop(Stack);
+                    stack_expr_push(Stack, new);
+                }
+                else if(rule = R_BRACKETS)
+                {
+                    sem_t new = Stack->atr[i-1];
+                    stack_expr_pop(Stack);
+                    stack_expr_pop(Stack);
+                    stack_expr_pop(Stack);
+                    stack_expr_pop(Stack);
+                    stack_expr_push(Stack, new);
+                }
+                else if(rule == R_EA || rule == R_A || rule == R_L || rule == R_EL || rule == R_EQ || rule == R_NE)
                 {
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
+                    stack_expr_push(Stack, new);
                 }
             }
             case B:
             {
-
+                return RET_SYNTAX_ERROR;
             }
             case F:
             {
-
+                return RET_OK;
             }
 
             default:break;

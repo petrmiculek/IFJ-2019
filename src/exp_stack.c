@@ -66,7 +66,7 @@ stack_expr_pop(sym_stack *Stack)
 }
 
 unsigned int
-stack_expr_push(sym_stack *Stack, sem_t *sym)
+stack_expr_push(sym_stack *Stack, sem_t sym)
 {
     if (Stack->top == MAX_STACK - 1)
     {
@@ -74,7 +74,7 @@ stack_expr_push(sym_stack *Stack, sem_t *sym)
     }
     else
     {
-        Stack->atr[Stack->top + 1] = *sym;
+        Stack->atr[Stack->top + 1] = sym;
         Stack->top++;
 
     }
