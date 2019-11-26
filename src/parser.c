@@ -321,10 +321,10 @@ function_def()
     data->ID=ht_search(data->global_sym_table,data->token->string.str);
     if (data->ID==NULL)
     {
-        data->ID->data.identifier=data->token->string.str;
-        data->ID->data.function_id=true;
+        data->ID->data->identifier=data->token->string;
+        data->ID->data->is_function=true;
         
-        ht_insert(data->global_sym_table,data->token->string.str, data->ID->data);
+        ht_insert(data->global_sym_table,data->token->string.str, *data->ID->data);
     }
     else
     {
@@ -333,7 +333,7 @@ function_def()
     
     // _SEM identifier to symtable and check redefinition
     // check redefinition
-    symtable_insert();
+    //symtable_insert();
 
     GET_TOKEN()
 
@@ -365,7 +365,7 @@ function_def()
 int
 symtable_insert(token_t *token)
 {
-    if (data->sym_table == NULL
+    if (data->global_sym_table == NULL
         || token->type != TOKEN_IDENTIFIER)
     {
         return RET_INTERNAL_ERROR;
@@ -441,10 +441,10 @@ statement()
                 data->ID=ht_search(table,lhs_identifier.string.str);
                 if (data->ID==NULL)
                 {
-                    data->ID->data.identifier=lhs_identifier.string.str;
-                    data->ID->data.function_id=false;
-                    ht_insert(table,lhs_identifier.string.str, data->ID->data);
-                }else if (data->ID->data.function_id==true)
+                    data->ID->data->identifier=lhs_identifier.string;
+                    data->ID->data->is_function=false;
+                    ht_insert(table,lhs_identifier.string.str, *data->ID->data);
+                }else if (data->ID->data->is_function==true)
                 {
                    return RET_SEMANTICAL_ERROR; 
                 }
@@ -468,7 +468,7 @@ statement()
                 {
                     return RET_SEMANTICAL_ERROR;
                 }
-                else if (data->ID->data.function_id==false)
+                else if (data->ID->data->is_function==false)
                 {
                     return RET_SEMANTICAL_ERROR;
                 }
@@ -532,7 +532,7 @@ assign_rhs()
         {
             return RET_SEMANTICAL_ERROR;
         }
-        else if (data->ID->data.function_id==false) //ID is not defined function
+        else if (data->ID->data->is_function==false) //ID is not defined function
         {
             return RET_SEMANTICAL_ERROR;
         }
@@ -544,7 +544,7 @@ assign_rhs()
         if (data->token->type == TOKEN_LEFT)
         {
             data->res=call_param_list();
-            if (data->ID->data.param_count!=data->par_cnt)
+            if (data->ID->data->function_params_count!=data->par_cnt)
                 return RET_SEMANTICAL_PARAMS_ERROR;
             return data->res;
         }
@@ -784,7 +784,7 @@ def_param_list_next()
         if (data->token->type != TOKEN_IDENTIFIER)
             return (RET_SYNTAX_ERROR);
         
-        data->ID->data.param_count++;
+        data->ID->data->function_params_count++;
         if ((data->res = def_param_list_next()) != RET_OK)
         {
             return data->res;
@@ -803,7 +803,7 @@ def_param_list()
     // DEF_PARAM_LIST -> )
     // DEF_PARAM_LIST -> id DEF_PARAM_LIST_NEXT
     
-    data->ID->data.param_count=0;
+    data->ID->data->function_params_count=0;
     GET_TOKEN()
 
     if (data->token->type == TOKEN_RIGHT)
@@ -812,7 +812,7 @@ def_param_list()
     }
     else if (data->token->type == TOKEN_IDENTIFIER)
     {
-        data->ID->data.param_count++;
+        data->ID->data->function_params_count++;
         if ((data->res = def_param_list_next()) != RET_OK)
         {
             return data->res;
