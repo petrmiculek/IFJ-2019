@@ -1,5 +1,12 @@
 #ifndef HEADER_TOKEN_QUEUE
 #define HEADER_TOKEN_QUEUE
+/**
+ * @name IFJ19Compiler
+ * @authors xmicul08 (Mičulek Petr)
+            xjacko04 (Jacko Daniel)
+            xsetin00 (Setinský Jiří)
+            xsisma01 (Šišma Vojtěch)
+ */
 
 #include "scanner.h"
 

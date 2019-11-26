@@ -1,5 +1,12 @@
 #ifndef IFJ_2019__PARSER_H
 #define IFJ_2019__PARSER_H
+/**
+ * @name IFJ19Compiler
+ * @authors xmicul08 (Mičulek Petr)
+            xjacko04 (Jacko Daniel)
+            xsetin00 (Setinský Jiří)
+            xsisma01 (Šišma Vojtěch)
+ */
 #include <stdio.h>
 #include <stdbool.h>
 #include "scanner.h"

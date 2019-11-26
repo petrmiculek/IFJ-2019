@@ -1,5 +1,13 @@
+
 #ifndef HEADER_EXP_STACK
 #define HEADER_EXP_STACK
+/**
+ * @name IFJ19Compiler
+ * @authors xmicul08 (Mičulek Petr)
+            xjacko04 (Jacko Daniel)
+            xsetin00 (Setinský Jiří)
+            xsisma01 (Šišma Vojtěch)
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
