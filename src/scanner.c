@@ -1,3 +1,10 @@
+/**
+ * @name IFJ19Compiler
+ * @authors xmicul08 (Mičulek Petr)
+            xjacko04 (Jacko Daniel)
+            xsetin00 (Setinský Jiří)
+            xsisma01 (Šišma Vojtěch)
+ */
 #include "scanner.h"
 #include "err.h"
 #include "my_string.h"
@@ -140,6 +147,7 @@ get_token(token_t *token, FILE *file)
     unsigned int state = STATE_START;
     int read, flag_block_es = 0;
     char var[2];
+    static int first_call = 1;
 
     int check_dedent = generate_dedent(&spaces_num, token, &previous_was_eol);
     if (check_dedent == 1)
@@ -163,6 +171,42 @@ get_token(token_t *token, FILE *file)
         switch (state)
         {
             case STATE_START:
+
+                if (first_call == 2)
+                {
+                    first_call = 0 ;
+                    if(read == ' ')
+                    {
+                        first_call = 2;
+                    }
+                    else if (read == '#')
+                    {
+                        state = STATE_COMMENT;
+                    }
+                    else if (read == '"')
+                    {
+                        state = STATE_BLOCK1;
+                    }
+                    else if (read == EOF)
+                    {
+                        token->type = TOKEN_EOF;
+                        return RET_OK;
+                    }
+                    else
+                    {
+                        RETURN_ERR
+                    }
+                    break;
+                }
+                if (first_call == 1)
+                {
+                    first_call = 0;
+                    if (read == ' ')
+                    {
+                        first_call = 2;
+                        break;
+                    }
+                }
 
                 if ('0' <= read && read <= '9')
                 {
@@ -298,6 +342,10 @@ get_token(token_t *token, FILE *file)
                 }
                 else
                 {
+                    if(read<33)
+                    {
+                        spaces_num = -1;
+                    }
                     ungetc(read, file);
                     token->type = TOKEN_EOL;
                     previous_was_eol = 2;
@@ -320,6 +368,9 @@ get_token(token_t *token, FILE *file)
                 }
                 else
                 {
+                    if(read<33){
+                        spaces_num = -1;
+                    }
                     ungetc(read, file);
                     token->type = TOKEN_EOL;
                     previous_was_eol = 2;

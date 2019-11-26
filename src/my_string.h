@@ -1,5 +1,12 @@
 #ifndef HEADER_MY_STRING
 #define HEADER_MY_STRING
+/**
+ * @name IFJ19Compiler
+ * @authors xmicul08 (Mičulek Petr)
+            xjacko04 (Jacko Daniel)
+            xsetin00 (Setinský Jiří)
+            xsisma01 (Šišma Vojtěch)
+ */
 
 #define INITIAL_SIZE 20
 #define REALLOC_SIZE 5

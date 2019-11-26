@@ -1,3 +1,10 @@
+/**
+ * @name IFJ19Compiler
+ * @authors xmicul08 (Mičulek Petr)
+            xjacko04 (Jacko Daniel)
+            xsetin00 (Setinský Jiří)
+            xsisma01 (Šišma Vojtěch)
+ */
 #include <assert.h>
 #include "token_queue.h"
 #include "err.h"
