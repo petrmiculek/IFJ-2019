@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-// #define SEMANTICS 897987
+#define SEMANTICS 897987
 // #define PSA 123123
 
 data_t *data = NULL;
@@ -142,12 +142,9 @@ is_expression_start()
 int
 init_data()
 {
-    // int init_state = 0;
-
     if (NULL == (data = malloc(sizeof(data_t))))
     {
-        // init_state = 1;
-        // goto cleanup;
+
         return RET_INTERNAL_ERROR;
     }
 
@@ -155,8 +152,6 @@ init_data()
 
     if ((data->token = malloc(sizeof(token_t))) == NULL)
     {
-        // init_state = 2;
-        // goto cleanup;
         return RET_INTERNAL_ERROR;
     }
 
@@ -169,30 +164,28 @@ init_data()
     // queue
     if (NULL == (data->token_queue = q_init_queue()))
     {
-        // init_state = 4;
-        //  goto cleanup;
         return RET_INTERNAL_ERROR;
     }
 
     //init sym_tables
     if (NULL == (data->global_sym_table = ht_init()))
     {
-        // init_state = 4;
-        // goto cleanup;
         return RET_INTERNAL_ERROR;
     }
 
     if (NULL == (data->local_sym_table = ht_init()))
     {
-        // init_state = 5;
-        // goto cleanup;
+
         return RET_INTERNAL_ERROR;
     }
 
     if ((data->ID = malloc(sizeof(ht_item_t))) == NULL)
     {
-        // init_state = 6;
-        // goto cleanup;
+        return RET_INTERNAL_ERROR;
+    }
+
+    if ((data->ID->data = malloc(sizeof(sym_table_item))) == NULL)
+    {
         return RET_INTERNAL_ERROR;
     }
 
@@ -271,8 +264,9 @@ function_def()
 
 #ifdef SEMANTICS
     // add function id to sym_table
-    data->ID = ht_search(data->global_sym_table, data->token->string.str);
-    if (data->ID == NULL)
+    ht_item_t *search_res = ht_search(data->global_sym_table, data->token->string.str);
+
+    if (search_res == NULL)
     {
         data->ID->data->identifier = data->token->string;
         data->ID->data->is_function = true;
@@ -420,14 +414,15 @@ statement()
             {
 #ifdef SEMANTICS
                 // definition of variable
-                data->ID = ht_search(table, lhs_identifier.string.str);
-                if (data->ID == NULL)
+                ht_item_t *search_res = ht_search(table, lhs_identifier.string.str);
+                if (search_res == NULL)
                 {
                     data->ID->data->identifier = lhs_identifier.string;
                     data->ID->data->is_function = false;
+
                     ht_insert(table, lhs_identifier.string.str, data->ID->data);
                 }
-                else if (data->ID->data->is_function == true)
+                else if (search_res->data->is_function == true)
                 {
                     return RET_SEMANTICAL_ERROR;
                 }
@@ -450,13 +445,13 @@ statement()
                 // STATEMENT -> id ( CALL_PARAM_LIST eol
                 // check if function id is defined
 #ifdef SEMANTICS
-                data->ID = ht_search(data->global_sym_table, lhs_identifier.string.str);
+                ht_item_t *search_res = ht_search(data->global_sym_table, lhs_identifier.string.str);
 
-                if (data->ID == NULL)
+                if (search_res == NULL)
                 {
                     return RET_SEMANTICAL_ERROR;
                 }
-                else if (data->ID->data->is_function == false)
+                else if (search_res->data->is_function == false)
                 {
                     return RET_SEMANTICAL_ERROR;
                 }
@@ -464,7 +459,6 @@ statement()
                 // _SEM check if id is defined
                 if ((res = call_param_list()) != RET_OK)
                     return res;
-
 
                 if ((res = read_eol(true)) != RET_OK)
                     return res;
@@ -546,16 +540,17 @@ assign_rhs()
     {
 
 #ifdef SEMANTICS
-        data->ID = ht_search(data->global_sym_table, data->token->string.str);
-        if (data->ID == NULL)
+        ht_item_t *search_res = ht_search(data->global_sym_table, data->token->string.str);
+        if (search_res == NULL)
         {
             return RET_SEMANTICAL_ERROR;
         }
-        else if (data->ID->data->is_function == false) //ID is not defined function
+        else if (search_res->data->is_function == false) //ID is not defined function
         {
             return RET_SEMANTICAL_ERROR;
         }
-        // _SEM check if ID is defined
+
+            // _SEM check if ID is defined
 
 #endif // SEMANTICS
 
@@ -565,7 +560,7 @@ assign_rhs()
         {
             res = call_param_list();
 #ifdef SEMANTICS
-            if (data->ID->data->function_params_count != data->par_cnt)
+            if (search_res->data->function_params_count != data->par_cnt)
                 return RET_SEMANTICAL_PARAMS_ERROR;
 #endif // SEMANTICS
 

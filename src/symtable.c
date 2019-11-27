@@ -51,7 +51,7 @@ ht_init()
 ht_item_t *
 ht_search(table_t *ptrht, char *key)
 {
-    unsigned int keyHash = hash(key);
+    unsigned int keyHash = hash(key) % hash_table_size;
 
     ht_item_t *tmp = (ht_item_t *) (*ptrht)[keyHash];
 
@@ -83,7 +83,7 @@ ht_insert(table_t *ptrht, char *key, sym_table_item *data)
     else
     {
         // item not in hashTable
-        unsigned int keyHash = hash(key);
+        unsigned int keyHash = hash(key) % hash_table_size;
 
         ht_item_t *tmp;
 
@@ -122,7 +122,7 @@ ht_get_data(table_t *ptrht, char *key)
 void
 ht_delete(table_t *ptrht, char *key)
 {
-    unsigned int keyHash = hash(key);
+    unsigned int keyHash = hash(key) % hash_table_size;
 
     ht_item_t *tmp = (ht_item_t *) (*ptrht)[keyHash];
     ht_item_t *prev_item = NULL;
