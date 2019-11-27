@@ -33,7 +33,7 @@ for file_name in dir:
     # ^^^ print output
 
     if returnCode != 0:
-        print(file_name, ' returned ' + returnCode)
+        print(file_name, ' returned ', returnCode)
         error_count += 1
 
 if error_count == 0:

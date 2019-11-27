@@ -11,18 +11,17 @@
 #include "stdbool.h"
 #include <stdlib.h>
 
-#define ADD_INST(_inst)                                                        \
-    if (!append_c_string_to_string(&code, (_inst "\n"))) return false;
+#define ADD_INST(_inst) if (!append_c_string_to_string(&code, (_inst "\n"))) return false;
 
-#define ADD_CODE(_code)                                                        \
-    if (!append_c_string_to_string(&code, (_code))) return false;
+#define ADD_CODE(_code) if (!append_c_string_to_string(&code, (_code))) return false;
 
-#define ADD_CODE_INT(_code)													\
-	do {																	\
-		char str[MAX_DIGITS];												\
-		sprintf(str, "%d", _code);											\
-		ADD_CODE(str);														\
-	} while (0)
+#define ADD_CODE_INT(_code)                \
+    do {                                \
+        char str[MAX_DIGITS];            \
+        sprintf(str, "%d", _code);        \
+        ADD_CODE(str);                    \
+    } while (0);                        \
+
 
 #define HEADER \
 "\n .IFJcode19"\

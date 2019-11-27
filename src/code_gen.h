@@ -7,6 +7,8 @@
             xsetin00 (Setinský Jiří)
             xsisma01 (Šišma Vojtěch)
  */
+
+// TODO missing javadocs
 int
 generate_unique_number();
 

@@ -6,6 +6,7 @@
             xsisma01 (Šišma Vojtěch)
  */
 #include "symtable.h"
+#include "err.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -69,14 +70,17 @@ ht_search(table_t *ptrht, char *key)
     return NULL;
 }
 
-void
-ht_insert(table_t *ptrht, char *key, sym_table_item data)
+int
+ht_insert(table_t *ptrht, char *key, sym_table_item *data)
 {
     ht_item_t *searched_item = ht_search(ptrht, key);
 
     if (searched_item)
     {
         searched_item->data = data;
+        // TODO do we ever want to overwrite?
+        fprintf(stderr, "%s,%d: overwriting sym_table_item", __func__, __LINE__);
+        return RET_INTERNAL_ERROR;
     }
     else
     {
@@ -90,7 +94,7 @@ ht_insert(table_t *ptrht, char *key, sym_table_item data)
         if (NULL == (tmp = calloc(sizeof(ht_item_t), 1)))
         {
             fprintf(stderr, "%s, %u: alloc error\n", __func__, __LINE__);
-            return;
+            return RET_INTERNAL_ERROR;
         }
 
         tmp->next = (ht_item_t *) (*ptrht)[keyHash];
@@ -98,6 +102,8 @@ ht_insert(table_t *ptrht, char *key, sym_table_item data)
         tmp->data = data;
         (*ptrht)[keyHash] = tmp;
     }
+
+    return RET_OK;
 }
 
 sym_table_item *
@@ -107,7 +113,7 @@ ht_get_data(table_t *ptrht, char *key)
 
     if (item)
     {
-        return &item->data;
+        return item->data;
     }
     else
     {

@@ -15,7 +15,7 @@
 unsigned int
 init_string(string_t *string)
 {
-    if ((string->str = (char *) malloc(sizeof(char) * INITIAL_SIZE)) == NULL)
+    if ((string->str = (char *) calloc(INITIAL_SIZE, 1)) == NULL)
     {
         return RET_INTERNAL_ERROR;
     }
@@ -27,26 +27,27 @@ init_string(string_t *string)
 }
 
 unsigned int
-append_char_to_string(string_t *string, char var)
+append_char_to_string(string_t *dest, char var)
 {
-    if (string == NULL)
+    if (dest == NULL)
     {
         return RET_INTERNAL_ERROR;
     }
 
-    if (string->length == string->size)
+    if (dest->length + 2 >= dest->size)
     {
 
-        if ((string->str = (char *) realloc(string->str, sizeof(char) * string->length + REALLOC_SIZE)) == NULL)
+        if ((dest->str = (char *) realloc(dest->str, dest->size + REALLOC_SIZE)) == NULL)
         {
             return RET_INTERNAL_ERROR;
         }
-        string->size += REALLOC_SIZE;
+        dest->size += REALLOC_SIZE;
     }
 
-    string->str[string->length] = var;
-    string->length++;
-    string->str[string->length] = 0;
+    dest->str[dest->length] = var;
+    dest->str[dest->length + 1] = 0;
+
+    dest->length = strlen(dest->str);
 
     return RET_OK;
 }
@@ -72,7 +73,7 @@ append_c_string_to_string(string_t *dest, const char *src)
         dest->size = size_needed;
     }
 
-    dest->length += src_length;
+    dest->length = strlen(dest->str);
     strncat(dest->str, src, src_length);
     dest->str[dest->length] = '\0';
 
@@ -92,15 +93,17 @@ copy_string(string_t *dest, string_t *src)
     {
         return RET_INTERNAL_ERROR;
     }
-    unsigned int new_length = src->length;
+    unsigned int new_length = src->length + 1;
+
     if (new_length >= dest->size)
     {
-        if ((dest->str = (char *) realloc(dest->str, new_length + 1)) == NULL)
+        if ((dest->str = (char *) realloc(dest->str, new_length)) == NULL)
         {
             return RET_INTERNAL_ERROR;
         }
-        dest->size = new_length + 1;
+        dest->size = new_length;
     }
+
     assert(strlen(src->str) == src->length);
     assert(strlen(dest->str) == dest->length);
 
@@ -110,7 +113,7 @@ copy_string(string_t *dest, string_t *src)
     assert(dest->size >= src->length);
 
     strcpy(dest->str, src->str);
-    dest->length = new_length;
+    dest->length = strlen(dest->str);;
     return RET_OK;
 }
 

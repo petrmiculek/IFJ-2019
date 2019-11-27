@@ -20,8 +20,7 @@ data_t *data = NULL;
     shorter way of expressing: return from function when things go wrong
     typically used after reading from scanner, but can be utilized anywhere
  */
-int
-symtable_insert();
+
 #define RETURN_IF_ERR(res) do { if ((res) != RET_OK) { return (res);} } while(0);
 
 #define GET_TOKEN() do { get_next_token(); RETURN_IF_ERR(data->res) } while(0);
@@ -47,7 +46,7 @@ parse(FILE *file)
     }
 
     free_static_stack();
-    clear_data();
+    // clear_data();
 
     return res;
 }
@@ -82,7 +81,6 @@ get_next_token()
         do
         {
             data->res = (int) get_token(data->token, data->file);
-
         }
         while (data->res == RET_OK && data->token->type == TOKEN_SPACE);
     }
@@ -140,7 +138,7 @@ init_data()
 {
     int init_state = 0;
 
-    if (NULL == (data = malloc(sizeof(sym_table_item))))
+    if (NULL == (data = malloc(sizeof(data_t))))
     {
         init_state = 1;
         goto cleanup;
@@ -223,10 +221,12 @@ init_data()
 
     // add more init from data_t
     data->use_queue_for_read = false;
+    data->res = RET_OK;
 
     return RET_OK;
 }
-
+/*
+// nobody cares about leaks, so let's not complicate it
 void
 clear_data()
 {
@@ -236,7 +236,7 @@ clear_data()
     free(data);
     data = NULL;
 }
-
+*/
 int
 statement_list_nonempty()
 {
@@ -263,7 +263,7 @@ statement_list()
     // STATEMENT_LIST -> STATEMENT STATEMENT_LIST
     // STATEMENT_LIST -> dedent
 
-    int res = 0;
+    int res = RET_OK;
 
     GET_TOKEN()
 
@@ -295,7 +295,7 @@ function_def()
 {
     // FUNCTION_DEF -> id ( DEF_PARAM_LIST ) : eol indent STATEMENT_LIST_NONEMPTY
 
-    int res = 0;
+    int res = RET_OK;
 
     // IMPORTANT: def token was read in by callee
 
@@ -306,7 +306,8 @@ function_def()
 
     // _SEM identifier to symtable and check redefinition
     // check redefinition
-    symtable_insert();
+
+    // symtable_insert(NULL, true);
 
     GET_TOKEN()
 
@@ -333,11 +334,16 @@ function_def()
     if (data->token->type != TOKEN_INDENT)
         return RET_SYNTAX_ERROR;
 
-    return statement_list_nonempty();
+    if ((res = statement_list_nonempty()) != RET_OK)
+        return res;
+
+    return RET_OK;
 }
 int
-symtable_insert(token_t *token)
+symtable_insert(token_t *token, bool is_function)
 {
+    int res = RET_OK;
+
     if (data->sym_table == NULL
         || token->type != TOKEN_IDENTIFIER)
     {
@@ -346,11 +352,25 @@ symtable_insert(token_t *token)
 
     sym_table_item *new_item;
 
-    //ht_insert(data->sym_table, token->string, *new_item);
-    // TODO Continue work here
-    // THIS IS NOT DONE, YET
-    return RET_OK;
+    if (NULL == (new_item = malloc(sizeof(sym_table_item))))
+        return RET_INTERNAL_ERROR;
 
+    copy_string(&new_item->identifier, &token->string); // TODO check if the copy is needed
+    RETURN_IF_ERR(res);
+
+    if (is_function)
+    {
+        // TODO parameters
+
+    }
+    else
+    { ; // possibly something
+    }
+
+    res = ht_insert(data->sym_table, token->string.str, new_item);
+    RETURN_IF_ERR(res);
+
+    return RET_OK;
 }
 
 int
@@ -364,13 +384,16 @@ statement()
     // STATEMENT -> WHILE_CLAUSE
     // STATEMENT -> RETURN_STATEMENT
 
-    int res = 0;
+    int res = RET_OK;
 
     GET_TOKEN()
 
     if (data->token->type == TOKEN_PASS)
     {
-        return read_eol(true);
+        if ((res = read_eol(true)) != RET_OK)
+            return res;
+
+        return RET_OK;
     }
     else if (return_statement() == RET_OK)
     {
@@ -404,7 +427,10 @@ statement()
                 if ((res = assign_rhs()) != RET_OK)
                     return res;
 
-                return read_eol(true);
+                if ((res = read_eol(true)) != RET_OK)
+                    return res;
+
+                return RET_OK;
 
             }
             else if (data->token->type == TOKEN_LEFT)
@@ -414,20 +440,26 @@ statement()
                 if ((res = call_param_list()) != RET_OK)
                     return res;
 
-                return read_eol(true);
+                if ((res = read_eol(true)) != RET_OK)
+                    return res;
+
+                return RET_OK;
             }
             else
             {
                 // STATEMENT -> EXPRESSION eol
 
-                q_enqueue(&lhs_identifier, data->token_queue); // token past identifier
+                q_enqueue(&lhs_identifier, data->token_queue); // identifier
                 q_enqueue(data->token, data->token_queue); // token past identifier
                 data->use_queue_for_read = true;
 
                 if ((res = expression()) != RET_OK)
                     return res;
 
-                return read_eol(true);
+                if ((res = read_eol(true)) != RET_OK)
+                    return res;
+
+                return RET_OK;
             }
         }
         else
@@ -441,7 +473,10 @@ statement()
             if ((res = expression()) != RET_OK)
                 return res;
 
-            return read_eol(true);
+            if ((res = read_eol(true)) != RET_OK)
+                return res;
+
+            return RET_OK;
         }
     }
     else
@@ -481,7 +516,7 @@ assign_rhs()
                 return data->res;
             }
 
-            return (RET_OK);
+            return RET_OK;
         }
     }
     else
@@ -494,7 +529,7 @@ assign_rhs()
             return data->res;
         }
 
-        return (RET_OK);
+        return RET_OK;
     }
 }
 
@@ -502,13 +537,19 @@ int
 statement_global()
 {
     // STATEMENT_GLOBAL -> eof
+    // STATEMENT_GLOBAL -> eol
     // STATEMENT_GLOBAL -> def FUNCTION_DEF STATEMENT_GLOBAL
     // STATEMENT_GLOBAL -> STATEMENT STATEMENT_GLOBAL
 
-    GET_TOKEN()
+    // GET_TOKEN()
+    get_next_token();
+    if ((data->res) != RET_OK)
+    {
+        return (data->res);
+    }
 
     if (data->token->type == TOKEN_EOF
-        || data->token->type == TOKEN_EOL) // TODO Not in grammar -> check validity
+        || data->token->type == TOKEN_EOL)
     {
         return RET_OK;
     }
@@ -521,7 +562,7 @@ statement_global()
                 return data->res;
             }
 
-            return (RET_OK);
+            return RET_OK;
 
         }
         else
@@ -541,7 +582,7 @@ statement_global()
                 return data->res;
             }
 
-            return (RET_OK);
+            return RET_OK;
         }
         else
         {
@@ -560,7 +601,7 @@ if_clause()
 
     // token already read in by callee
 
-    int res = 0;
+    int res = RET_OK;
 
     if (data->token->type != TOKEN_IF)
     {
@@ -639,7 +680,7 @@ while_clause()
 {
     // WHILE_CLAUSE -> while EXPRESSION : eol indent STATEMENT_LIST_NONEMPTY
 
-    int res = 0;
+    int res = RET_OK;
 
     // token already read in by callee
 
@@ -776,7 +817,7 @@ call_param_list_next()
     // CALL_PARAM_LIST_NEXT -> , CALL_ELEM CALL_PARAM_LIST_NEXT
     // CALL_PARAM_LIST_NEXT -> )
 
-    int res = 0;
+    int res = RET_OK;
 
     GET_TOKEN()
 
@@ -866,12 +907,16 @@ return_expression()
     // RETURN_EXPRESSION -> eol
     // RETURN_EXPRESSION -> EXPRESSION eol
 
-    int res = 0;
+    int res = RET_OK;
 
     GET_TOKEN()
 
     if (data->token->type == TOKEN_EOL)
     {
+        if ((res = read_eol(false)) != RET_OK)
+        {
+            return res;
+        }
         return RET_OK;
     }
     else
@@ -886,16 +931,12 @@ return_expression()
             return res;
         }
 
-        GET_TOKEN()
+        if ((res = read_eol(true)) != RET_OK)
+        {
+            return res;
+        }
 
-        if (data->token->type == TOKEN_EOL)
-        {
-            return RET_OK;
-        }
-        else
-        {
-            return RET_SYNTAX_ERROR;
-        }
+        return RET_OK;
     }
 }
 

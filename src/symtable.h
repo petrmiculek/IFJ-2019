@@ -20,7 +20,12 @@ typedef struct _sym_table_item_t
     bool is_function_defined;
     unsigned int function_params_count;
 
-
+    /**
+        idea - function added to symtable upon call,
+        its ifjCode label is generated, so that we can generate CALL $label_of_this_function,
+        sometime later a definition is supplied
+     */
+    bool is_function_called;
 
     /**
      * if a function does not have any return statement, we should simulate one?
@@ -34,8 +39,9 @@ typedef struct _hash_table_item_t ht_item_t;
 struct _hash_table_item_t
 {
     char *key;
-    sym_table_item *data;
     ht_item_t *next;
+
+    sym_table_item *data;
 };
 
 typedef ht_item_t *table_t[MAX_HTSIZE]; // tHTable is an array of pointers to tHTItem, with a size of MAX_HTSIZE
@@ -47,8 +53,8 @@ ht_init();
 ht_item_t *
 ht_search(table_t *ptrht, char *key);
 
-void
-ht_insert(table_t *ptrht, char *key, sym_table_item data);
+int
+ht_insert(table_t *ptrht, char *key, sym_table_item *data);
 
 sym_table_item *
 ht_get_data(table_t *ptrht, char *key);

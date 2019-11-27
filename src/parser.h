@@ -91,9 +91,14 @@ init_data();
 /**
  * @brief cleanup values used by data_t
  */
+/*
 void
 clear_data();
+*/
 
+// TODO missing javadoc
+int
+symtable_insert(token_t *token, bool is_function);
 
 // ---------vvv--------- GRAMMAR RULES FUNCTIONS ---------vvv---------
 
