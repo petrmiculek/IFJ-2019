@@ -62,4 +62,7 @@ check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type *final
 
 unsigned int
 tmp_var();
+
+unsigned int
+solve_exp(data_t *data);
 #endif // HEADER_PSA

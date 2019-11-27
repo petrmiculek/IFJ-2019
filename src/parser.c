@@ -10,6 +10,7 @@
 #include "err.h"
 #include "token_queue.h"
 #include "stack.h"
+#include "psa.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -526,7 +527,7 @@ statement()
                 q_enqueue(data->token, data->token_queue); // token past identifier
                 data->use_queue_for_read = true;
 
-                if ((res = expression()) != RET_OK)
+                if ((res = solve_exp(data)) != RET_OK) // time to test expresion
                     return res;
 
                 if ((res = read_eol(true)) != RET_OK)
@@ -543,7 +544,7 @@ statement()
             q_enqueue(data->token, data->token_queue);
             data->use_queue_for_read = true;
 
-            if ((res = expression()) != RET_OK)
+            if ((res = solve_exp(data)) != RET_OK) // time to test expresion
                 return res;
 
             if ((res = read_eol(true)) != RET_OK)
@@ -601,7 +602,7 @@ assign_rhs()
             q_enqueue(data->token, data->token_queue);
             data->use_queue_for_read = true;
 
-            if ((data->res = expression()) != RET_OK)
+            if ((data->res = solve_exp(data)) != RET_OK)
             {
                 return data->res;
             }
@@ -614,7 +615,7 @@ assign_rhs()
         q_enqueue(&token_tmp, data->token_queue);
         data->use_queue_for_read = true;
 
-        if ((data->res = expression()) != RET_OK)
+        if ((data->res = solve_exp(data)) != RET_OK)
         {
             return data->res;
         }
@@ -703,7 +704,7 @@ if_clause()
         return RET_SYNTAX_ERROR;
     }
 
-    if ((res = expression()) != RET_OK)
+    if ((res = solve_exp(data)) != RET_OK)
     {
         return res;
     }
@@ -784,7 +785,7 @@ while_clause()
         return RET_SYNTAX_ERROR;
     }
 
-    if ((res = expression()) != RET_OK)
+    if ((res = solve_exp(data)) != RET_OK)
     {
         return res;
     }
@@ -1021,7 +1022,7 @@ return_expression()
 
         // expression() starts with no tokens read in
 
-        if ((res = expression()) != RET_OK)
+        if ((res = solve_exp(data)) != RET_OK)
         {
             return res;
         }

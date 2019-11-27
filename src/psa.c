@@ -312,7 +312,7 @@ unsigned int get_rule(sym_stack *Stack,int *count, unsigned int *rule)
     if(*count == 1)
     {
         sem_t sym1 = Stack->atr[i];
-        if (sym1.type == EXP) // FIXME assign, not comparison; is this intended?
+        if (sym1.type == EXP) 
         {
             *rule = R_I;
             return RET_OK;
@@ -661,6 +661,11 @@ solve_exp(data_t *data)
                 }
                 else if(rule == R_EA || rule == R_A || rule == R_L || rule == R_EL || rule == R_EQ || rule == R_NE)
                 {
+                    sym1 = Stack->atr[i];
+                    sym2 = Stack->atr[i-1];
+                    sym3 = Stack->atr[i-2];
+                    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype) != RET_OK)
+                        return RET_SEMANTICAL_RUNTIME_ERROR;
                     new.type = EXP;
                     new.d_type = finaltype;
                     if(tmp_var( &new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used) == RET_INTERNAL_ERROR)
