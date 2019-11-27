@@ -21,7 +21,7 @@ data_t *data = NULL;
     typically used after reading from scanner, but can be utilized anywhere
  */
 int
-symtable_insert(); // FIXME
+symtable_insert(token_t *token, bool is_function);
 
 #define RETURN_IF_ERR(res) do { if ((res) != RET_OK) { return (res);} } while(0);
 
@@ -333,7 +333,7 @@ function_def()
         data->ID->data->identifier=data->token->string;
         data->ID->data->is_function=true;
 
-        ht_insert(data->global_sym_table,data->token->string.str, *data->ID->data);
+        ht_insert(data->global_sym_table, data->token->string.str, data->ID->data);
     }
     else
     {
@@ -404,7 +404,7 @@ symtable_insert(token_t *token, bool is_function)
     { ; // possibly something
     }
 
-    res = ht_insert(data->sym_table, token->string.str, new_item);
+    res = ht_insert(data->global_sym_table, token->string.str, new_item);
     RETURN_IF_ERR(res);
 
     return RET_OK;
@@ -474,8 +474,8 @@ statement()
                 if (data->ID==NULL)
                 {
                     data->ID->data->identifier=lhs_identifier.string;
-                    data->ID->data->is_function=false;
-                    ht_insert(table,lhs_identifier.string.str, *data->ID->data);
+                    data->ID->data->is_function = false;
+                    ht_insert(table, lhs_identifier.string.str, data->ID->data);
                 }else if (data->ID->data->is_function==true)
                 {
                    return RET_SEMANTICAL_ERROR;
