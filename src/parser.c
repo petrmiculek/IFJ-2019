@@ -29,12 +29,12 @@ symtable_insert(token_t *token, bool is_function);
 
 #define RETURN_IF_ERR(res) do { if ((res) != RET_OK) { return (res);} } while(0);
 
-#define GET_TOKEN() do { get_next_token(); RETURN_IF_ERR(data->res) } while(0);
+#define GET_TOKEN() do { get_next_token(); RETURN_IF_ERR(data->get_token_res) } while(0);
 
 int
 parse(FILE *file)
 {
-    int res;
+    int res = RET_OK;
 
     if ((res = init_data(&data)) != RET_OK)
     {
@@ -67,7 +67,7 @@ get_next_token()
         if (data->token_queue->first != NULL)
         {
             data->token = q_pop(data->token_queue);
-            data->res = RET_OK;
+            data->get_token_res = RET_OK;
         }
         else
         {
@@ -76,19 +76,19 @@ get_next_token()
             data->use_queue_for_read = false;
             do
             {
-                data->res = (int) get_token(data->token, data->file);
+                data->get_token_res = (int) get_token(data->token, data->file);
 
             }
-            while (data->res == RET_OK && data->token->type == TOKEN_SPACE);
+            while (data->get_token_res == RET_OK && data->token->type == TOKEN_SPACE);
         }
     }
     else
     {
         do
         {
-            data->res = (int) get_token(data->token, data->file);
+            data->get_token_res = (int) get_token(data->token, data->file);
         }
-        while (data->res == RET_OK && data->token->type == TOKEN_SPACE);
+        while (data->get_token_res == RET_OK && data->token->type == TOKEN_SPACE);
     }
 }
 
@@ -198,7 +198,7 @@ init_data()
 
     // add more init from data_t
     data->use_queue_for_read = false;
-    data->res = RET_OK;
+    data->get_token_res = RET_OK;
 
     return RET_OK;
 }
@@ -536,6 +536,8 @@ assign_rhs()
     // ASSIGN_RHS -> id ( CALL_PARAM_LIST
     // ASSIGN_RHS -> EXPRESSION
 
+    int res = RET_OK;
+
     GET_TOKEN()
 
     token_t token_tmp = *data->token;
@@ -561,13 +563,13 @@ assign_rhs()
 
         if (data->token->type == TOKEN_LEFT)
         {
-            data->res = call_param_list();
+            res = call_param_list();
 #ifdef SEMANTICS
             if (data->ID->data->function_params_count != data->par_cnt)
                 return RET_SEMANTICAL_PARAMS_ERROR;
 #endif // SEMANTICS
 
-            return data->res;
+            return res;
         }
         else
         {
@@ -575,10 +577,17 @@ assign_rhs()
             q_enqueue(data->token, data->token_queue);
             data->use_queue_for_read = true;
 
-            if ((data->res = solve_exp(data)) != RET_OK)
+#ifdef PSA
+            if ((res = solve_exp(data)) != RET_OK)
             {
-                return data->res;
+                return res;
             }
+#else
+            if ((res = expression()) != RET_OK)
+            {
+                return res;
+            }
+#endif
 
             return RET_OK;
         }
@@ -588,10 +597,17 @@ assign_rhs()
         q_enqueue(&token_tmp, data->token_queue);
         data->use_queue_for_read = true;
 
-        if ((data->res = solve_exp(data)) != RET_OK)
+#ifdef PSA
+        if ((res = solve_exp(data)) != RET_OK)
+            {
+                return res;
+            }
+#else
+        if ((res = expression()) != RET_OK)
         {
-            return data->res;
+            return res;
         }
+#endif
 
         return RET_OK;
     }
@@ -605,12 +621,9 @@ statement_global()
     // STATEMENT_GLOBAL -> def FUNCTION_DEF STATEMENT_GLOBAL
     // STATEMENT_GLOBAL -> STATEMENT STATEMENT_GLOBAL
 
-    // GET_TOKEN()
-    get_next_token();
-    if ((data->res) != RET_OK)
-    {
-        return (data->res);
-    }
+    int res = RET_OK;
+
+    GET_TOKEN()
 
     if (data->token->type == TOKEN_EOF
         || data->token->type == TOKEN_EOL)
@@ -621,12 +634,12 @@ statement_global()
     {
         data->local = true;
 
-        if ((data->res = function_def()) == RET_OK)
+        if ((res = function_def()) == RET_OK)
         {
             data->local = false;
-            if ((data->res = statement_global()) != RET_OK)
+            if ((res = statement_global()) != RET_OK)
             {
-                return data->res;
+                return res;
             }
 
             return RET_OK;
@@ -634,7 +647,7 @@ statement_global()
         }
         else
         {
-            return data->res;
+            return data->get_token_res;
         }
     }
     else
@@ -644,18 +657,18 @@ statement_global()
 
         data->local = false;
 
-        if ((data->res = statement()) == RET_OK)
+        if ((res = statement()) == RET_OK)
         {
-            if ((data->res = statement_global()) != RET_OK)
+            if ((res = statement_global()) != RET_OK)
             {
-                return data->res;
+                return res;
             }
 
             return RET_OK;
         }
         else
         {
-            return data->res;
+            return res;
         }
     }
 }
@@ -743,9 +756,9 @@ if_clause()
         return RET_SYNTAX_ERROR;
     }
 
-    if ((data->res = statement_list_nonempty()) != RET_OK)
+    if ((res = statement_list_nonempty()) != RET_OK)
     {
-        return data->res;
+        return res;
     }
 
     return RET_OK;
@@ -796,9 +809,9 @@ while_clause()
         return RET_SYNTAX_ERROR;
     }
 
-    if ((data->res = statement_list_nonempty()) != RET_OK)
+    if ((res = statement_list_nonempty()) != RET_OK)
     {
-        return data->res;
+        return res;
     }
 
     return RET_OK;
@@ -809,6 +822,8 @@ def_param_list_next()
 {
     // DEF_PARAM_LIST_NEXT -> , id DEF_PARAM_LIST_NEXT
     // DEF_PARAM_LIST_NEXT -> )
+
+    int res = RET_OK;
 
     GET_TOKEN()
 
@@ -827,9 +842,9 @@ def_param_list_next()
         data->ID->data->function_params_count++;
 #endif // SEMANTICS
 
-        if ((data->res = def_param_list_next()) != RET_OK)
+        if ((res = def_param_list_next()) != RET_OK)
         {
-            return data->res;
+            return data->get_token_res;
         }
         return RET_OK;
     }
@@ -844,6 +859,8 @@ def_param_list()
 {
     // DEF_PARAM_LIST -> )
     // DEF_PARAM_LIST -> id DEF_PARAM_LIST_NEXT
+    int res = RET_OK;
+
 #ifdef SEMANTICS
     data->ID->data->function_params_count = 0;
 #endif // SEMANTICS
@@ -860,9 +877,9 @@ def_param_list()
         data->ID->data->function_params_count++;
 #endif // SEMANTICS
 
-        if ((data->res = def_param_list_next()) != RET_OK)
+        if ((res = def_param_list_next()) != RET_OK)
         {
-            return data->res;
+            return res;
         }
         return RET_OK;
     }
@@ -877,6 +894,9 @@ call_param_list()
 {
     // CALL_PARAM_LIST -> )
     // CALL_PARAM_LIST -> CALL_ELEM CALL_PARAM_LIST_NEXT
+
+    int res = RET_OK;
+
 #ifdef SEMANTICS
     data->par_cnt = 0;
 #endif // SEMANTICS
@@ -886,20 +906,20 @@ call_param_list()
     {
         return RET_OK;
     }
-    else if ((data->res = call_elem()) == RET_OK)
+    else if ((res = call_elem()) == RET_OK)
     {
 #ifdef SEMANTICS
         data->par_cnt++;
 #endif // SEMANTICS
-        if ((data->res = call_param_list_next()) != RET_OK)
+        if ((res = call_param_list_next()) != RET_OK)
         {
-            return data->res;
+            return res;
         }
         return RET_OK;
     }
     else
     {
-        return data->res;
+        return res;
     }
 }
 
@@ -928,9 +948,9 @@ call_param_list_next()
         data->par_cnt++;
 #endif // SEMANTICS
 
-        if ((data->res = call_param_list_next()) != RET_OK)
+        if ((res = call_param_list_next()) != RET_OK)
         {
-            return data->res;
+            return res;
         }
         return RET_OK;
     }
@@ -984,14 +1004,16 @@ return_statement()
 
     // token already read in by callee
 
+    int res = RET_OK;
+
     if (data->token->type != TOKEN_RETURN)
     {
         return RET_SYNTAX_ERROR;
     }
 
-    if ((data->res = return_expression()) != RET_OK)
+    if ((res = return_expression()) != RET_OK)
     {
-        return data->res;
+        return res;
     }
 
     return RET_OK;
