@@ -7,7 +7,7 @@
             xsetin00 (Setinský Jiří)
             xsisma01 (Šišma Vojtěch)
  */
-
+#include "parser.h"
 #include "scanner.h"
 #include "exp_stack.h"
 

@@ -19,6 +19,8 @@
 #define TABLE_SIZE 7
 #define RETURN_IF_ERR(res) do { if ((res) != RET_OK) {return (res);} } while(0);
 
+sym_stack *Stack;
+
 typedef enum Prio
 {
         S,     // <
@@ -517,7 +519,7 @@ unsigned int tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
     
 }
 
-sym_stack *Stack; // TODO move global to a more visible place
+
 
 
 
@@ -611,6 +613,7 @@ solve_exp(data_t *data)
                     default:
                         break;
                 }
+
                 stack_expr_push(Stack, new);
                 get_next_token(data, &res);
                 RETURN_IF_ERR(res)
@@ -623,12 +626,17 @@ solve_exp(data_t *data)
                 get_rule(Stack, &count, &rule);
                 if (rule == R_I)
                 {
+                    sym1 = Stack->atr[i];
+
                     if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype) != RET_OK)
                         return RET_SEMANTICAL_RUNTIME_ERROR;
+
                     new.type = EXP;
                     new.d_type = finaltype;
+
                     if(tmp_var( &new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used) == RET_INTERNAL_ERROR)
                         return RET_INTERNAL_ERROR;
+
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
                     stack_expr_push(Stack, new);
@@ -638,12 +646,16 @@ solve_exp(data_t *data)
                     sym1 = Stack->atr[i];
                     sym2 = Stack->atr[i-1];
                     sym3 = Stack->atr[i-2];
+                    
                     if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype) != RET_OK)
                         return RET_SEMANTICAL_RUNTIME_ERROR;
+
                     new.type = EXP;
                     new.d_type = finaltype;
+
                     if(tmp_var( &new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used) == RET_INTERNAL_ERROR)
                         return RET_INTERNAL_ERROR;
+
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
@@ -653,6 +665,9 @@ solve_exp(data_t *data)
                 else if(rule == R_BRACKETS)
                 {
                     sem_t new = Stack->atr[i-1];
+                    if(check_semantics(rule, &new, &sym2, &sym3, &finaltype) != RET_OK)
+                        return RET_SEMANTICAL_RUNTIME_ERROR;
+
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
@@ -664,12 +679,16 @@ solve_exp(data_t *data)
                     sym1 = Stack->atr[i];
                     sym2 = Stack->atr[i-1];
                     sym3 = Stack->atr[i-2];
+
                     if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype) != RET_OK)
                         return RET_SEMANTICAL_RUNTIME_ERROR;
+
                     new.type = EXP;
                     new.d_type = finaltype;
+
                     if(tmp_var( &new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used) == RET_INTERNAL_ERROR)
                         return RET_INTERNAL_ERROR;
+
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
