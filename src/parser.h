@@ -20,7 +20,14 @@ struct _struct_data_t
     token_t *token;
     int use_queue_for_read;
 
-    table_t *sym_table;
+    table_t *global_sym_table;
+    table_t *local_sym_table;
+    ht_item_t* ID;
+    bool local;
+    int par_cnt;
+    
+
+    bool in_function; // TODO only allow return statement inside f-definition
 
     bool in_function; // TODO only allow return statement inside f-definition
 

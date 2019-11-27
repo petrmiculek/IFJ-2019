@@ -20,6 +20,8 @@ data_t *data = NULL;
     shorter way of expressing: return from function when things go wrong
     typically used after reading from scanner, but can be utilized anywhere
  */
+int
+symtable_insert(); // FIXME
 
 #define RETURN_IF_ERR(res) do { if ((res) != RET_OK) { return (res);} } while(0);
 
@@ -136,20 +138,22 @@ is_expression_start()
 int
 init_data()
 {
-    int init_state = 0;
+    // int init_state = 0;
 
     if (NULL == (data = malloc(sizeof(data_t))))
     {
-        init_state = 1;
-        goto cleanup;
+        // init_state = 1;
+        // goto cleanup;
+        return RET_INTERNAL_ERROR;
     }
 
     // token and its contents
 
     if ((data->token = malloc(sizeof(token_t))) == NULL)
     {
-        init_state = 2;
-        goto cleanup;
+        // init_state = 2;
+        // goto cleanup;
+        return RET_INTERNAL_ERROR;
     }
 
     data->token->type = TOKEN_INVALID;
@@ -171,16 +175,34 @@ init_data()
     // queue
     if (NULL == (data->token_queue = q_init_queue()))
     {
-        init_state = 4;
-        goto cleanup;
+        // init_state = 4;
+        //  goto cleanup;
+        return RET_INTERNAL_ERROR;
     }
 
-    if (NULL == (data->sym_table = ht_init()))
+    //init sym_tables
+    if (NULL == (data->global_sym_table = ht_init()))
     {
-        init_state = 5;
-        goto cleanup;
+        // init_state = 4;
+        // goto cleanup;
+        return RET_INTERNAL_ERROR;
     }
 
+    if (NULL == (data->local_sym_table = ht_init()))
+    {
+        // init_state = 5;
+        // goto cleanup;
+        return RET_INTERNAL_ERROR;
+    }
+
+
+    if ((data->ID = malloc(sizeof(ht_item_t))) == NULL)
+    {
+        // init_state = 6;
+        // goto cleanup;
+        return RET_INTERNAL_ERROR;
+    }
+/*
     // switch cases don't contain break statement on purpose
     // fall-through makes sure all the neccessary objects are cleaned
     cleanup:
@@ -188,15 +210,16 @@ init_data()
     {
         case 5:
 
+            // free
             // unreachable code, it's here for future extending of inititialization
             q_free_queue(&data->token_queue);
             // falls through
         case 4:
 
-            /*
-             free_string(&data->token->string);
+
+            // free_string(&data->token->string);
              // see block of comments 10 lines up for explanation
-             */
+
             // falls through
         case 3:
 
@@ -208,17 +231,17 @@ init_data()
             data = NULL;
             // falls through
         case 1:
-            /* first alloc failed, nothing to free */
+            // first alloc failed, nothing to free
             return RET_INTERNAL_ERROR;
         case 0:
-            /* nothing failed -> OK */
+            // nothing failed -> OK
             break;
         default:
 
             printf("%s:%u:init_state: invalid value (%d)\n", __func__, __LINE__, init_state);
             break;
     }
-
+*/
     // add more init from data_t
     data->use_queue_for_read = false;
     data->res = RET_OK;
@@ -241,7 +264,6 @@ int
 statement_list_nonempty()
 {
     // STATEMENT_LIST_NONEMPTY -> STATEMENT STATEMENT_LIST
-
     int res;
 
     if ((res = statement()) != RET_OK)
@@ -304,9 +326,24 @@ function_def()
     if (data->token->type != TOKEN_IDENTIFIER)
         return RET_SYNTAX_ERROR;
 
+    // add function id to sym_table
+    data->ID=ht_search(data->global_sym_table,data->token->string.str);
+    if (data->ID==NULL)
+    {
+        data->ID->data->identifier=data->token->string;
+        data->ID->data->is_function=true;
+
+        ht_insert(data->global_sym_table,data->token->string.str, *data->ID->data);
+    }
+    else
+    {
+        return RET_SEMANTICAL_ERROR;
+    }
+
     // _SEM identifier to symtable and check redefinition
     // check redefinition
 
+    // temporary
     // symtable_insert(NULL, true);
 
     GET_TOKEN()
@@ -344,7 +381,7 @@ symtable_insert(token_t *token, bool is_function)
 {
     int res = RET_OK;
 
-    if (data->sym_table == NULL
+    if (data->global_sym_table == NULL
         || token->type != TOKEN_IDENTIFIER)
     {
         return RET_INTERNAL_ERROR;
@@ -386,6 +423,16 @@ statement()
 
     int res = RET_OK;
 
+    table_t *table;
+    if (data->local==true)
+    {
+       table=data->local_sym_table;
+    }
+    else
+    {
+       table=data->global_sym_table;
+    }
+
     GET_TOKEN()
 
     if (data->token->type == TOKEN_PASS)
@@ -422,6 +469,20 @@ statement()
 
             if (data->token->type == TOKEN_ASSIGN)
             {
+                // definition of variable
+                data->ID=ht_search(table,lhs_identifier.string.str);
+                if (data->ID==NULL)
+                {
+                    data->ID->data->identifier=lhs_identifier.string;
+                    data->ID->data->is_function=false;
+                    ht_insert(table,lhs_identifier.string.str, *data->ID->data);
+                }else if (data->ID->data->is_function==true)
+                {
+                   return RET_SEMANTICAL_ERROR;
+                }
+
+
+
                 // STATEMENT -> id = ASSIGN_RHS eol
                 // _SEM add variable to sym_table
                 if ((res = assign_rhs()) != RET_OK)
@@ -436,6 +497,18 @@ statement()
             else if (data->token->type == TOKEN_LEFT)
             {
                 // STATEMENT -> id ( CALL_PARAM_LIST eol
+                // check if function id is defined
+                data->ID=ht_search(data->global_sym_table,lhs_identifier.string.str);
+
+                if (data->ID==NULL)
+                {
+                    return RET_SEMANTICAL_ERROR;
+                }
+                else if (data->ID->data->is_function==false)
+                {
+                    return RET_SEMANTICAL_ERROR;
+                }
+
                 // _SEM check if id is defined
                 if ((res = call_param_list()) != RET_OK)
                     return res;
@@ -498,12 +571,29 @@ assign_rhs()
 
     if (data->token->type == TOKEN_IDENTIFIER)
     {
-        // _SEM check if ID is declared
+
+        data->ID=ht_search(data->global_sym_table,data->token->string.str);
+        if (data->ID==NULL)
+        {
+            return RET_SEMANTICAL_ERROR;
+        }
+        else if (data->ID->data->is_function==false) //ID is not defined function
+        {
+            return RET_SEMANTICAL_ERROR;
+        }
+
+        // _SEM check if ID is defined
+
         GET_TOKEN()
 
         if (data->token->type == TOKEN_LEFT)
         {
-            return call_param_list();
+            data->res = call_param_list();
+
+            if (data->ID->data->function_params_count != data->par_cnt)
+                return RET_SEMANTICAL_PARAMS_ERROR;
+
+            return data->res;
         }
         else
         {
@@ -555,8 +645,11 @@ statement_global()
     }
     else if (data->token->type == TOKEN_DEF)
     {
+        data->local=true;
+
         if ((data->res = function_def()) == RET_OK)
         {
+            data->local=false;
             if ((data->res = statement_global()) != RET_OK)
             {
                 return data->res;
@@ -574,6 +667,8 @@ statement_global()
     {
         q_enqueue(data->token, data->token_queue);
         data->use_queue_for_read = true;
+
+        data->local=false;
 
         if ((data->res = statement()) == RET_OK)
         {
@@ -729,8 +824,6 @@ def_param_list_next()
     // DEF_PARAM_LIST_NEXT -> , id DEF_PARAM_LIST_NEXT
     // DEF_PARAM_LIST_NEXT -> )
 
-    //_SEM token contains first param
-    // param is added to sym_table
     GET_TOKEN()
 
     if (data->token->type == TOKEN_RIGHT)
@@ -744,9 +837,7 @@ def_param_list_next()
         if (data->token->type != TOKEN_IDENTIFIER)
             return (RET_SYNTAX_ERROR);
 
-        //_SEM token contains next param
-        // param is added to sym_table
-
+        data->ID->data->function_params_count++;
         if ((data->res = def_param_list_next()) != RET_OK)
         {
             return data->res;
@@ -765,6 +856,7 @@ def_param_list()
     // DEF_PARAM_LIST -> )
     // DEF_PARAM_LIST -> id DEF_PARAM_LIST_NEXT
 
+    data->ID->data->function_params_count=0;
     GET_TOKEN()
 
     if (data->token->type == TOKEN_RIGHT)
@@ -773,6 +865,7 @@ def_param_list()
     }
     else if (data->token->type == TOKEN_IDENTIFIER)
     {
+        data->ID->data->function_params_count++;
         if ((data->res = def_param_list_next()) != RET_OK)
         {
             return data->res;
@@ -790,7 +883,7 @@ call_param_list()
 {
     // CALL_PARAM_LIST -> )
     // CALL_PARAM_LIST -> CALL_ELEM CALL_PARAM_LIST_NEXT
-
+    data->par_cnt=0;
     GET_TOKEN()
 
     if (data->token->type == TOKEN_RIGHT)
@@ -799,6 +892,7 @@ call_param_list()
     }
     else if ((data->res = call_elem()) == RET_OK)
     {
+        data->par_cnt++;
         if ((data->res = call_param_list_next()) != RET_OK)
         {
             return data->res;
@@ -832,6 +926,7 @@ call_param_list_next()
         if ((res = call_elem()) != RET_OK)
             return res;
 
+        data->par_cnt++;
         if ((data->res = call_param_list_next()) != RET_OK)
         {
             return data->res;

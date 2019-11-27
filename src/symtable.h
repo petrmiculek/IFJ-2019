@@ -10,6 +10,7 @@
 
 #include <stdbool.h>
 #include "my_string.h"
+#include <stdbool.h>
 
 #define MAX_HTSIZE 101 // FIXME find suitable prime number
 
