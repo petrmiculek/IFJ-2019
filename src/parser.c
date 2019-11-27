@@ -196,7 +196,6 @@ init_data()
         return RET_INTERNAL_ERROR;
     }
 
-
     if ((data->ID = malloc(sizeof(ht_item_t))) == NULL)
     {
         // init_state = 6;
@@ -328,13 +327,13 @@ function_def()
         return RET_SYNTAX_ERROR;
 
     // add function id to sym_table
-    data->ID=ht_search(data->global_sym_table,data->token->string.str);
-    if (data->ID==NULL)
+    data->ID = ht_search(data->global_sym_table, data->token->string.str);
+    if (data->ID == NULL)
     {
-        data->ID->data->identifier=data->token->string;
-        data->ID->data->is_function=true;
+        data->ID->data->identifier = data->token->string;
+        data->ID->data->is_function = true;
 
-        ht_insert(data->global_sym_table, data->token->string.str, *data->ID->data);
+        ht_insert(data->global_sym_table, data->token->string.str, data->ID->data);
     }
     else
     {
@@ -425,13 +424,13 @@ statement()
     int res = RET_OK;
 
     table_t *table;
-    if (data->local==true)
+    if (data->local == true)
     {
-       table=data->local_sym_table;
+        table = data->local_sym_table;
     }
     else
     {
-       table=data->global_sym_table;
+        table = data->global_sym_table;
     }
 
     GET_TOKEN()
@@ -471,15 +470,16 @@ statement()
             if (data->token->type == TOKEN_ASSIGN)
             {
                 // definition of variable
-                data->ID=ht_search(table,lhs_identifier.string.str);
-                if (data->ID==NULL)
+                data->ID = ht_search(table, lhs_identifier.string.str);
+                if (data->ID == NULL)
                 {
-                    data->ID->data->identifier=lhs_identifier.string;
+                    data->ID->data->identifier = lhs_identifier.string;
                     data->ID->data->is_function = false;
-                    ht_insert(table, lhs_identifier.string.str, *data->ID->data);
-                }else if (data->ID->data->is_function==true)
+                    ht_insert(table, lhs_identifier.string.str, data->ID->data);
+                }
+                else if (data->ID->data->is_function == true)
                 {
-                   return RET_SEMANTICAL_ERROR;
+                    return RET_SEMANTICAL_ERROR;
                 }
 
 
@@ -499,13 +499,13 @@ statement()
             {
                 // STATEMENT -> id ( CALL_PARAM_LIST eol
                 // check if function id is defined
-                data->ID=ht_search(data->global_sym_table,lhs_identifier.string.str);
+                data->ID = ht_search(data->global_sym_table, lhs_identifier.string.str);
 
-                if (data->ID==NULL)
+                if (data->ID == NULL)
                 {
                     return RET_SEMANTICAL_ERROR;
                 }
-                else if (data->ID->data->is_function==false)
+                else if (data->ID->data->is_function == false)
                 {
                     return RET_SEMANTICAL_ERROR;
                 }
@@ -573,12 +573,12 @@ assign_rhs()
     if (data->token->type == TOKEN_IDENTIFIER)
     {
 
-        data->ID=ht_search(data->global_sym_table,data->token->string.str);
-        if (data->ID==NULL)
+        data->ID = ht_search(data->global_sym_table, data->token->string.str);
+        if (data->ID == NULL)
         {
             return RET_SEMANTICAL_ERROR;
         }
-        else if (data->ID->data->is_function==false) //ID is not defined function
+        else if (data->ID->data->is_function == false) //ID is not defined function
         {
             return RET_SEMANTICAL_ERROR;
         }
@@ -646,11 +646,11 @@ statement_global()
     }
     else if (data->token->type == TOKEN_DEF)
     {
-        data->local=true;
+        data->local = true;
 
         if ((data->res = function_def()) == RET_OK)
         {
-            data->local=false;
+            data->local = false;
             if ((data->res = statement_global()) != RET_OK)
             {
                 return data->res;
@@ -669,7 +669,7 @@ statement_global()
         q_enqueue(data->token, data->token_queue);
         data->use_queue_for_read = true;
 
-        data->local=false;
+        data->local = false;
 
         if ((data->res = statement()) == RET_OK)
         {
@@ -857,7 +857,7 @@ def_param_list()
     // DEF_PARAM_LIST -> )
     // DEF_PARAM_LIST -> id DEF_PARAM_LIST_NEXT
 
-    data->ID->data->function_params_count=0;
+    data->ID->data->function_params_count = 0;
     GET_TOKEN()
 
     if (data->token->type == TOKEN_RIGHT)
@@ -884,7 +884,7 @@ call_param_list()
 {
     // CALL_PARAM_LIST -> )
     // CALL_PARAM_LIST -> CALL_ELEM CALL_PARAM_LIST_NEXT
-    data->par_cnt=0;
+    data->par_cnt = 0;
     GET_TOKEN()
 
     if (data->token->type == TOKEN_RIGHT)

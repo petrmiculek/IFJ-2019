@@ -10,6 +10,7 @@
 
 #include "scanner.h"
 #include "exp_stack.h"
+#include "parser.h"
 
 unsigned int
 get_symbol(token_t *token);
