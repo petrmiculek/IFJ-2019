@@ -459,11 +459,11 @@ statement()
                 {
                     return RET_SEMANTICAL_ERROR;
                 }
-
+#endif // SEMANTICS
                 // _SEM check if id is defined
                 if ((res = call_param_list()) != RET_OK)
                     return res;
-#endif // SEMANTICS
+
 
                 if ((res = read_eol(true)) != RET_OK)
                     return res;
