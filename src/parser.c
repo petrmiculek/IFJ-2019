@@ -414,17 +414,27 @@ statement()
             {
 #ifdef SEMANTICS
                 // definition of variable
-                ht_item_t *search_res = ht_search(table, lhs_identifier.string.str);
-                if (search_res == NULL)
+                ht_item_t *local_search_res = ht_search(data->local_sym_table, lhs_identifier.string.str);
+                ht_item_t *global_search_res = ht_search(data->global_sym_table, lhs_identifier.string.str);
+
+                if (local_search_res == NULL && global_search_res == NULL)
                 {
+                    // identifier of that name does not exist
                     data->ID->data->identifier = lhs_identifier.string;
                     data->ID->data->is_function = false;
 
-                    ht_insert(table, lhs_identifier.string.str, data->ID->data);
+                    ht_insert(data->global_sym_table, lhs_identifier.string.str, data->ID->data);
                 }
-                else if (search_res->data->is_function == true)
+                else if (global_search_res != NULL && global_search_res->data->is_function == true)
                 {
+                    // identifier exists as a function (in global scope)
                     return RET_SEMANTICAL_ERROR;
+                }
+                else
+                {
+                    // identifier exists as a variable
+                    // this statement just changes its value
+
                 }
 #endif // SEMANTICS
 
