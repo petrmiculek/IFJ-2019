@@ -19,7 +19,7 @@ add_executable(compiler
         src/code_gen.c src/code_gen.h
         src/psa.c src/psa.h
         src/exp_stack.c src/exp_stack.h
-        src/symtable.c src/symtable.h)
+        src/symtable.c src/symtable.h src/psa_stack_declarations.h)
 
 add_executable(compiler_tests
         src/test.c
@@ -32,5 +32,5 @@ add_executable(compiler_tests
         src/code_gen.c src/code_gen.h
         src/psa.c src/psa.h
         src/exp_stack.c src/exp_stack.h
-        src/symtable.c src/symtable.h)
+        src/symtable.c src/symtable.h src/psa_stack_declarations.h)
 

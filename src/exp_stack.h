@@ -13,28 +13,8 @@
 #include <stdlib.h>
 #include "psa.h"
 #include "my_string.h"
+#include "psa_stack_declarations.h"
 
-#define MAX_STACK 100
-
-typedef struct sem_t
-{
-    unsigned int type;
-    unsigned int d_type;
-    string_t sem_data;
-} sem_t;
-
-typedef struct sym_stack
-{
-    int top;
-    sem_t atr[MAX_STACK];
-} sym_stack;
-
-typedef enum d_type
-{
-    INT,
-    FLOAT,
-    STRING
-} d_type;
 
 unsigned int
 init(sym_stack *Stack);
