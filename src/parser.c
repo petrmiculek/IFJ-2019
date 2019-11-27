@@ -16,6 +16,7 @@
 #include <stdbool.h>
 
 // #define SEMANTICS 897987
+// #define PSA 123123
 
 data_t *data = NULL;
 
@@ -478,8 +479,17 @@ statement()
                 q_enqueue(data->token, data->token_queue); // token past identifier
                 data->use_queue_for_read = true;
 
-                if ((res = solve_exp(data)) != RET_OK) // time to test expresion
+#ifdef PSA
+                if ((res = solve_exp(data)) != RET_OK)
+    {
+        return res;
+    }
+#else
+                if ((res = expression()) != RET_OK)
+                {
                     return res;
+                }
+#endif
 
                 if ((res = read_eol(true)) != RET_OK)
                     return res;
@@ -495,8 +505,17 @@ statement()
             q_enqueue(data->token, data->token_queue);
             data->use_queue_for_read = true;
 
-            if ((res = solve_exp(data)) != RET_OK) // time to test expresion
+#ifdef PSA
+            if ((res = solve_exp(data)) != RET_OK)
+            {
                 return res;
+            }
+#else
+            if ((res = expression()) != RET_OK)
+            {
+                return res;
+            }
+#endif
 
             if ((res = read_eol(true)) != RET_OK)
                 return res;
@@ -658,10 +677,17 @@ if_clause()
         return RET_SYNTAX_ERROR;
     }
 
+#ifdef PSA
     if ((res = solve_exp(data)) != RET_OK)
     {
         return res;
     }
+#else
+    if ((res = expression()) != RET_OK)
+    {
+        return res;
+    }
+#endif
 
     GET_TOKEN()
 
@@ -738,11 +764,16 @@ while_clause()
     {
         return RET_SYNTAX_ERROR;
     }
-
-    if ((res = solve_exp(data)) != RET_OK)
+#ifdef PSA
     {
         return res;
     }
+#else
+    if ((res = expression()) != RET_OK)
+    {
+        return res;
+    }
+#endif
 
     GET_TOKEN()
 
@@ -989,12 +1020,17 @@ return_expression()
         q_enqueue(data->token, data->token_queue);
         data->use_queue_for_read = true;
 
-        // expression() starts with no tokens read in
-
+#ifdef PSA
         if ((res = solve_exp(data)) != RET_OK)
+    {
+        return res;
+    }
+#else
+        if ((res = expression()) != RET_OK)
         {
             return res;
         }
+#endif
 
         if ((res = read_eol(true)) != RET_OK)
         {
