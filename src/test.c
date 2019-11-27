@@ -55,6 +55,8 @@ main(int argc, char **argv)
         }
         // ^^^ might print invalid data on lexical error, but at least we get some info?
 
+        printf("\n");
+
         free_string(&token->string);
 
         if (res != RET_OK)
