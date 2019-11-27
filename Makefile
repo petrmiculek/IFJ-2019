@@ -9,7 +9,7 @@ RM=rm -f
 
 BIN_SOURCE_FILES = main.c
 TEST_SOURCE_FILES = test.c
-COMMON_SOURCE_FILES = my_string.c scanner.c parser.c stack.c token_queue.c psa.c sym_table.c code_gen.c exp_stack.c
+COMMON_SOURCE_FILES = my_string.c scanner.c parser.c stack.c token_queue.c psa.c symtable.c code_gen.c exp_stack.c
 
 # ^^^^ add source files here ^^^^
 

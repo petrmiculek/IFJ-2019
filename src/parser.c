@@ -334,7 +334,7 @@ function_def()
         data->ID->data->identifier=data->token->string;
         data->ID->data->is_function=true;
 
-        ht_insert(data->global_sym_table, data->token->string.str, data->ID->data);
+        ht_insert(data->global_sym_table, data->token->string.str, *data->ID->data);
     }
     else
     {
@@ -476,7 +476,7 @@ statement()
                 {
                     data->ID->data->identifier=lhs_identifier.string;
                     data->ID->data->is_function = false;
-                    ht_insert(table, lhs_identifier.string.str, data->ID->data);
+                    ht_insert(table, lhs_identifier.string.str, *data->ID->data);
                 }else if (data->ID->data->is_function==true)
                 {
                    return RET_SEMANTICAL_ERROR;
