@@ -77,10 +77,8 @@ ht_insert(table_t *ptrht, char *key, sym_table_item *data)
 
     if (searched_item)
     {
-        searched_item->data = data;
-        // TODO do we ever want to overwrite?
         fprintf(stderr, "%s,%d: overwriting sym_table_item", __func__, __LINE__);
-        return RET_INTERNAL_ERROR;
+        return RET_SEMANTICAL_ERROR; // Redefining identifier
     }
     else
     {
