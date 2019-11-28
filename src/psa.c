@@ -218,7 +218,7 @@ unsigned int check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, 
                             return res;
                     }
 
-                    // we have to add variable to function_ID structures 
+                    // TODO we have to add variable to function_ID structures 
                 }
             }
             else // we are in global scope 
@@ -229,6 +229,11 @@ unsigned int check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, 
                     // no found so its SEM ERR
                     return RET_SEMANTICAL_ERROR;    
                 }
+                else if (search_res->data->is_variable_defined == false) // exist but not defined
+                {
+                    return RET_SEMANTICAL_ERROR;   
+                }
+                
             }
         }
     	//operand=ht_search()    
