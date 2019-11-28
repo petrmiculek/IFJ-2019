@@ -97,95 +97,120 @@ static table_index get_table_index(table_symbol sym)
     }
     return 99; // FIXME
 }
-unsigned int get_symbol(token_t *token)
+unsigned int get_symbol(token_t *token, unsigned int *sym)
 {
     if(token->type == TOKEN_INT)
     {
-        return OP_INT;
+        *sym = OP_INT;
+        return RET_OK;
     }
     else if(token->type == TOKEN_FLOAT)
     {
-        return OP_FLOAT;
+        *sym = OP_FLOAT;
+        return RET_OK;
     }
     else if(token->type == TOKEN_IDENTIFIER)
     {
-        return OP_ID;
+        *sym = OP_ID;
+        return RET_OK;
+        
     }
     else if(token->type == TOKEN_LIT)
     {
-        return OP_STR;
+        *sym = OP_STR;
+        return RET_OK;
     }
     else if(token->type == TOKEN_DOC)
     {
-        return OP_DOC;
+        *sym = OP_DOC;
+        return RET_OK;
     }
     else if(token->type == TOKEN_NONE)
     {
-        return OP_NONE;
+        *sym = OP_NONE;
+        return RET_OK;
     }
     else if(token->type == TOKEN_PLUS)
     {
-        return PLUS;
+        *sym = PLUS;
+        return RET_OK;
+
     }
     else if(token->type == TOKEN_MINUS)
     {
-        return MIN;
+        *sym = MIN;
+        return RET_OK;
+ 
     }
     else if(token->type == TOKEN_DIVISION)
     {
-        return DIV;
+        *sym = DIV;
+        return RET_OK;
     }
     else if(token->type == TOKEN_MULTI)
     {
-        return MUL;
+        *sym = MUL;
+        return RET_OK;
     }
     else if(token->type == TOKEN_FLOR_DIV)
     {
-        return IDIV;
+        *sym = IDIV;
+        return RET_OK;
     }
     else if(token->type == TOKEN_LEFT)
     {
-        return L_BRAC;
+        *sym = L_BRAC;
+        return RET_OK;
     }
     else if(token->type == TOKEN_RIGHT)
     {
-        return R_BRAC;
+        *sym = R_BRAC;
+        return RET_OK;
     }
     else if(token->type == TOKEN_IS_EQUAL)
     {
-        return EQ;
+        *sym = EQ;
+        return RET_OK;
     }
     else if(token->type == TOKEN_N_EQUAL)
     {
-        return NE;
+        *sym = NE;
+        return RET_OK;
     }
     else if(token->type == TOKEN_MORE)
     {
-        return A;
+        *sym = A;
+        return RET_OK;
     }
     else if(token->type == TOKEN_MORE_E)
     {
-        return EA;
+        *sym = EA;
+        return RET_OK;
     }
     else if(token->type == TOKEN_LESS)
     {
-        return L;
+        *sym = L;
+        return RET_OK;
     }
     else if(token->type == TOKEN_LESS_E)
     {
-        return EL;
+        *sym = EL;
+        return RET_OK;
     }
     else if(token->type == TOKEN_EOL)
     {
-        return DOLAR;
+        *sym = DOLAR;
+        return RET_OK;
     }
     else if (token->type == TOKEN_COLON)
     {
-        return DOLAR;
+        *sym = DOLAR;
+        return RET_OK;
     }
     else if (token->type == TOKEN_EOF)
     {
-        return DOLAR;
+        *sym = DOLAR;
+        return RET_OK;
     }
 
     return RET_SYNTAX_ERROR; 
@@ -606,8 +631,9 @@ solve_exp(data_t *data)
     while(res != 1)
     {
         
-        
-        unsigned int sym = get_symbol(data->token);
+        unsigned int sym = 0;
+        if(get_symbol(data->token, & sym) == RET_SYNTAX_ERROR)
+            return RET_SYNTAX_ERROR;
         sem_t stack_term = get_term(Stack);
         sem_t sym1;
         sem_t sym2;

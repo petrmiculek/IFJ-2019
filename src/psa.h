@@ -14,7 +14,7 @@
 #include "symtable.h"
 
 unsigned int
-get_symbol(token_t *token);
+get_symbol(token_t *token, unsigned int *sym);
 
 
 #define EXP 42
