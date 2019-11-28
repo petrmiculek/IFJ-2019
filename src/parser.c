@@ -13,8 +13,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-//#define SEMANTICS 897987
-#define PSA 123123
+#define SEMANTICS 897987
+//#define PSA 123123
 
 data_t *data = NULL;
 
@@ -616,7 +616,7 @@ assign_rhs()
         }
         else
         {
-            // token is defined
+            // id is defined
         }
 #endif // SEMANTICS
 
@@ -630,6 +630,7 @@ assign_rhs()
             {
                 return RET_SEMANTICAL_ERROR;
             }
+            //data->function_ID=search_res; // for later check of params variable
 #endif // SEMANTICS
 
             if ((res = call_param_list()) != RET_OK)
