@@ -986,7 +986,7 @@ def_param_list_next()
             return (RET_SYNTAX_ERROR);
 
 #ifdef SEMANTICS
-        data->ID->data->function_params_count++;
+        data->function_ID->data->function_params_count++;
 
         ht_item_t *local_search_res = ht_search(data->local_sym_table, data->token->string.str);
         ht_item_t *global_search_res = ht_search(data->global_sym_table, data->token->string.str);
@@ -1032,7 +1032,7 @@ def_param_list()
     int res = RET_OK;
 
 #ifdef SEMANTICS
-    data->ID->data->function_params_count = 0;
+    data->function_ID->data->function_params_count = 0;
 #endif // SEMANTICS
     GET_TOKEN()
 
@@ -1044,7 +1044,7 @@ def_param_list()
     {
 
 #ifdef SEMANTICS
-        data->ID->data->function_params_count++;
+        data->function_ID->data->function_params_count++;
 
         ht_item_t *local_search_res = ht_search(data->local_sym_table, data->token->string.str);
         ht_item_t *global_search_res = ht_search(data->global_sym_table, data->token->string.str);
