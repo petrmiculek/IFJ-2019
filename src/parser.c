@@ -9,9 +9,7 @@
 #include "scanner.h"
 #include "err.h"
 #include "token_queue.h"
-#include "stack.h"
 #include "psa.h"
-#include <assert.h>
 #include <stdlib.h>
 #include <stdbool.h>
 
@@ -20,13 +18,13 @@
 
 data_t *data = NULL;
 
+int
+symtable_insert(token_t *token, bool is_function);
+
 /**
     shorter way of expressing: return from function when things go wrong
     typically used after reading from scanner, but can be utilized anywhere
  */
-int
-symtable_insert(token_t *token, bool is_function);
-
 #define RETURN_IF_ERR(res) do { if ((res) != RET_OK) { return (res);} } while(0);
 
 #define GET_TOKEN() do { get_next_token(); RETURN_IF_ERR(data->get_token_res) } while(0);
@@ -42,6 +40,8 @@ parse(FILE *file)
     }
 
     data->file = file;
+
+
 
     // start syntax analysis with starting nonterminal
     res = statement_global();
@@ -418,25 +418,12 @@ statement()
                 ht_item_t *local_search_res = ht_search(data->local_sym_table, lhs_identifier.string.str);
                 ht_item_t *global_search_res = ht_search(data->global_sym_table, lhs_identifier.string.str);
 
-                if (local_search_res == NULL && global_search_res == NULL)
-                {
-                    // identifier of that name does not exist
-                    data->ID->data->identifier = lhs_identifier.string;
-                    data->ID->data->is_function = false;
-
-                    ht_insert(data->global_sym_table, lhs_identifier.string.str, data->ID->data);
-                }
-                else if (global_search_res != NULL && global_search_res->data->is_function == true)
+                if (global_search_res != NULL && global_search_res->data->is_function == true)
                 {
                     // identifier exists as a function (in global scope)
                     return RET_SEMANTICAL_ERROR;
                 }
-                else
-                {
-                    // identifier exists as a variable
-                    // this statement just changes its value
 
-                }
 #endif // SEMANTICS
 
                 if ((res = assign_rhs()) != RET_OK)
@@ -445,6 +432,20 @@ statement()
                 if ((res = read_eol(true)) != RET_OK)
                     return res;
 
+#ifdef SEMANTICS
+                if (local_search_res == NULL && global_search_res == NULL)
+                {
+                    // identifier of that name does not exist
+                    // -> add to symtable
+                    data->ID->data->identifier = lhs_identifier.string;
+                    data->ID->data->is_function = false;
+
+                    if(RET_OK != (res = ht_insert(data->global_sym_table, lhs_identifier.string.str, data->ID->data)))
+                    {
+                        return res;
+                    }
+                }
+#endif // SEMANTICS
                 return RET_OK;
 
             }
@@ -482,10 +483,10 @@ statement()
                 data->use_queue_for_read = true;
 
 #ifdef PSA
-                if ((res = solve_exp(data)) != RET_OK)
-    {
-        return res;
-    }
+                if ((res = (int) solve_exp(data)) != RET_OK)
+                {
+                    return res;
+                }
 #else
                 if ((res = expression()) != RET_OK)
                 {
@@ -508,7 +509,7 @@ statement()
             data->use_queue_for_read = true;
 
 #ifdef PSA
-            if ((res = solve_exp(data)) != RET_OK)
+            if ((res = (int) solve_exp(data)) != RET_OK)
             {
                 return res;
             }
@@ -599,7 +600,7 @@ assign_rhs()
             data->use_queue_for_read = true;
 
 #ifdef PSA
-            if ((res = solve_exp(data)) != RET_OK)
+            if ((res = (int) solve_exp(data)) != RET_OK)
             {
                 return res;
             }
@@ -619,10 +620,10 @@ assign_rhs()
         data->use_queue_for_read = true;
 
 #ifdef PSA
-        if ((res = solve_exp(data)) != RET_OK)
-            {
-                return res;
-            }
+        if ((res = (int) solve_exp(data)) != RET_OK)
+        {
+            return res;
+        }
 #else
         if ((res = expression()) != RET_OK)
         {
@@ -712,15 +713,15 @@ if_clause()
     }
 
 #ifdef PSA
-    if ((res = solve_exp(data)) != RET_OK)
+    if ((res = (int) solve_exp(data)) != RET_OK)
     {
         return res;
     }
 #else
-    if ((res = expression()) != RET_OK)
-    {
-        return res;
-    }
+        if ((res = expression()) != RET_OK)
+        {
+            return res;
+        }
 #endif
 
     GET_TOKEN()
@@ -799,14 +800,15 @@ while_clause()
         return RET_SYNTAX_ERROR;
     }
 #ifdef PSA
+    if ((res = (int) solve_exp(data)) != RET_OK)
     {
         return res;
     }
 #else
-    if ((res = expression()) != RET_OK)
-    {
-        return res;
-    }
+        if ((res = expression()) != RET_OK)
+        {
+            return res;
+        }
 #endif
 
     GET_TOKEN()
@@ -1064,10 +1066,10 @@ return_expression()
         data->use_queue_for_read = true;
 
 #ifdef PSA
-        if ((res = solve_exp(data)) != RET_OK)
-    {
-        return res;
-    }
+        if ((res = (int) solve_exp(data)) != RET_OK)
+        {
+            return res;
+        }
 #else
         if ((res = expression()) != RET_OK)
         {
