@@ -78,7 +78,7 @@ ht_insert(table_t *ptrht, char *key, sym_table_item *data)
 
     if (searched_item)
     {
-        fprintf(stderr, "%s,%d: overwriting sym_table_item", __func__, __LINE__);
+        fprintf(stderr, "%s,%u: overwriting sym_table_item", __func__, __LINE__);
         return RET_SEMANTICAL_ERROR; // Redefining identifier
     }
     else
@@ -98,7 +98,8 @@ ht_insert(table_t *ptrht, char *key, sym_table_item *data)
 
         tmp->next = (ht_item_t *) (*ptrht)[keyHash];
         tmp->key = key;
-        tmp->data = data;
+        tmp->data = malloc(sizeof(sym_table_item));
+        *tmp->data = *data;
         (*ptrht)[keyHash] = tmp;
     }
 

@@ -8,7 +8,12 @@ import os
 import subprocess
 import string
 
-main_dir = "../../../"
+current_dir = os.path.split(os.getcwd())[1]
+
+if current_dir == 'IFJ-2019':
+    main_dir = "./"
+else:
+    main_dir = "../../../"
 
 # binary = "test_bin"
 binary = "compiler"
@@ -39,6 +44,6 @@ for file_name in dir:
         print('%s : %d' % (file_name, returnCode))
 
 if error_count == 0:
-    print('All passed')
+    print('\nAll passed')
 else:
-    print('%d Errors' % (error_count))
+    print('\n%d Errors' % (error_count))
