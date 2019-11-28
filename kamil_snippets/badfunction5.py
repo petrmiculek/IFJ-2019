@@ -1,5 +1,2 @@
-def a(c;
-
-
-    d):
-b = 5
+def a(c;d):
+   b = 5
