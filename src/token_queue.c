@@ -14,7 +14,7 @@ q_init_queue()
 {
     token_queue_t *queue;
 
-    if (NULL != (queue = malloc(sizeof(token_queue_t))))
+    if (NULL != (queue = calloc(sizeof(token_queue_t), 1)))
     {
         queue->first = NULL;
         queue->last = NULL;
@@ -32,7 +32,7 @@ q_enqueue(token_t *token, token_queue_t *queue)
     }
 
     token_elem_t *token_elem;
-    if (NULL == (token_elem = malloc(sizeof(token_elem_t))))
+    if (NULL == (token_elem = calloc(sizeof(token_elem_t), 1)))
     {
         return RET_INTERNAL_ERROR;
     }
