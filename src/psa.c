@@ -95,7 +95,7 @@ static table_index get_table_index(table_symbol sym)
             return 99;
             break;
     }
-    return WARNING_NOT_IMPLEMENTED; // FIXME
+    return 99; // FIXME
 }
 unsigned int get_symbol(token_t *token)
 {
@@ -188,7 +188,7 @@ unsigned int get_symbol(token_t *token)
         return DOLAR;
     }
 
-    return WARNING_NOT_IMPLEMENTED; // FIXME
+    return RET_SYNTAX_ERROR; 
 }
 unsigned int check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type* final_type, data_t *data)
 {
@@ -454,11 +454,7 @@ unsigned int get_rule(sym_stack *Stack,int *count , unsigned int *rule)
             }
         }
     }    
-    else
-    {
-        return RET_SYNTAX_ERROR;
-    }
-    return WARNING_NOT_IMPLEMENTED; // FIXME
+    return RET_SYNTAX_ERROR;
 }
 
 
@@ -568,11 +564,7 @@ unsigned int tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
         printf("wrong algorithm for asinging tmp_var");
         return RET_INTERNAL_ERROR;
     }
-    else
-    {
-        return WARNING_NOT_IMPLEMENTED;
-    }
-    
+        return RET_INTERNAL_ERROR;
 }
 
 
@@ -590,7 +582,7 @@ solve_exp(data_t *data)
 
     sem_t new;
 
-    unsigned int finaltype;
+    unsigned int finaltype = 0;
 
     int tmp1_used = 0;
     int tmp2_used = 0;
@@ -719,11 +711,11 @@ solve_exp(data_t *data)
                 {
                     sym1 = Stack->atr[i];
 
-                    //if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
-                    //  return RET_SEMANTICAL_RUNTIME_ERROR;
+                    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
+                      return RET_SEMANTICAL_RUNTIME_ERROR;
 
                     new.type = EXP;
-                    //new.d_type = finaltype;
+                    new.d_type = finaltype;
 
                     if(tmp_var( &new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used) == RET_INTERNAL_ERROR)
                         return RET_INTERNAL_ERROR;
@@ -740,8 +732,8 @@ solve_exp(data_t *data)
                     sym2 = Stack->atr[i-1];
                     sym3 = Stack->atr[i-2];
                     
-                   // if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
-                   //     return RET_SEMANTICAL_RUNTIME_ERROR;
+                    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
+                        return RET_SEMANTICAL_RUNTIME_ERROR;
 
 
                     new.type = EXP;
@@ -794,8 +786,10 @@ solve_exp(data_t *data)
                 else if(rule == R_BRACKETS)
                 {
                     new = Stack->atr[i-1];
-                  //  if(check_semantics(rule, &new, &sym2, &sym3, &finaltype, data) != RET_OK)
-                   //     return RET_SEMANTICAL_RUNTIME_ERROR;
+
+                    if(check_semantics(rule, &new, &sym2, &sym3, &finaltype, data) != RET_OK)
+                        return RET_SEMANTICAL_RUNTIME_ERROR;
+
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
@@ -808,8 +802,9 @@ solve_exp(data_t *data)
                     sym2 = Stack->atr[i-1];
                     sym3 = Stack->atr[i-2];
 
-                //    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
-                //        return RET_SEMANTICAL_RUNTIME_ERROR;
+                    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
+                        return RET_SEMANTICAL_RUNTIME_ERROR;
+                    
                     new.type = EXP;
                     new.d_type = finaltype;
 /*                    
@@ -870,6 +865,12 @@ solve_exp(data_t *data)
             }
             case F:
             {
+                i = Stack->top;
+                sym1 = Stack->atr[i];
+                
+                if(sym1.type != EXP)
+                    return RET_SYNTAX_ERROR;
+
                 q_enqueue(data->token, data->token_queue);
                 data->use_queue_for_read = true;
                 //generate_result
@@ -879,6 +880,6 @@ solve_exp(data_t *data)
             default:break;
         }
     }
-    return WARNING_NOT_IMPLEMENTED; // FIXME
+    return RET_SYNTAX_ERROR; 
 }
 

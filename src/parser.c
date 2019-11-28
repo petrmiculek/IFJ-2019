@@ -15,7 +15,7 @@
 #include <string.h>
 
 #define SEMANTICS 897987
-//#define PSA 123123
+#define PSA 123123
 
 data_t *data = NULL;
 
