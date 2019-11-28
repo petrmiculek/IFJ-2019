@@ -9,7 +9,7 @@ def bar(arg):
 def foo():
     var2 = bar(var1)  # this line is still ok
     var1 = 8.5  # gotta throw (semantical error: redefining variable) on this line
-    return var1 * var2
+    return 0
 
 
 foo()

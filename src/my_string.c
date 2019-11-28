@@ -26,6 +26,8 @@ init_string(string_t *string)
     return RET_OK;
 }
 
+
+
 unsigned int
 append_char_to_string(string_t *dest, char var)
 {
@@ -73,8 +75,8 @@ append_c_string_to_string(string_t *dest, const char *src)
         dest->size = size_needed;
     }
 
+    strncpy(dest->str, src, src_length);
     dest->length = strlen(dest->str);
-    strncat(dest->str, src, src_length);
     dest->str[dest->length] = '\0';
 
     return RET_OK;
@@ -104,17 +106,20 @@ copy_string(string_t *dest, string_t *src)
         dest->size = new_length;
     }
 
-    assert(strlen(src->str) == src->length);
-    assert(strlen(dest->str) == dest->length);
-
-    assert(dest->size >= dest->length);
-    assert(src->size >= src->length);
-
-    assert(dest->size >= src->length);
-
-    strcpy(dest->str, src->str);
-    dest->length = strlen(dest->str);;
+    strncpy(dest->str, src->str, src->length);
+    dest->length = src->length;
     return RET_OK;
+}
+
+
+void
+clear_string(string_t *string)
+{
+    if(string == NULL)
+        return;
+
+    memset(string->str, 0, string->size);
+    string->length = 0;
 }
 
 void

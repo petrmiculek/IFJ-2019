@@ -1,2 +1,2 @@
-while 5:
-    a = 5
+while 5 :
+a = 5

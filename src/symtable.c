@@ -97,8 +97,17 @@ ht_insert(table_t *ptrht, char *key, sym_table_item *data)
         }
 
         tmp->next = (ht_item_t *) (*ptrht)[keyHash];
-        tmp->key = key;
-        tmp->data = malloc(sizeof(sym_table_item));
+
+        tmp->key = calloc(strlen(key) + 1, 1);
+        tmp->data = calloc(sizeof(sym_table_item), 1);
+
+        if(tmp->key == NULL || tmp->data == NULL)
+        {
+            return RET_INTERNAL_ERROR;
+        }
+
+        strcpy(tmp->key, key);
+
         *tmp->data = *data;
         (*ptrht)[keyHash] = tmp;
     }

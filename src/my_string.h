@@ -68,6 +68,13 @@ int
 copy_string(string_t *dest, string_t *src);
 
 /**
+ * @brief make string empty but keep its allocated memory
+ * @param string to be emptied
+ */
+void
+clear_string(string_t* string);
+
+/**
  * @brief free
  *
  * @param string

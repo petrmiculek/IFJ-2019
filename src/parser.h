@@ -23,18 +23,14 @@ struct _struct_data_t
     table_t *global_sym_table;
     table_t *local_sym_table;
     ht_item_t *ID;
-
+    ht_item_t *function_ID; // in local scope we will need it
     bool parser_in_local_scope;
-    unsigned int function_call_param_count;
+    int function_call_param_count;
 
-    bool in_function; // TODO only allow return statement inside f-definition
-
-    int get_token_res; // result of most-recent operation
+    int get_token_res; // result of most-recent get_next_token
 
     // Feature ideas:
-
-    //      flags
-    //      inside function -> allow return
+    //
     //      inside while -> context aware code generation for defvar ?
 
 
@@ -92,6 +88,9 @@ is_expression_start();
  */
 int
 init_data();
+
+int
+symtable_insert_predefined();
 
 /**
  * @brief cleanup values used by data_t
