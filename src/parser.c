@@ -19,9 +19,6 @@
 
 data_t *data = NULL;
 
-int
-symtable_insert(token_t *token, bool is_function);
-
 /**
     shorter way of expressing: return from function when things go wrong
     typically used after reading from scanner, but can be utilized anywhere
@@ -35,7 +32,7 @@ symtable_insert_function(const char *identifier_arr, int param_count);
 int
 parse(FILE *file)
 {
-    int res = RET_OK;
+    int res;
 
     if ((res = init_data(&data)) != RET_OK)
         return res;
@@ -62,7 +59,7 @@ parse(FILE *file)
 int
 symtable_insert_predefined()
 {
-    int res = RET_OK;
+    int res;
 
     // print
     if (RET_OK != (res = symtable_insert_function("print", -1)))
@@ -101,7 +98,7 @@ symtable_insert_predefined()
 int
 symtable_insert_function(const char *identifier_arr, int param_count)
 {
-    int res = RET_OK;
+    int res;
     string_t *identifier_string;
 
     if (NULL == (identifier_string = malloc(sizeof(string_t))))
@@ -119,7 +116,8 @@ symtable_insert_function(const char *identifier_arr, int param_count)
     data_symtable->is_function = true;
     copy_string(&data_symtable->identifier, identifier_string);
 
-    if (RET_OK != (res = ht_insert(data->global_sym_table, identifier_string->str, data_symtable)))
+    res = ht_insert(data->global_sym_table, identifier_string->str, data_symtable);
+    if (res != RET_OK)
     {
         free_string(identifier_string);
         return res;
@@ -150,7 +148,6 @@ get_next_token()
             do
             {
                 data->get_token_res = (int) get_token(data->token, data->file);
-
             }
             while (data->get_token_res == RET_OK && data->token->type == TOKEN_SPACE);
         }
@@ -214,7 +211,7 @@ is_expression_start()
 int
 init_data()
 {
-    if (NULL == (data = malloc(sizeof(data_t))))
+    if (NULL == (data = calloc(sizeof(data_t), 1)))
     {
 
         return RET_INTERNAL_ERROR;
@@ -222,7 +219,7 @@ init_data()
 
     // token and its contents
 
-    if ((data->token = malloc(sizeof(token_t))) == NULL)
+    if ((data->token = calloc(sizeof(token_t), 1)) == NULL)
     {
         return RET_INTERNAL_ERROR;
     }
@@ -250,17 +247,17 @@ init_data()
         return RET_INTERNAL_ERROR;
     }
 
-    if ((data->ID = malloc(sizeof(ht_item_t))) == NULL)
+    if ((data->ID = calloc(sizeof(ht_item_t), 1)) == NULL)
     {
         return RET_INTERNAL_ERROR;
     }
 
-    if ((data->function_ID = malloc(sizeof(ht_item_t))) == NULL)
+    if ((data->function_ID = calloc(sizeof(ht_item_t), 1)) == NULL)
     {
         return RET_INTERNAL_ERROR;
     }
 
-    if ((data->ID->data = malloc(sizeof(sym_table_item))) == NULL)
+    if ((data->ID->data = calloc(sizeof(sym_table_item), 1)) == NULL)
     {
         return RET_INTERNAL_ERROR;
     }
@@ -268,43 +265,6 @@ init_data()
     // add more init from data_t
     data->use_queue_for_read = false;
     data->get_token_res = RET_OK;
-
-    return RET_OK;
-}
-
-// CURRENTLY UNUSED
-int
-symtable_insert(token_t *token, bool is_function)
-{
-    int res = RET_OK;
-
-    if (data->global_sym_table == NULL
-        || token->type != TOKEN_IDENTIFIER)
-    {
-        return RET_INTERNAL_ERROR;
-    }
-
-    sym_table_item *new_item;
-
-    if (NULL == (new_item = malloc(sizeof(sym_table_item))))
-        return RET_INTERNAL_ERROR;
-
-    copy_string(&new_item->identifier, &token->string); // TODO check if the copy is needed
-    RETURN_IF_ERR(res);
-
-    if (is_function)
-    {
-        // TODO parameters
-        // new_item->function_params_count = 5;
-    }
-    else
-    { ; // possibly something
-    }
-
-    // TODO check that it doesn't exist, yet?
-
-    res = ht_insert(data->global_sym_table, token->string.str, new_item);
-    RETURN_IF_ERR(res);
 
     return RET_OK;
 }
@@ -334,7 +294,7 @@ statement_list()
     // STATEMENT_LIST -> STATEMENT STATEMENT_LIST
     // STATEMENT_LIST -> dedent
 
-    int res = RET_OK;
+    int res;
 
     GET_TOKEN()
 
@@ -366,7 +326,7 @@ function_def()
 {
     // FUNCTION_DEF -> id ( DEF_PARAM_LIST ) : eol indent STATEMENT_LIST_NONEMPTY
 
-    int res = RET_OK;
+    int res;
 
     // IMPORTANT: def token was read in by callee
 
@@ -377,26 +337,25 @@ function_def()
 
 #ifdef SEMANTICS
     // add function id to sym_table
-    ht_item_t *search_res = ht_search(data->global_sym_table, data->token->string.str); // check redefinition
+    ht_item_t *search_res = ht_search(data->global_sym_table, data->token->string.str);
 
     if (search_res == NULL)
     {
         data->ID->data->identifier = data->token->string;
         data->ID->data->is_function = true;
 
-        ht_insert(data->global_sym_table,
-                  data->token->string.str,
-                  data->ID->data); // _SEM function identifier to symtable
+        res = ht_insert(data->global_sym_table, data->token->string.str, data->ID->data);
+        if(res != RET_OK)
+            return res;
+        // _SEM function identifier to symtable
     }
     else
     {
         return RET_SEMANTICAL_ERROR;
     }
 
-    // statements will be local now
-    data->parser_in_local_scope = true;
-    data->function_ID =
-        ht_search(data->global_sym_table, data->token->string.str); // for later definitions of variables in functions
+    data->function_ID = ht_search(data->global_sym_table, data->token->string.str);
+    // for later definitions of variables in functions
 
 
 #endif
@@ -412,6 +371,7 @@ function_def()
     // IMPORTANT: right brace read in inside def_param_list
 
     GET_TOKEN()
+
 
     if (data->token->type != TOKEN_COLON)
         return RET_SYNTAX_ERROR;
@@ -448,7 +408,7 @@ statement()
     // STATEMENT -> WHILE_CLAUSE
     // STATEMENT -> RETURN_STATEMENT
 
-    int res = RET_OK;
+    int res;
 
     GET_TOKEN()
 
@@ -546,7 +506,8 @@ statement()
                         data->ID->data->is_function = false;
                         data->ID->data->is_variable_defined = true;
 
-                        if (RET_OK != (res = ht_insert(data->local_sym_table, lhs_identifier.string.str, data->ID->data)))
+                        res = ht_insert(data->local_sym_table, lhs_identifier.string.str, data->ID->data);
+                        if (res != RET_OK)
                         {
                             return res;
                         }
@@ -560,7 +521,8 @@ statement()
                     data->ID->data->is_function = false;
                     data->ID->data->is_variable_defined = true;
 
-                    if (RET_OK != (res = ht_insert(data->global_sym_table, lhs_identifier.string.str, data->ID->data)))
+                    res = ht_insert(data->global_sym_table, lhs_identifier.string.str, data->ID->data);
+                    if (res != RET_OK)
                     {
                         return res;
                     }
@@ -569,7 +531,7 @@ statement()
                 {
                     global_search_res->data->is_variable_defined = true; // before used as not defined in function
                 }
-                
+
 
 
                 // identifier exists as a variable
@@ -588,14 +550,11 @@ statement()
 #ifdef SEMANTICS
                 ht_item_t *search_res = ht_search(data->global_sym_table, lhs_identifier.string.str);
 
-                if (search_res == NULL)
+                if (search_res == NULL || search_res->data->is_function == false)
                 {
                     return RET_SEMANTICAL_ERROR;
                 }
-                else if (search_res->data->is_function == false)
-                {
-                    return RET_SEMANTICAL_ERROR;
-                }
+
 #endif // SEMANTICS
                 // _SEM check if id is defined
                 if ((res = call_param_list()) != RET_OK)
@@ -671,7 +630,7 @@ assign_rhs()
     // ASSIGN_RHS -> id ( CALL_PARAM_LIST
     // ASSIGN_RHS -> EXPRESSION
 
-    int res = RET_OK;
+    int res;
 
     GET_TOKEN()
 
@@ -784,7 +743,7 @@ statement_global()
     // STATEMENT_GLOBAL -> def FUNCTION_DEF STATEMENT_GLOBAL
     // STATEMENT_GLOBAL -> STATEMENT STATEMENT_GLOBAL
 
-    int res = RET_OK;
+    int res;
 
     GET_TOKEN()
 
@@ -800,6 +759,8 @@ statement_global()
         if ((res = function_def()) == RET_OK)
         {
             data->parser_in_local_scope = false;
+            ht_clear_all(data->local_sym_table);
+
             if ((res = statement_global()) != RET_OK)
             {
                 return res;
@@ -846,7 +807,7 @@ if_clause()
 
     // 'if' token checked already
 
-    int res = RET_OK;
+    int res;
 
 #ifdef PSA
     if ((res = (int) solve_exp(data)) != RET_OK)
@@ -923,7 +884,7 @@ while_clause()
 {
     // WHILE_CLAUSE -> while EXPRESSION : eol indent STATEMENT_LIST_NONEMPTY
 
-    int res = RET_OK;
+    int res;
 
     // 'while' token checked already
 
@@ -970,7 +931,7 @@ def_param_list_next()
     // DEF_PARAM_LIST_NEXT -> , id DEF_PARAM_LIST_NEXT
     // DEF_PARAM_LIST_NEXT -> )
 
-    int res = RET_OK;
+    int res;
 
     GET_TOKEN()
 
@@ -986,10 +947,9 @@ def_param_list_next()
             return (RET_SYNTAX_ERROR);
 
 #ifdef SEMANTICS
-        data->ID->data->function_params_count++;
+        data->function_ID->data->function_params_count++;
 
         ht_item_t *local_search_res = ht_search(data->local_sym_table, data->token->string.str);
-        ht_item_t *global_search_res = ht_search(data->global_sym_table, data->token->string.str);
 
         if (local_search_res != NULL)
         {
@@ -1005,7 +965,8 @@ def_param_list_next()
             data->ID->data->is_function = false;
             data->ID->data->is_variable_defined = true;
 
-            if (RET_OK != (res = ht_insert(data->local_sym_table, data->token->string.str, data->ID->data)))
+            res = ht_insert(data->local_sym_table, data->token->string.str, data->ID->data);
+            if (res != RET_OK)
             {
                 return res;
             }
@@ -1014,7 +975,7 @@ def_param_list_next()
 
         if ((res = def_param_list_next()) != RET_OK)
         {
-            return data->get_token_res;
+            return res;
         }
         return RET_OK;
     }
@@ -1029,10 +990,10 @@ def_param_list()
 {
     // DEF_PARAM_LIST -> )
     // DEF_PARAM_LIST -> id DEF_PARAM_LIST_NEXT
-    int res = RET_OK;
+    int res;
 
 #ifdef SEMANTICS
-    data->ID->data->function_params_count = 0;
+    data->function_ID->data->function_params_count = 0;
 #endif // SEMANTICS
     GET_TOKEN()
 
@@ -1044,10 +1005,9 @@ def_param_list()
     {
 
 #ifdef SEMANTICS
-        data->ID->data->function_params_count++;
+        data->function_ID->data->function_params_count++;
 
         ht_item_t *local_search_res = ht_search(data->local_sym_table, data->token->string.str);
-        ht_item_t *global_search_res = ht_search(data->global_sym_table, data->token->string.str);
 
         if (local_search_res != NULL)
         {
@@ -1063,7 +1023,8 @@ def_param_list()
             data->ID->data->is_function = false;
             data->ID->data->is_variable_defined = true;
 
-            if (RET_OK != (res = ht_insert(data->local_sym_table, data->token->string.str, data->ID->data)))
+            res = ht_insert(data->local_sym_table, data->token->string.str, data->ID->data);
+            if (res != RET_OK)
             {
                 return res;
             }
@@ -1088,7 +1049,7 @@ call_param_list()
     // CALL_PARAM_LIST -> )
     // CALL_PARAM_LIST -> CALL_ELEM CALL_PARAM_LIST_NEXT
 
-    int res = RET_OK;
+    int res;
 
 #ifdef SEMANTICS
     data->function_call_param_count = 0;
@@ -1122,7 +1083,7 @@ call_param_list_next()
     // CALL_PARAM_LIST_NEXT -> , CALL_ELEM CALL_PARAM_LIST_NEXT
     // CALL_PARAM_LIST_NEXT -> )
 
-    int res = RET_OK;
+    int res;
 
     GET_TOKEN()
 
@@ -1197,7 +1158,7 @@ return_statement()
 
     // 'return' token already checked by caller
 
-    int res = RET_OK;
+    int res;
 
     if ((res = return_expression()) != RET_OK)
     {
@@ -1213,7 +1174,7 @@ return_expression()
     // RETURN_EXPRESSION -> eol
     // RETURN_EXPRESSION -> EXPRESSION eol
 
-    int res = RET_OK;
+    int res;
 
     GET_TOKEN()
 

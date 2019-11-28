@@ -16,7 +16,7 @@ initStack(stack_t *stack)
 {
     stack->capacity = STACK_CAPACITY;
     stack->top = 0;
-    if ((stack->array = (unsigned int *) malloc(STACK_CAPACITY * sizeof(unsigned int *))) == NULL)
+    if ((stack->array = (unsigned int *) calloc(STACK_CAPACITY * sizeof(unsigned int *), 1)) == NULL)
     {
         return RET_INTERNAL_ERROR;
     }
