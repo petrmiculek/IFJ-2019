@@ -4,5 +4,7 @@ function
 x
 variable
 """
-mojePromenna = inputs()
+def mojePromenna():
+    pass
+
 mojePromenna = None

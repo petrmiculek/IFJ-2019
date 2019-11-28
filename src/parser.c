@@ -63,37 +63,36 @@ int
 symtable_insert_predefined()
 {
     int res = RET_OK;
-    // TODO fix param count
 
     // print
     if(RET_OK != (res = symtable_insert_function("print", -1)))
         return res;
 
     // len
-    if(RET_OK != (res = symtable_insert_function("len", -1)))
+    if(RET_OK != (res = symtable_insert_function("len", 1)))
         return res;
 
     // substr
-    if(RET_OK != (res = symtable_insert_function("substr", -1)))
+    if(RET_OK != (res = symtable_insert_function("substr", 3)))
         return res;
 
     // ord
-    if(RET_OK != (res = symtable_insert_function("ord", -1)))
+    if(RET_OK != (res = symtable_insert_function("ord", 2)))
         return res;
     // chr
-    if(RET_OK != (res = symtable_insert_function("chr", -1)))
+    if(RET_OK != (res = symtable_insert_function("chr", 1)))
         return res;
 
     // inputs
-    if(RET_OK != (res = symtable_insert_function("inputs", -1)))
+    if(RET_OK != (res = symtable_insert_function("inputs", 0)))
         return res;
 
     // inputi
-    if(RET_OK != (res = symtable_insert_function("inputi", -1)))
+    if(RET_OK != (res = symtable_insert_function("inputi", 0)))
         return res;
 
     // inputf
-    if(RET_OK != (res = symtable_insert_function("inputf", -1)))
+    if(RET_OK != (res = symtable_insert_function("inputf", 0)))
         return res;
 
     return RET_OK;
@@ -681,8 +680,10 @@ assign_rhs()
 #ifdef SEMANTICS
         // _SEM check if ID is defined
 
-        ht_item_t *search_res = ht_search(data->global_sym_table, data->token->string.str);
-        if (search_res == NULL)
+        ht_item_t *local_search_res = ht_search(data->local_sym_table, token_tmp.string.str);
+        ht_item_t *global_search_res = ht_search(data->global_sym_table, token_tmp.string.str);
+
+        if (local_search_res == NULL && global_search_res == NULL)
         {
             return RET_SEMANTICAL_ERROR;
         }
@@ -698,7 +699,8 @@ assign_rhs()
         {
 
 #ifdef SEMANTICS
-            if (search_res->data->is_function == false) //ID is NOT a defined function
+            if (global_search_res != NULL
+             && global_search_res->data->is_function == false) //ID is NOT a defined function
             {
                 return RET_SEMANTICAL_ERROR;
             }
@@ -711,8 +713,9 @@ assign_rhs()
             }
 
 #ifdef SEMANTICS
-            if (search_res->data->function_params_count != -1
-             && search_res->data->function_params_count != data->function_call_param_count)
+            if (global_search_res != NULL
+             && global_search_res->data->function_params_count != -1
+             && global_search_res->data->function_params_count != data->function_call_param_count)
             {
                 return RET_SEMANTICAL_PARAMS_ERROR;
             }
@@ -724,7 +727,8 @@ assign_rhs()
         {
 
 #ifdef SEMANTICS
-            if (search_res->data->is_function == true) //ID is a defined function
+            if (global_search_res != NULL
+             && global_search_res->data->is_function == true) //ID is a defined function
             {
                 return RET_SEMANTICAL_ERROR;
             }
