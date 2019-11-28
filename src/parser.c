@@ -425,7 +425,6 @@ statement()
                 ht_item_t *local_search_res = ht_search(data->local_sym_table, lhs_identifier.string.str);
                 ht_item_t *global_search_res = ht_search(data->global_sym_table, lhs_identifier.string.str);
 
-<<<<<<< HEAD
                 if (data->parser_in_local_scope)
                 {
                 
@@ -448,9 +447,6 @@ statement()
                     }
                 }
                 else if (global_search_res == NULL)// in global scope
-=======
-                if (global_search_res != NULL && global_search_res->data->is_function == true)
->>>>>>> 4eff9bc2d5ca40a152fbd0cabd2baf65ae801aa5
                 {
                         // identifier of that name does not exist
                         data->ID->data->identifier = lhs_identifier.string;
@@ -459,7 +455,6 @@ statement()
                         ht_insert(data->global_sym_table, lhs_identifier.string.str, data->ID->data);
                 
                 }
-<<<<<<< HEAD
                 else if (global_search_res != NULL && global_search_res->data->is_function == true)
                 {
                         // identifier exists as a function (in global scope)
@@ -472,14 +467,6 @@ statement()
                 
                 #endif // SEMANTICS
                 
-=======
-
-#endif // SEMANTICS
-
-                if ((res = assign_rhs()) != RET_OK)
-                    return res;
-
->>>>>>> 4eff9bc2d5ca40a152fbd0cabd2baf65ae801aa5
                 if ((res = read_eol(true)) != RET_OK)
                     return res;
 
