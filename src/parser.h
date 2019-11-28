@@ -93,6 +93,9 @@ is_expression_start();
 int
 init_data();
 
+int
+symtable_insert_predefined();
+
 /**
  * @brief cleanup values used by data_t
  */

@@ -1,1 +1,1 @@
-substr(None, 1, 2)
+substr(None,1,2)

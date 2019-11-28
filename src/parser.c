@@ -41,7 +41,7 @@ parse(FILE *file)
 
     data->file = file;
 
-
+    symtable_insert_predefined();
 
     // start syntax analysis with starting nonterminal
     res = statement_global();
@@ -55,6 +55,39 @@ parse(FILE *file)
     // clear_data();
 
     return res;
+}
+int
+symtable_insert_predefined()
+{
+    // print
+    int res = RET_OK;
+    string_t* id;
+    if(NULL == (id = malloc(sizeof(string_t))))
+    {
+        return RET_INTERNAL_ERROR;
+    }
+
+    append_c_string_to_string(id, "print");
+
+    sym_table_item* predefined_symtable_data;
+    if(NULL == (predefined_symtable_data = malloc(sizeof(sym_table_item))))
+         return RET_INTERNAL_ERROR;
+
+    // len substr
+    // ord
+    // chr
+    // inputs
+    // inputi
+    // inputf
+
+    res = ht_insert(data->global_sym_table, id->str, predefined_symtable_data);
+    if(res != RET_OK)
+        return res;
+
+
+
+
+    return RET_OK;
 }
 
 void
@@ -340,10 +373,8 @@ function_def()
     if (data->token->type != TOKEN_COLON)
         return RET_SYNTAX_ERROR;
 
-    GET_TOKEN()
-
-    if (data->token->type != TOKEN_EOL)
-        return RET_SYNTAX_ERROR;
+    if ((res = read_eol(true)) != RET_OK)
+        return res;
 
     GET_TOKEN()
 
@@ -728,7 +759,7 @@ statement_global()
         }
         else
         {
-            return data->get_token_res;
+            return res;
         }
     }
     else
@@ -785,7 +816,8 @@ if_clause()
         return RET_SYNTAX_ERROR;
     }
 
-    read_eol(true);
+    if ((res = read_eol(true)) != RET_OK)
+        return res;
 
     GET_TOKEN()
 
@@ -863,7 +895,8 @@ while_clause()
         return RET_SYNTAX_ERROR;
     }
 
-    read_eol(true);
+    if ((res = read_eol(true)) != RET_OK)
+        return res;
 
     GET_TOKEN()
 
