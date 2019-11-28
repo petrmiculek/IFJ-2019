@@ -18,8 +18,9 @@ typedef struct _sym_table_item_t
 {
     string_t identifier;
     bool is_function;
-    bool is_function_defined;
+    bool is_variable_defined;
     unsigned int function_params_count;
+    
 
     /**
         idea - function added to symtable upon call,

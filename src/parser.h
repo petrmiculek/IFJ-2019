@@ -23,7 +23,7 @@ struct _struct_data_t
     table_t *global_sym_table;
     table_t *local_sym_table;
     ht_item_t *ID;
-
+    ht_item_t *function_ID; // in local scope we will need it
     bool parser_in_local_scope;
     unsigned int function_call_param_count;
 
