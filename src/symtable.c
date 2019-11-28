@@ -98,7 +98,7 @@ ht_insert(table_t *ptrht, char *key, sym_table_item *data)
 
         tmp->next = (ht_item_t *) (*ptrht)[keyHash];
 
-        tmp->key = malloc(INITIAL_SIZE);
+        tmp->key = malloc(strlen(key) + 1);
         tmp->data = malloc(sizeof(sym_table_item));
 
         if(tmp->key == NULL || tmp->data == NULL)
@@ -106,7 +106,7 @@ ht_insert(table_t *ptrht, char *key, sym_table_item *data)
             return RET_INTERNAL_ERROR;
         }
 
-        // TODO continue here
+        strcpy(tmp->key, key);
 
         *tmp->data = *data;
         (*ptrht)[keyHash] = tmp;
