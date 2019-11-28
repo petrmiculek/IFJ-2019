@@ -49,7 +49,7 @@ int prec_table[TABLE_SIZE][TABLE_SIZE] =
     { R , R , E , S , R , S , R }, // 2
     { R , R , R , B , R , B , R }, // 3
     { S , S , S , S , F , S , B }, // 4
-    { S , S , S , S , B , S , R }, // 5
+    { S , S , S , S , B , S , E }, // 5
     { R , R , R , B , R , B , R }  // 6
 };
 
@@ -77,6 +77,8 @@ static table_index get_table_index(table_symbol sym)
         case OP_FLOAT:
         case OP_INT:
         case OP_STR:
+        case OP_NONE:
+        case OP_DOC:
         case OP_ID:
             return I_Op;
             break;
@@ -112,6 +114,14 @@ unsigned int get_symbol(token_t *token)
     else if(token->type == TOKEN_LIT)
     {
         return OP_STR;
+    }
+    else if(token->type == TOKEN_DOC)
+    {
+        return OP_DOC;
+    }
+    else if(token->type == TOKEN_NONE)
+    {
+        return OP_NONE;
     }
     else if(token->type == TOKEN_PLUS)
     {
@@ -186,7 +196,6 @@ unsigned int check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, 
 	bool retype_sym3_to_double = false;
 	bool retype_sym1_to_integer = false;
 	bool retype_sym3_to_integer = false;
-
     //ht_item_t operand;
 	if (rule == R_I)
 	{
@@ -332,7 +341,7 @@ unsigned int get_rule(sym_stack *Stack,int *count , unsigned int *rule)
     {
         i = Stack->top;
         sem_t sym1 = Stack->atr[i];
-        if (sym1.type == OP_ID || sym1.type == OP_FLOAT || sym1.type == OP_INT || sym1.type == OP_STR)  
+        if (sym1.type == OP_ID || sym1.type == OP_FLOAT || sym1.type == OP_INT || sym1.type == OP_STR || sym1.type == OP_DOC || sym1.type == OP_NONE)  
         {
             *rule = R_I;
             return RET_OK;
@@ -415,7 +424,7 @@ unsigned int get_rule(sym_stack *Stack,int *count , unsigned int *rule)
                 default:return RET_SYNTAX_ERROR;
             }
         }
-    }
+    }    
     else
     {
         return RET_SYNTAX_ERROR;
@@ -612,9 +621,22 @@ solve_exp(data_t *data)
                     case OP_INT:
                     case OP_STR:
                     case OP_FLOAT:
+                    case OP_DOC:
                     case OP_ID:
+                    {
                         new.sem_data = data->token->string;
                         break;
+                    }
+                    case OP_NONE:
+                    {
+                        string_t none;
+                        init_string(&none);
+                        char *c = "none";
+                        if(append_c_string_to_string(&none, c) == RET_INTERNAL_ERROR)
+                            return RET_INTERNAL_ERROR;
+                        new.sem_data = none;
+                        break;
+                    }
                     default:
                         break;
                 }
@@ -632,9 +654,22 @@ solve_exp(data_t *data)
                     case OP_INT:
                     case OP_STR:
                     case OP_FLOAT:
+                    case OP_DOC:
                     case OP_ID:
+                    {
                         new.sem_data = data->token->string;
                         break;
+                    }
+                    case OP_NONE:
+                    {
+                        string_t none;
+                        init_string(&none);
+                        char *c = "none";
+                        if(append_c_string_to_string(&none, c) == RET_INTERNAL_ERROR)
+                            return RET_INTERNAL_ERROR;
+                        new.sem_data = none;
+                        break;
+                    }
                     default:
                         break;
                 }
@@ -655,11 +690,11 @@ solve_exp(data_t *data)
                 {
                     sym1 = Stack->atr[i];
 
-                    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
-                        return RET_SEMANTICAL_RUNTIME_ERROR;
+                    //if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
+                    //  return RET_SEMANTICAL_RUNTIME_ERROR;
 
                     new.type = EXP;
-                    new.d_type = finaltype;
+                    //new.d_type = finaltype;
 
                     if(tmp_var( &new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used) == RET_INTERNAL_ERROR)
                         return RET_INTERNAL_ERROR;
@@ -674,8 +709,8 @@ solve_exp(data_t *data)
                     sym2 = Stack->atr[i-1];
                     sym3 = Stack->atr[i-2];
                     
-                    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
-                        return RET_SEMANTICAL_RUNTIME_ERROR;
+                   // if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
+                   //     return RET_SEMANTICAL_RUNTIME_ERROR;
 
                     new.type = EXP;
                     new.d_type = finaltype;
@@ -691,10 +726,9 @@ solve_exp(data_t *data)
                 }
                 else if(rule == R_BRACKETS)
                 {
-                    sem_t new = Stack->atr[i-1];
-                    if(check_semantics(rule, &new, &sym2, &sym3, &finaltype, data) != RET_OK)
-                        return RET_SEMANTICAL_RUNTIME_ERROR;
-
+                    new = Stack->atr[i-1];
+                  //  if(check_semantics(rule, &new, &sym2, &sym3, &finaltype, data) != RET_OK)
+                   //     return RET_SEMANTICAL_RUNTIME_ERROR;
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
@@ -707,8 +741,8 @@ solve_exp(data_t *data)
                     sym2 = Stack->atr[i-1];
                     sym3 = Stack->atr[i-2];
 
-                    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
-                        return RET_SEMANTICAL_RUNTIME_ERROR;
+                //    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
+                //        return RET_SEMANTICAL_RUNTIME_ERROR;
 
                     new.type = EXP;
                     new.d_type = finaltype;

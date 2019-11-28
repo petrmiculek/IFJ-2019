@@ -387,16 +387,36 @@ statement()
 
         return RET_OK;
     }
-    else if (return_statement() == RET_OK)
+    else if (data->token->type == TOKEN_RETURN)
     {
+        if (data->parser_in_local_scope == false)
+        {
+            return RET_SEMANTICAL_ERROR; // return statement outside function
+        }
+
+        if ((res = return_statement()) != RET_OK)
+        {
+            return res;
+        }
+
         return RET_OK;
     }
-    else if (if_clause() == RET_OK)
+    else if (data->token->type == TOKEN_IF)
     {
+        if ((res = if_clause()) != RET_OK)
+        {
+            return res;
+        }
+
         return RET_OK;
     }
-    else if (while_clause() == RET_OK)
+    else if (data->token->type == TOKEN_WHILE)
     {
+        if ((res = while_clause()) != RET_OK)
+        {
+            return res;
+        }
+
         return RET_OK;
     }
     else if (is_expression_start() == RET_OK)
@@ -741,14 +761,9 @@ if_clause()
 
     // STATEMENT_LIST_NONEMPTY includes eol dedent
 
-    // token already read in by callee
+    // 'if' token checked already
 
     int res = RET_OK;
-
-    if (data->token->type != TOKEN_IF)
-    {
-        return RET_SYNTAX_ERROR;
-    }
 
 #ifdef PSA
     if ((res = (int) solve_exp(data)) != RET_OK)
@@ -769,12 +784,7 @@ if_clause()
         return RET_SYNTAX_ERROR;
     }
 
-    GET_TOKEN()
-
-    if (data->token->type != TOKEN_EOL)
-    {
-        return RET_SYNTAX_ERROR;
-    }
+    read_eol(true);
 
     GET_TOKEN()
 
@@ -831,12 +841,8 @@ while_clause()
 
     int res = RET_OK;
 
-    // token already read in by callee
+    // 'while' token checked already
 
-    if (data->token->type != TOKEN_WHILE)
-    {
-        return RET_SYNTAX_ERROR;
-    }
 #ifdef PSA
     if ((res = (int) solve_exp(data)) != RET_OK)
     {
@@ -856,12 +862,7 @@ while_clause()
         return RET_SYNTAX_ERROR;
     }
 
-    GET_TOKEN()
-
-    if (data->token->type != TOKEN_EOL)
-    {
-        return RET_SYNTAX_ERROR;
-    }
+    read_eol(true);
 
     GET_TOKEN()
 
@@ -1063,14 +1064,9 @@ return_statement()
 {
     // RETURN -> return RETURN_EXPRESSION
 
-    // token already read in by callee
+    // 'return' token already checked by caller
 
     int res = RET_OK;
-
-    if (data->token->type != TOKEN_RETURN)
-    {
-        return RET_SYNTAX_ERROR;
-    }
 
     if ((res = return_expression()) != RET_OK)
     {
