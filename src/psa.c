@@ -163,7 +163,7 @@ unsigned int get_symbol(token_t *token)
 
     return WARNING_NOT_IMPLEMENTED; // FIXME
 }
-unsigned int check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type* final_type)
+unsigned int check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type* final_type, data_t *data)
 {
     bool retype_sym1_to_double = false;
 	bool retype_sym3_to_double = false;
@@ -628,7 +628,7 @@ solve_exp(data_t *data)
                 {
                     sym1 = Stack->atr[i];
 
-                    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype) != RET_OK)
+                    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
                         return RET_SEMANTICAL_RUNTIME_ERROR;
 
                     new.type = EXP;
@@ -647,7 +647,7 @@ solve_exp(data_t *data)
                     sym2 = Stack->atr[i-1];
                     sym3 = Stack->atr[i-2];
                     
-                    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype) != RET_OK)
+                    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
                         return RET_SEMANTICAL_RUNTIME_ERROR;
 
                     new.type = EXP;
@@ -665,7 +665,7 @@ solve_exp(data_t *data)
                 else if(rule == R_BRACKETS)
                 {
                     sem_t new = Stack->atr[i-1];
-                    if(check_semantics(rule, &new, &sym2, &sym3, &finaltype) != RET_OK)
+                    if(check_semantics(rule, &new, &sym2, &sym3, &finaltype, data) != RET_OK)
                         return RET_SEMANTICAL_RUNTIME_ERROR;
 
                     stack_expr_pop(Stack);
@@ -680,7 +680,7 @@ solve_exp(data_t *data)
                     sym2 = Stack->atr[i-1];
                     sym3 = Stack->atr[i-2];
 
-                    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype) != RET_OK)
+                    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
                         return RET_SEMANTICAL_RUNTIME_ERROR;
 
                     new.type = EXP;
