@@ -9,11 +9,17 @@
 #include "code_gen.h"
 #include "stdio.h"
 #include "stdbool.h"
+#include "err.h"
 #include <stdlib.h>
+#include <string.h>
 
-#define ADD_INST(_inst) if (!append_c_string_to_string(&code, (_inst "\n"))) return false;
+static int append_res = 0;
 
-#define ADD_CODE(_code) if (!append_c_string_to_string(&code, (_code))) return false;
+#define ADD_INST(_inst) if ((append_res = (int) append_c_string_to_string(&code, (_inst "\n"))) != RET_OK) \
+                            return append_res;
+
+#define ADD_CODE(_code) if ((append_res = (int)append_c_string_to_string(&code, (_code))) != RET_OK) \
+                            return append_res;
 
 #define ADD_CODE_INT(_code)                \
     do {                                \
@@ -42,7 +48,7 @@
 "\n POPFRAME"\
 "\n CLEARS"\
 
-#define BUILD_IN_FUNCTIONS \
+#define BUILT_IN_FUNCTIONS \
  "\n# Built-in function Ord"\
  "\n LABEL $ord"\
  "\n PUSHFRAME"\
@@ -186,73 +192,88 @@
  "\n POPFRAME"\
  "\n RETURN"\
 
-string_t code; // TODO init string
+string_t code;
 
-static bool
+int
+init_code_string()
+{
+    return (int)init_string(&code);
+}
+
+void
+print_code_string()
+{
+    fprintf(stdout, "%s", code.str);
+}
+
+int
 insert_built_in_functions()
 {
-    ADD_INST(BUILD_IN_FUNCTIONS);
+    ADD_INST(BUILT_IN_FUNCTIONS);
 
-    return true;
+    return RET_OK;
 }
-
-static bool
-generate_file_header()
-{
-    ADD_INST(HEADER);
-
-    return true;
-}
-
-bool generate_main_scope_start()
-{
-	ADD_INST(MAIN_START);
-
-	return true;
-}
-
-bool generate_main_scope_end()
-{
-	ADD_INST(MAIN_END);
-
-	return true;
-}
-
-bool generate_function_start(char *function_id)
-{
-	ADD_CODE("\n# Start of function "); ADD_CODE(function_id); ADD_CODE("\n");
-
-	ADD_CODE("LABEL $"); ADD_CODE(function_id); ADD_CODE("\n");
-	ADD_INST("PUSHFRAME");
-
-	return true;
-}
-
-bool generate_function_end(char *function_id)
-{
-	ADD_CODE("# End of function "); ADD_CODE(function_id); ADD_CODE("\n");
-
-	ADD_CODE("LABEL $"); ADD_CODE(function_id); ADD_CODE("%return\n");
-	ADD_INST("POPFRAME");
-	ADD_INST("RETURN");
-
-    return true;
-}
-
-bool
+int
 generate_var_declare(char *var_id)
 {
     ADD_CODE("DEFVAR LF@");
     ADD_CODE(var_id);
     ADD_CODE("\n");
 
-    return true;
+    return RET_OK;
+
 }
+int
+generate_file_header()
+{
+    ADD_INST(HEADER);
+
+    return RET_OK;
+}
+int
+generate_main_scope_start()
+{
+    ADD_INST(MAIN_START);
+
+    return RET_OK;
+}
+int
+generate_main_scope_end()
+{
+    ADD_INST(MAIN_END);
+
+    return RET_OK;
+}
+int
+generate_function_start(char *function_id)
+{
+    ADD_CODE("\n# Start of function "); ADD_CODE(function_id); ADD_CODE("\n");
+
+    ADD_CODE("LABEL $"); ADD_CODE(function_id); ADD_CODE("\n");
+    ADD_INST("PUSHFRAME");
+
+    return RET_OK;
+}
+int
+generate_function_end(char *function_id)
+{
+    ADD_CODE("# End of function "); ADD_CODE(function_id); ADD_CODE("\n");
+
+    ADD_CODE("LABEL $"); ADD_CODE(function_id); ADD_CODE("%return\n");
+    ADD_INST("POPFRAME");
+    ADD_INST("RETURN");
+
+    return RET_OK;
+}
+
+
+
 
 int
 generate_unique_number()
 {
     static int current_result = 0;
+
     return ++current_result;
 }
 
@@ -260,7 +281,7 @@ string_t *
 generate_unique_identifier(const char *prefix_scope, const char *prefix_type)
 {
     string_t *dest;
-    if (NULL == (dest = malloc(sizeof(string_t))))
+    if (NULL == (dest = calloc(sizeof(string_t), 1)))
         return NULL;
 
     init_string(dest);
@@ -268,13 +289,14 @@ generate_unique_identifier(const char *prefix_scope, const char *prefix_type)
     append_c_string_to_string(dest, prefix_scope);
     append_char_to_string(dest, '$');
     append_c_string_to_string(dest, prefix_type);
+    append_char_to_string(dest, '$');
 
     int tmp_buffer_size = 10;
     char tmp[tmp_buffer_size];
+    memset(tmp, 0, tmp_buffer_size*sizeof(int));
 
     snprintf(tmp, tmp_buffer_size, "%d", generate_unique_number());
     append_c_string_to_string(dest, tmp);
 
     return dest;
 }
-

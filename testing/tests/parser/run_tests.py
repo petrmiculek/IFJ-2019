@@ -18,8 +18,8 @@ else:
 # binary = "test_bin"
 binary = "compiler"
 
-input_dir = "snippets"
-# input_dir = "kamil_snippets"
+#input_dir = "snippets"
+input_dir = "kamil_snippets"
 
 dir = os.listdir(main_dir + input_dir)
 dir.sort()
@@ -44,7 +44,7 @@ for file_name in dir:
     if (file_name[0:2] == 'ok' and returnCode != 0) \
             or (file_name[0:3] == 'err' and returnCode != int(file_name[3])):
         error_count += 1
-        print('%s : %d' % (file_name, returnCode))
+    print('%s : %d' % (file_name, returnCode))
 
 if error_count == 0:
     print('\nAll passed')

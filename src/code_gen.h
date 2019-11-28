@@ -8,6 +8,33 @@
             xsisma01 (Šišma Vojtěch)
  */
 
+int
+init_code_string();
+
+void
+print_code_string();
+
+int
+insert_built_in_functions();
+
+int
+generate_var_declare(char *var_id);
+
+int
+generate_file_header();
+
+int
+generate_main_scope_start();
+
+int
+generate_main_scope_end();
+
+int
+generate_function_start(char *function_id);
+
+int
+generate_function_end(char *function_id);
+
 // TODO missing javadocs
 int
 generate_unique_number();

@@ -10,6 +10,7 @@
 #include "err.h"
 #include "token_queue.h"
 #include "psa.h"
+#include "code_gen.h"
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
@@ -18,6 +19,8 @@
 #define PSA 123123
 
 data_t *data = NULL;
+
+extern string_t code;
 
 /**
     shorter way of expressing: return from function when things go wrong
@@ -42,16 +45,33 @@ parse(FILE *file)
     if ((res = symtable_insert_predefined()) != RET_OK)
         return res;
 
+    init_code_string();
+
+    res = generate_file_header();
+    RETURN_IF_ERR(res)
+    insert_built_in_functions();
+    RETURN_IF_ERR(res)
+    generate_main_scope_start();
+    RETURN_IF_ERR(res)
+
+
     // start syntax analysis with starting nonterminal
     res = statement_global();
 
-    if (res != RET_OK)
-    {
-        printf("err: %d\n", res);
-    }
-
     free_static_stack();
     // clear_data();
+
+    if(res == RET_OK)
+    {
+//        generate_main_scope_end();
+        RETURN_IF_ERR(res)
+        print_code_string();
+    }
+    else
+    {
+        fprintf(stdout, "err");
+    }
+    fprintf(stdout, "\n");
 
     return res;
 }
@@ -502,7 +522,11 @@ statement()
                     if (local_search_res == NULL)
                     {
                         // identifier of that name does not exist
-                        data->ID->data->identifier = lhs_identifier.string;
+                        char* prefix = data->function_ID->key;
+                        string_t *uniq_identifier = generate_unique_identifier(prefix, lhs_identifier.string.str);
+
+                        copy_string(&data->ID->data->identifier, uniq_identifier);
+
                         data->ID->data->is_function = false;
                         data->ID->data->is_variable_defined = true;
 
@@ -511,13 +535,19 @@ statement()
                         {
                             return res;
                         }
+
+                        generate_var_declare(uniq_identifier->str);
+
                     }
 
                 }
                 else if (global_search_res == NULL)// in global scope
                 {
                     // identifier of that name does not exist
-                    data->ID->data->identifier = lhs_identifier.string;
+
+                    string_t *uniq_identifier = generate_unique_identifier("global", lhs_identifier.string.str);
+                    copy_string(&data->ID->data->identifier, uniq_identifier);
+
                     data->ID->data->is_function = false;
                     data->ID->data->is_variable_defined = true;
 
@@ -526,6 +556,7 @@ statement()
                     {
                         return res;
                     }
+                    generate_var_declare(uniq_identifier->str);
                 }
                 else
                 {

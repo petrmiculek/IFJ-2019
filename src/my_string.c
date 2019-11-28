@@ -67,7 +67,6 @@ append_c_string_to_string(string_t *dest, const char *src)
 
     if (dest->size <= size_needed)
     {
-
         if ((dest->str = (char *) realloc(dest->str, size_needed)) == NULL)
         {
             return RET_INTERNAL_ERROR;
@@ -75,7 +74,7 @@ append_c_string_to_string(string_t *dest, const char *src)
         dest->size = size_needed;
     }
 
-    strncpy(dest->str, src, src_length);
+    strncpy(dest->str + dest->length, src, src_length);
     dest->length = strlen(dest->str);
     dest->str[dest->length] = '\0';
 
