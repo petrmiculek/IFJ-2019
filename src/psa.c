@@ -699,6 +699,8 @@ solve_exp(data_t *data)
                     if(tmp_var( &new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used) == RET_INTERNAL_ERROR)
                         return RET_INTERNAL_ERROR;
 
+                        //TODO generate_expression; meybe in tmp_var
+
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
                     stack_expr_push(Stack, new);
@@ -712,9 +714,45 @@ solve_exp(data_t *data)
                    // if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
                    //     return RET_SEMANTICAL_RUNTIME_ERROR;
 
+
                     new.type = EXP;
                     new.d_type = finaltype;
+/*
+                    switch(rule)
+                    {
+                        case R_PLUS:
+                        {
+                            generate_plus
+                            break;
+                        }
+                        case R_MIN:
+                        {
+                            generate_min
+                            break;
+                        }
+                        case R_MUL:
+                        {
+                            generate_mul
+                            break;
+                        }
+                        case R_DIV:
+                        {
+                            generate_div
+                            break;
+                        }
+                        case R_IDIV:
+                        {
+                            generate_idiv
+                            break;
+                        }
+                        defaul:
+                        {
+                            return RET_INTERNAL_ERROR;
+                            break;
+                        }
+                    }
 
+*/
                     if(tmp_var( &new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used) == RET_INTERNAL_ERROR)
                         return RET_INTERNAL_ERROR;
 
@@ -736,16 +774,55 @@ solve_exp(data_t *data)
                     stack_expr_push(Stack, new);
                 }
                 else if(rule == R_EA || rule == R_A || rule == R_L || rule == R_EL || rule == R_EQ || rule == R_NE)
-                {
+                {   
                     sym1 = Stack->atr[i];
                     sym2 = Stack->atr[i-1];
                     sym3 = Stack->atr[i-2];
 
                 //    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
                 //        return RET_SEMANTICAL_RUNTIME_ERROR;
-
                     new.type = EXP;
                     new.d_type = finaltype;
+/*                    
+                    switch(rule)
+                    {
+                        case R_EA:
+                        {
+                            generate_ea
+                            break;
+                        }
+                        case R_A:
+                        {
+                            generate_a
+                            break;
+                        }
+                        case R_L:
+                        {
+                            generate_l
+                            break;
+                        }
+                        case R_EL:
+                        {
+                            generate_el
+                            break;
+                        }
+                        case R_EQ:
+                        {
+                            generate_eq
+                            break;
+                        }
+                        case R_NE:
+                        {
+                            generate_ne
+                            break;
+                        }
+                        defaul:
+                        {
+                            return RET_INTERNAL_ERROR;
+                            break;
+                        }
+                    }
+*/
 
                     if(tmp_var( &new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used) == RET_INTERNAL_ERROR)
                         return RET_INTERNAL_ERROR;
@@ -766,6 +843,7 @@ solve_exp(data_t *data)
             {
                 q_enqueue(data->token, data->token_queue);
                 data->use_queue_for_read = true;
+                //generate_result
                 return RET_OK;
             }
 
