@@ -1,4 +1,9 @@
 """ something """ + """something """
 var = """ something """ + """something """
 
-print("""something """)
+
+def foo(arg):
+    pass
+
+
+foo("""something """)

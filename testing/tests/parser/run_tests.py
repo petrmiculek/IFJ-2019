@@ -6,6 +6,7 @@ and return code (r:_)
 
 import os
 import subprocess
+import string
 
 main_dir = "../../../"
 
@@ -32,11 +33,12 @@ for file_name in dir:
     # print(output + 'r:', returnCode, '\n---\n')
     # ^^^ print output
 
-    if returnCode != 0:
-        print(file_name, ' returned ', returnCode)
+    if (file_name[0:2] == 'ok' and returnCode != 0) \
+            or (file_name[0:3] == 'err' and returnCode != int(file_name[3])):
         error_count += 1
+        print('%s : %d' % (file_name, returnCode))
 
 if error_count == 0:
     print('All passed')
-
-exit(error_count)
+else:
+    print('%d Errors' % (error_count))
