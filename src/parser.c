@@ -565,6 +565,11 @@ statement()
                         return res;
                     }
                 }
+                else
+                {
+                    global_search_res->data->is_variable_defined = true; // before used as not defined in function
+                }
+                
 
 
                 // identifier exists as a variable
