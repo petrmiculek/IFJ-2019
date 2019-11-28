@@ -49,7 +49,7 @@ int prec_table[TABLE_SIZE][TABLE_SIZE] =
     { R , R , E , S , R , S , R }, // 2
     { R , R , R , B , R , B , R }, // 3
     { S , S , S , S , F , S , B }, // 4
-    { S , S , S , S , B , S , R }, // 5
+    { S , S , S , S , B , S , E }, // 5
     { R , R , R , B , R , B , R }  // 6
 };
 
@@ -424,7 +424,7 @@ unsigned int get_rule(sym_stack *Stack,int *count , unsigned int *rule)
                 default:return RET_SYNTAX_ERROR;
             }
         }
-    }
+    }    
     else
     {
         return RET_SYNTAX_ERROR;
@@ -729,7 +729,6 @@ solve_exp(data_t *data)
                     new = Stack->atr[i-1];
                   //  if(check_semantics(rule, &new, &sym2, &sym3, &finaltype, data) != RET_OK)
                    //     return RET_SEMANTICAL_RUNTIME_ERROR;
-
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
