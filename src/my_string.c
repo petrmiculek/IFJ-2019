@@ -75,7 +75,7 @@ append_c_string_to_string(string_t *dest, const char *src)
     }
 
     strncpy(dest->str + dest->length, src, src_length);
-    dest->length = strlen(dest->str);
+    dest->length += src_length;
     dest->str[dest->length] = '\0';
 
     return RET_OK;

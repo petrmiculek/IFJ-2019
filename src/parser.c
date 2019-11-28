@@ -63,7 +63,7 @@ parse(FILE *file)
 
     if(res == RET_OK)
     {
-//        generate_main_scope_end();
+        generate_main_scope_end();
         RETURN_IF_ERR(res)
         print_code_string();
     }

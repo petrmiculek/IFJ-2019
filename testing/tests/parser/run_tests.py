@@ -40,10 +40,11 @@ for file_name in dir:
 
     # print(output + 'r:', returnCode, '\n---\n')
     # ^^^ print output
-
+    """
     if (file_name[0:2] == 'ok' and returnCode != 0) \
             or (file_name[0:3] == 'err' and returnCode != int(file_name[3])):
         error_count += 1
+    """
     print('%s : %d' % (file_name, returnCode))
 
 if error_count == 0:
