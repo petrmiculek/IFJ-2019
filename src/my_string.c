@@ -106,16 +106,8 @@ copy_string(string_t *dest, string_t *src)
         dest->size = new_length;
     }
 
-    assert(strlen(src->str) == src->length);
-    assert(strlen(dest->str) == dest->length);
-
-    assert(dest->size >= dest->length);
-    assert(src->size >= src->length);
-
-    assert(dest->size >= src->length);
-
-    strcpy(dest->str, src->str);
-    dest->length = strlen(dest->str);;
+    strncpy(dest->str, src->str, src->length);
+    dest->length = src->length;
     return RET_OK;
 }
 
