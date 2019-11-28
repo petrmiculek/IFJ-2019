@@ -556,18 +556,24 @@ assign_rhs()
         {
             return RET_SEMANTICAL_ERROR;
         }
-        else if (search_res->data->is_function == false) //ID is not defined function
+        else
         {
-            return RET_SEMANTICAL_ERROR;
+            // token is defined
         }
-
-
 #endif // SEMANTICS
 
         GET_TOKEN()
 
         if (data->token->type == TOKEN_LEFT)
         {
+
+#ifdef SEMANTICS
+            if (search_res->data->is_function == false) //ID is NOT a defined function
+            {
+                return RET_SEMANTICAL_ERROR;
+            }
+#endif // SEMANTICS
+
             if ((res = call_param_list()) != RET_OK)
             {
                 return res;
@@ -582,6 +588,13 @@ assign_rhs()
         }
         else
         {
+
+#ifdef SEMANTICS
+            if (search_res->data->is_function == true) //ID is a defined function
+            {
+                return RET_SEMANTICAL_ERROR;
+            }
+#endif // SEMANTICS
             q_enqueue(&token_tmp, data->token_queue);
             q_enqueue(data->token, data->token_queue);
             data->use_queue_for_read = true;
