@@ -24,8 +24,8 @@ struct _struct_data_t
     table_t *local_sym_table;
     ht_item_t *ID;
 
-    bool local;
-    unsigned int par_cnt;
+    bool parser_in_local_scope;
+    unsigned int function_call_param_count;
 
     bool in_function; // TODO only allow return statement inside f-definition
 

@@ -9,6 +9,7 @@
 #include "err.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 /*
   // How to initialize
@@ -57,7 +58,7 @@ ht_search(table_t *ptrht, char *key)
 
     while (tmp != NULL)
     {
-        if (tmp->key == key)
+        if (strcmp(tmp->key, key) == 0)
         {
             return tmp;
         }
@@ -129,7 +130,7 @@ ht_delete(table_t *ptrht, char *key)
 
     while (tmp != NULL)
     {
-        if (tmp->key == key)
+        if (strcmp(tmp->key, key) == 0)
         {
             // delete item
 

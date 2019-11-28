@@ -33,8 +33,8 @@ for file_name in dir:
     # ^^^ print output
 
     if returnCode != 0:
-        print(file_name, ' returned ', returnCode)
         error_count += 1
+    print('%s : %d' % (file_name, returnCode))
 
 if error_count == 0:
     print('All passed')
