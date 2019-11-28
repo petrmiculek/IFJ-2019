@@ -19,7 +19,10 @@ else:
 binary = "compiler"
 
 input_dir = "snippets"
+# input_dir = "kamil_snippets"
+
 dir = os.listdir(main_dir + input_dir)
+dir.sort()
 
 error_count = 0
 
