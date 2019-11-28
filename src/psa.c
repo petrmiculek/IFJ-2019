@@ -197,24 +197,48 @@ unsigned int check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, 
 	bool retype_sym1_to_integer = false;
 	bool retype_sym3_to_integer = false;
     //ht_item_t operand;
-	if (rule == R_I)
+	ht_item_t *search_res;
+    int res = RET_OK;
+    if (rule == R_I || rule == R_BRACKETS)
 	{
-		//operand=ht_search()    
+        if (sym1->type == OP_ID)
+        {
+            if(data->parser_in_local_scope)
+            {
+                search_res=ht_search(data->local_sym_table,sym1->sem_data.str);
+                if (search_res == NULL)
+                {
+                    // it could be global variable
+                    // so we add id to global table as not defined
+                    data->ID->data->identifier=sym1->sem_data;
+                    data->ID->data->is_variable_defined=false;
+                    data->ID->data->is_function=false;
+                    if(RET_OK != (res = ht_insert(data->global_sym_table, sym1->sem_data.str, data->ID->data)))
+                    {
+                            return res;
+                    }
+
+                    // we have to add variable to function_ID structures 
+                }
+            }
+            else // we are in global scope 
+            {
+                search_res=ht_search(data->global_sym_table,sym1->sem_data.str);
+                if (search_res == NULL)
+                {
+                    // no found so its SEM ERR
+                    return RET_SEMANTICAL_ERROR;    
+                }
+            }
+        }
+    	//operand=ht_search()    
         //check if the operand is defined probably sym table
         //return RET_SEMANTICAL_ERROR
 
 	}
 
-	if (rule == R_BRACKETS)
-	{
-		// check sym_table
-	}
-
-	if (rule != R_I && rule != R_BRACKETS)
-	{
-		// no need of this section
-	}
-
+	
+	
 	switch (rule)
 	{
 	case R_I:
