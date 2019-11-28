@@ -19,8 +19,7 @@ typedef struct _sym_table_item_t
     string_t identifier;
     bool is_function;
     bool is_variable_defined;
-    unsigned int function_params_count;
-    
+    int function_params_count;
 
     /**
         idea - function added to symtable upon call,
@@ -28,11 +27,6 @@ typedef struct _sym_table_item_t
         sometime later a definition is supplied
      */
     bool is_function_called;
-
-    /**
-     * if a function does not have any return statement, we should simulate one?
-     */
-    bool function_contains_return;
 
 } sym_table_item;
 

@@ -12,6 +12,7 @@
 #include "psa.h"
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 #define SEMANTICS 897987
 //#define PSA 123123
@@ -25,6 +26,8 @@ symtable_insert(token_t *token, bool is_function);
     shorter way of expressing: return from function when things go wrong
     typically used after reading from scanner, but can be utilized anywhere
  */
+int
+symtable_insert_function(const char *identifier_arr, int param_count);
 #define RETURN_IF_ERR(res) do { if ((res) != RET_OK) { return (res);} } while(0);
 
 #define GET_TOKEN() do { get_next_token(); RETURN_IF_ERR(data->get_token_res) } while(0);
@@ -35,13 +38,12 @@ parse(FILE *file)
     int res = RET_OK;
 
     if ((res = init_data(&data)) != RET_OK)
-    {
         return res;
-    }
 
     data->file = file;
 
-    symtable_insert_predefined();
+    if ((res = symtable_insert_predefined()) != RET_OK)
+        return res;
 
     // start syntax analysis with starting nonterminal
     res = statement_global();
@@ -56,36 +58,75 @@ parse(FILE *file)
 
     return res;
 }
+
 int
 symtable_insert_predefined()
 {
-    // print
     int res = RET_OK;
-    string_t* id;
-    if(NULL == (id = malloc(sizeof(string_t))))
+    // TODO fix param count
+
+    // print
+    if(RET_OK != (res = symtable_insert_function("print", -1)))
+        return res;
+
+    // len
+    if(RET_OK != (res = symtable_insert_function("len", -1)))
+        return res;
+
+    // substr
+    if(RET_OK != (res = symtable_insert_function("substr", -1)))
+        return res;
+
+    // ord
+    if(RET_OK != (res = symtable_insert_function("ord", -1)))
+        return res;
+    // chr
+    if(RET_OK != (res = symtable_insert_function("chr", -1)))
+        return res;
+
+    // inputs
+    if(RET_OK != (res = symtable_insert_function("inputs", -1)))
+        return res;
+
+    // inputi
+    if(RET_OK != (res = symtable_insert_function("inputi", -1)))
+        return res;
+
+    // inputf
+    if(RET_OK != (res = symtable_insert_function("inputf", -1)))
+        return res;
+
+    return RET_OK;
+}
+
+int
+symtable_insert_function(const char *identifier_arr, int param_count)
+{
+    int res = RET_OK;
+    string_t* identifier_string;
+
+    if (NULL == (identifier_string = malloc(sizeof(string_t))))
     {
         return RET_INTERNAL_ERROR;
     }
+    init_string(identifier_string);
+    append_c_string_to_string(identifier_string, identifier_arr);
 
-    append_c_string_to_string(id, "print");
+    sym_table_item *data_symtable;
+    if (NULL == (data_symtable = malloc(sizeof(sym_table_item))))
+        return RET_INTERNAL_ERROR;
 
-    sym_table_item* predefined_symtable_data;
-    if(NULL == (predefined_symtable_data = malloc(sizeof(sym_table_item))))
-         return RET_INTERNAL_ERROR;
+    data_symtable->function_params_count = param_count;
+    data_symtable->is_function = true;
+    copy_string(&data_symtable->identifier, identifier_string);
 
-    // len substr
-    // ord
-    // chr
-    // inputs
-    // inputi
-    // inputf
-
-    res = ht_insert(data->global_sym_table, id->str, predefined_symtable_data);
-    if(res != RET_OK)
+    if(RET_OK != (res = ht_insert(data->global_sym_table, identifier_string->str, data_symtable)))
+    {
+        free_string(identifier_string);
         return res;
+    }
 
-
-
+    clear_string(identifier_string);
 
     return RET_OK;
 }
@@ -350,12 +391,12 @@ function_def()
     {
         return RET_SEMANTICAL_ERROR;
     }
-    
+
     // statements will be local now
     data->parser_in_local_scope = true;
     data->function_ID = ht_search(data->global_sym_table, data->token->string.str); // for later definitions of variables in functions
-    
-    
+
+
 #endif
 
     GET_TOKEN()
@@ -380,17 +421,17 @@ function_def()
 
     if (data->token->type != TOKEN_INDENT)
         return RET_SYNTAX_ERROR;
-    
+
     if ((res = statement_list_nonempty()) != RET_OK)
         return res;
-    
+
     #ifdef SEMANTICS
-    
+
     // back to global scope
     data->parser_in_local_scope = false;
-    
+
     #endif
-    
+
     return RET_OK;
 }
 
@@ -407,7 +448,7 @@ statement()
 
     int res = RET_OK;
 
-    
+
 
     GET_TOKEN()
 
@@ -466,9 +507,9 @@ statement()
             if (data->token->type == TOKEN_ASSIGN)
             {
                 // STATEMENT -> id = ASSIGN_RHS eol
-                
+
                 #ifdef SEMANTICS
-                
+
                 // definition of variable
                 ht_item_t *local_search_res = ht_search(data->local_sym_table, lhs_identifier.string.str);
                 ht_item_t *global_search_res = ht_search(data->global_sym_table, lhs_identifier.string.str);
@@ -478,24 +519,24 @@ statement()
                     // identifier exists as a function (in global scope)
                     return RET_SEMANTICAL_ERROR;
                 }
-                
+
                 #endif // SEMANTICS
-                
+
                 if ((res = assign_rhs()) != RET_OK)
                     return res;
-                
-                
-                
+
+
+
                 if ((res = read_eol(true)) != RET_OK)
                     return res;
-                
+
                 #ifdef SEMANTICS
                 // definition of variable
-                
-                
+
+
                 if (data->parser_in_local_scope)
                 {
-                
+
                     // TODO we have to check if in function was early same variable as global
                     // find all variables in some structure in function_id if in global table are defined
                     // if variable is found RET SEM ERROR
@@ -506,13 +547,13 @@ statement()
                         data->ID->data->identifier = lhs_identifier.string;
                         data->ID->data->is_function = false;
                         data->ID->data->is_variable_defined= true;
-                        
+
                         if(RET_OK != (res = ht_insert(data->local_sym_table, lhs_identifier.string.str, data->ID->data)))
                         {
                             return res;
                         }
                     }
-                    
+
                 }
                 else if (global_search_res == NULL)// in global scope
                 {
@@ -520,19 +561,19 @@ statement()
                         data->ID->data->identifier = lhs_identifier.string;
                         data->ID->data->is_function = false;
                         data->ID->data->is_variable_defined= true;
-                        
-                        
+
+
                         if(RET_OK != (res = ht_insert(data->global_sym_table, lhs_identifier.string.str, data->ID->data)))
                         {
                             return res;
                         }
                 }
-                
-                                    
+
+
                     // identifier exists as a variable
                     // this statement just changes its value
 
-                
+
                 #endif // SEMANTICS
 
                 return RET_OK;
@@ -670,8 +711,11 @@ assign_rhs()
             }
 
 #ifdef SEMANTICS
-            if (search_res->data->function_params_count != data->function_call_param_count)
+            if (search_res->data->function_params_count != -1
+             && search_res->data->function_params_count != data->function_call_param_count)
+            {
                 return RET_SEMANTICAL_PARAMS_ERROR;
+            }
 #endif // SEMANTICS
 
             return res;
