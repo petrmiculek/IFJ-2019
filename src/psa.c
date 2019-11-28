@@ -60,10 +60,12 @@ static table_index get_table_index(table_symbol sym)
         case PLUS:
         case MIN:
             return I_Plus;
+            break;
         case MUL:
         case DIV:
         case IDIV:
             return I_Mul;
+            break;
         case A:
         case EA:
         case L:
@@ -71,14 +73,25 @@ static table_index get_table_index(table_symbol sym)
         case EQ:
         case NE:
             return I_Rel;
+            break;
         case OP_FLOAT:
         case OP_INT:
         case OP_STR:
-        case OP_ID:return I_Op;
-        case DOLAR:return I_Dolar;
-        case L_BRAC:return I_L_Brec;
-        case R_BRAC:return I_R_Brec;
-        default:break;
+        case OP_ID:
+            return I_Op;
+            break;
+        case DOLAR:
+            return I_Dolar;
+            break;
+        case L_BRAC:
+            return I_L_Brec;
+            break;
+        case R_BRAC:
+            return I_R_Brec;
+            break;
+        default:
+            return 99;
+            break;
     }
     return WARNING_NOT_IMPLEMENTED; // FIXME
 }
@@ -91,6 +104,10 @@ unsigned int get_symbol(token_t *token)
     else if(token->type == TOKEN_FLOAT)
     {
         return OP_FLOAT;
+    }
+    else if(token->type == TOKEN_IDENTIFIER)
+    {
+        return OP_ID;
     }
     else if(token->type == TOKEN_LIT)
     {
@@ -301,20 +318,21 @@ unsigned int check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, 
 	return RET_OK;
 }
 
-unsigned int get_rule(sym_stack *Stack,int *count, unsigned int *rule)
+unsigned int get_rule(sym_stack *Stack,int *count , unsigned int *rule)
 {
-    int i = Stack->top+1;
+    int i = Stack->top;
     sem_t tmp = Stack->atr[i];
     while (tmp.type != SHIFT)
     {
         i--;
-        count++;
+        *count = *count +1;
         tmp = Stack->atr[i];
     }
     if(*count == 1)
     {
+        i = Stack->top;
         sem_t sym1 = Stack->atr[i];
-        if (sym1.type == EXP) 
+        if (sym1.type == OP_ID || sym1.type == OP_FLOAT || sym1.type == OP_INT || sym1.type == OP_STR)  
         {
             *rule = R_I;
             return RET_OK;
@@ -326,7 +344,7 @@ unsigned int get_rule(sym_stack *Stack,int *count, unsigned int *rule)
     }
     else if(*count == 3)
     {
-        i = Stack->top+1;
+        i = Stack->top;
         sem_t sym1 = Stack->atr[i];
         sem_t sym2 = Stack->atr[i-1];
         sem_t sym3 = Stack->atr[i-2];
@@ -549,11 +567,16 @@ solve_exp(data_t *data)
     {
         return RET_INTERNAL_ERROR;
     }
+
+    get_next_token(data, &res);
+    RETURN_IF_ERR(res)
+    
+    
+    
     while(res != 1)
     {
-        get_next_token(data, &res);
-        RETURN_IF_ERR(res)
-
+        
+        
         unsigned int sym = get_symbol(data->token);
         sem_t stack_term = get_term(Stack);
         sem_t sym1;
@@ -561,6 +584,8 @@ solve_exp(data_t *data)
         sem_t sym3;
         int i = Stack->top;
 
+        if(get_table_index(stack_term.type) == 99 || get_table_index(sym) == 99)
+            return RET_SYNTAX_ERROR;
 
         switch(prec_table[get_table_index(stack_term.type)][get_table_index(sym)])
         {
@@ -621,9 +646,11 @@ solve_exp(data_t *data)
             }
             case R:
             {
-                int count;
+                int count = 0;
                 unsigned int rule = 0;
-                get_rule(Stack, &count, &rule);
+                if(get_rule(Stack, &count, &rule) != RET_OK)
+                    return RET_SYNTAX_ERROR;
+                
                 if (rule == R_I)
                 {
                     sym1 = Stack->atr[i];
@@ -703,6 +730,8 @@ solve_exp(data_t *data)
             }
             case F:
             {
+                q_enqueue(data->token, data->token_queue);
+                data->use_queue_for_read = true;
                 return RET_OK;
             }
 

@@ -90,7 +90,7 @@ stack_expr_push(sym_stack *Stack, sem_t sym)
 
 sem_t get_term(sym_stack *Stack)
 {
-    int i = Stack->top+1;
+    int i = Stack->top;
     sem_t tmp = Stack->atr[i];
     while (tmp.type == EXP || tmp.type == SHIFT)
     {

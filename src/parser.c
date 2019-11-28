@@ -15,8 +15,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define SEMANTICS 897987
-// #define PSA 123123
+//#define SEMANTICS 897987
+#define PSA 123123
 
 data_t *data = NULL;
 
@@ -116,7 +116,6 @@ read_eol(bool check_for_first_eol)
 
     q_enqueue(data->token, data->token_queue);
     data->use_queue_for_read = true;
-
     return RET_OK;
 }
 
