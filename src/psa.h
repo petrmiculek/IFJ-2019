@@ -35,7 +35,9 @@ typedef enum
     OP_INT,
     OP_FLOAT,
     OP_STR,
+    OP_DOC,
     OP_ID,
+    OP_NONE,
     DOLAR,
     L_BRAC,
     R_BRAC
