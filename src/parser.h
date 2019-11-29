@@ -234,4 +234,7 @@ return_expression();
 int
 expression();
 
+int
+global_variables(char *str, int a);
+
 #endif //IFJ_2019__PARSER_H

@@ -252,7 +252,9 @@ unsigned int check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, 
                             return res;
                     }
 
-                    // TODO we have to add variable to function_ID structures 
+                    data->function_ID->data->global_variables[data->function_ID->data->just_index]=sym1->sem_data.str;
+                    data->function_ID->data->just_index++;
+                    // we have to add variable to function_ID structures 
                 }
             }
             else // we are in global scope 

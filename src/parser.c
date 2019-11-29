@@ -363,7 +363,7 @@ function_def()
     {
         data->ID->data->identifier = data->token->string;
         data->ID->data->is_function = true;
-
+        data->ID->data->just_index=0;
         res = ht_insert(data->global_sym_table, data->token->string.str, data->ID->data);
         if(res != RET_OK)
             return res;
@@ -518,6 +518,8 @@ statement()
                     // TODO we have to check if in function was early same variable as global
                     // find all variables in some structure in function_id if in global table are defined
                     // if variable is found RET SEM ERROR
+                    if ((res=global_variables(lhs_identifier.string.str,0))!=RET_OK)
+                        return RET_SEMANTICAL_ERROR;
 
                     if (local_search_res == NULL)
                     {
@@ -545,7 +547,7 @@ statement()
                 {
                     // identifier of that name does not exist
 
-                        string_t *uniq_identifier = generate_unique_identifier("global", lhs_identifier.string.str);
+                    string_t *uniq_identifier = generate_unique_identifier("global", lhs_identifier.string.str);
                     copy_string(&data->ID->data->identifier, uniq_identifier);
 
                     data->ID->data->is_function = false;
@@ -673,10 +675,10 @@ assign_rhs()
 #ifdef SEMANTICS
         // _SEM check if ID is defined
 
-        ht_item_t *local_search_res = ht_search(data->local_sym_table, token_tmp.string.str);
+        //ht_item_t *local_search_res = ht_search(data->local_sym_table, token_tmp.string.str);
         ht_item_t *global_search_res = ht_search(data->global_sym_table, token_tmp.string.str);
 
-       /* if (local_search_res == NULL && global_search_res == NULL)
+        /*if (local_search_res == NULL && global_search_res == NULL)
         {
             return RET_SEMANTICAL_ERROR;
         }
@@ -692,12 +694,22 @@ assign_rhs()
         {
 
 #ifdef SEMANTICS
-            if (global_search_res != NULL
-                && global_search_res->data->is_function == false) //ID is NOT a defined function
+            if(global_search_res == NULL)
+            {
+                return RET_SEMANTICAL_ERROR; // id of function doesnt exist 
+            }else if (global_search_res != NULL
+                && global_search_res->data->is_function == false) //ID exists but it is NOT a defined function
             {
                 return RET_SEMANTICAL_ERROR;
             }
-            data->function_ID=global_search_res; // for later check of params variable
+            
+            //here i have tu check if all variables in function are defined
+            if ((res=global_variables(token_tmp.string.str, 1))!=RET_OK)
+            {
+                return RET_SEMANTICAL_ERROR;
+            }
+            // for later check of params variable
+
 #endif // SEMANTICS
 
             if ((res = call_param_list()) != RET_OK)
@@ -720,11 +732,11 @@ assign_rhs()
         {
 
 #ifdef SEMANTICS
-            if (global_search_res != NULL
+            /*if (global_search_res != NULL
                 && global_search_res->data->is_function == true) //ID is a defined function
             {
                 return RET_SEMANTICAL_ERROR;
-            }
+            }*/
 #endif // SEMANTICS
             q_enqueue(&token_tmp, data->token_queue);
             q_enqueue(data->token, data->token_queue);
@@ -1116,7 +1128,9 @@ call_param_list()
                         return res;
                 }
 
-                // TODO we have to add variable to function_ID structures 
+                data->function_ID->data->global_variables[data->function_ID->data->just_index]=data->token->string.str;
+                data->function_ID->data->just_index++;
+                // we have to add variable to function_ID structures 
             }
         }
         else // we are in global scope 
@@ -1195,8 +1209,9 @@ call_param_list_next()
                 {
                         return res;
                 }
-
-                // TODO we have to add variable to function_ID structures 
+                data->function_ID->data->global_variables[data->function_ID->data->just_index]=data->token->string.str;
+                data->function_ID->data->just_index++;
+                // we have to add variable to function_ID structures 
             }
         }
         else // we are in global scope 
@@ -1345,4 +1360,32 @@ expression()
 
     return RET_OK;
     // -------------- end --------------
+}
+
+int
+global_variables(char* str, int a)
+{
+    int i=data->function_ID->data->just_index-1;
+    ht_item_t *search_res;
+    while (i >= 0)
+    {
+        if ( strcmp(data->function_ID->data->global_variables[i],str) == 0 ) 
+        {
+            if (a == 1)
+            {
+                search_res=ht_search(data->global_sym_table,data->function_ID->data->global_variables[i]);
+                if (search_res->data->is_variable_defined == false)
+                {
+                    return RET_SEMANTICAL_ERROR;
+                }
+
+            }else
+            {
+                return RET_SEMANTICAL_ERROR;
+            }
+            
+        }
+        i--;
+    }
+    return RET_OK;
 }
