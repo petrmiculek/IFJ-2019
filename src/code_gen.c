@@ -20,15 +20,15 @@ static int append_res = 0;
 #define CODE_APPEND(string) if ((append_res = (int)append_c_string_to_string(&code, (string))) != RET_OK) \
                                 return append_res;
 
-#define CODE_APPEND_AND_EOL(string) if ((append_res = (int) append_c_string_to_string(&code, (string "\n"))) != RET_OK) \
+#define CODE_APPEND_AND_EOL(string) if ((append_res = (int) append_c_string_to_string(&code, (string "\n"))) != RET_OK)\
                                 return append_res;
 
-#define APPEND_VALUE(string)                             \
-do {                                                    \
-        char buffer[(buffer_length)];                           \
-        snprintf(buffer, "%d", string, (buffer_length));         \
-        CODE_APPEND(buffer);                                  \
-    } while (0);                                        \
+#define CODE_APPEND_VALUE(value)                         \
+do {                                                     \
+        char buffer[(buffer_length)];                    \
+        snprintf(buffer, (buffer_length), "%d", value);  \
+        CODE_APPEND(buffer);                             \
+    } while (0);                                         \
 
 
 #define HEADER \
@@ -147,7 +147,7 @@ do {                                                    \
  "\n LABEL $substr"\
  "\n PUSHFRAME"\
  "\n DEFVAR LF@%retval"\
- "\n MOVE LF@%retval string@"\
+ "\n MOVE LF@%retval string@" /* TODO string@what? */  \
  "\n DEFVAR LF@length_str"\
  "\n CREATEFRAME"\
  "\n DEFVAR TF@%0"\
@@ -199,7 +199,7 @@ string_t code;
 int
 init_code_string()
 {
-    return (int)init_string(&code);
+    return (int) init_string(&code);
 }
 
 void
@@ -249,27 +249,32 @@ generate_main_scope_end()
 int
 generate_function_start(char *function_id)
 {
-    CODE_APPEND("\n# Start of function "); CODE_APPEND(function_id); CODE_APPEND("\n");
+    CODE_APPEND("\n# Start of function ")
+    CODE_APPEND(function_id)
+    CODE_APPEND("\n")
 
-    CODE_APPEND("LABEL $"); CODE_APPEND(function_id); CODE_APPEND("\n");
-    CODE_APPEND_AND_EOL("PUSHFRAME");
+    CODE_APPEND("LABEL $")
+    CODE_APPEND(function_id)
+    CODE_APPEND("\n")
+    CODE_APPEND_AND_EOL("PUSHFRAME")
 
     return RET_OK;
 }
 int
 generate_function_end(char *function_id)
 {
-    CODE_APPEND("# End of function "); CODE_APPEND(function_id); CODE_APPEND("\n");
+    CODE_APPEND("# End of function ")
+    CODE_APPEND(function_id)
+    CODE_APPEND("\n")
 
-    CODE_APPEND("LABEL $"); CODE_APPEND(function_id); CODE_APPEND("%return\n");
-    CODE_APPEND_AND_EOL("POPFRAME");
-    CODE_APPEND_AND_EOL("RETURN");
+    CODE_APPEND("LABEL $")
+    CODE_APPEND(function_id)
+    CODE_APPEND("%return\n")
+    CODE_APPEND_AND_EOL("POPFRAME")
+    CODE_APPEND_AND_EOL("RETURN")
 
     return RET_OK;
 }
-
-
-
 
 int
 generate_unique_number()
@@ -304,10 +309,11 @@ generate_unique_identifier(const char *prefix_scope, const char *prefix_type)
 }
 
 int
-generate_write(sym_table_item* identifier, bool scope)
+generate_write(sym_table_item *identifier, bool scope)
 {
     CODE_APPEND("WRITE ")
-    if(scope == local)
+
+    if (scope == local)
     {
         CODE_APPEND("LF@")
     }
@@ -319,6 +325,27 @@ generate_write(sym_table_item* identifier, bool scope)
     CODE_APPEND(identifier->identifier.str)
     CODE_APPEND("\n")
 
+    return RET_OK;
+}
+
+int
+generate_function_call(string_t *identifier)
+{
+    CODE_APPEND("CALL ")
+    CODE_APPEND(identifier->str)
+    CODE_APPEND("\n")
+
+    return RET_OK;
+}
+
+int
+generate_function_param(string_t *identifier, int param_number)
+{
+    CODE_APPEND("DEFVAR ")
+    CODE_APPEND("TF@ ")
+    CODE_APPEND_VALUE(param_number)
+    CODE_APPEND(identifier->str)
+    CODE_APPEND("\n")
 
     return RET_OK;
 }

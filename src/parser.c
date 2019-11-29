@@ -643,6 +643,9 @@ statement()
                 if ((res = call_param_list()) != RET_OK)
                     return res;
 
+                res = generate_function_call(&lhs_identifier.string);
+                RETURN_IF_ERR(res)
+
                 if ((res = read_eol(true)) != RET_OK)
                     return res;
 

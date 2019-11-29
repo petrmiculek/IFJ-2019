@@ -46,6 +46,11 @@ string_t *
 generate_unique_identifier(const char *prefix_scope, const char *prefix_type);
 
 int
-generate_write(sym_table_item* identifier, bool scope);
+generate_write(sym_table_item *identifier, bool scope);
 
+int
+generate_function_call(string_t *identifier);
+
+int
+generate_function_param(string_t *identifier, int param_number);
 #endif // HEADER_CODE_GEN
