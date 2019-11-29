@@ -746,8 +746,8 @@ solve_exp(data_t *data)
                 {
                     sym1 = Stack->atr[i];
 
-                    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
-                      return RET_SEMANTICAL_RUNTIME_ERROR;
+                    if((res=check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data)) != RET_OK)
+                      return res;
 
                     new.type = EXP;
                     new.d_type = finaltype;
@@ -767,8 +767,8 @@ solve_exp(data_t *data)
                     sym2 = Stack->atr[i-1];
                     sym3 = Stack->atr[i-2];
                     
-                    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
-                        return RET_SEMANTICAL_RUNTIME_ERROR;
+                    if((res=check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data)) != RET_OK)
+                        return res;
 
 
                     new.type = EXP;
@@ -822,8 +822,8 @@ solve_exp(data_t *data)
                 {
                     new = Stack->atr[i-1];
 
-                    if(check_semantics(rule, &new, &sym2, &sym3, &finaltype, data) != RET_OK)
-                        return RET_SEMANTICAL_RUNTIME_ERROR;
+                    if((res=check_semantics(rule, &new, &sym2, &sym3, &finaltype, data)) != RET_OK)
+                        return res;
 
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
@@ -837,8 +837,8 @@ solve_exp(data_t *data)
                     sym2 = Stack->atr[i-1];
                     sym3 = Stack->atr[i-2];
 
-                    if(check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data) != RET_OK)
-                        return RET_SEMANTICAL_RUNTIME_ERROR;
+                    if((res=check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data)) != RET_OK)
+                        return res;
                     
                     new.type = EXP;
                     new.d_type = finaltype;
