@@ -16,18 +16,19 @@
 
 static int append_res = 0;
 
-    #define ADD_INST(_inst) if ((append_res = (int) append_c_string_to_string(&code, (_inst "\n"))) != RET_OK) \
+#define buffer_length 10
+#define CODE_APPEND(string) if ((append_res = (int)append_c_string_to_string(&code, (string))) != RET_OK) \
                                 return append_res;
 
-    #define ADD_CODE(_code) if ((append_res = (int)append_c_string_to_string(&code, (_code))) != RET_OK) \
+#define CODE_APPEND_AND_EOL(string) if ((append_res = (int) append_c_string_to_string(&code, (string "\n"))) != RET_OK) \
                                 return append_res;
 
-#define ADD_CODE_INT(_code)                \
-    do {                                \
-        char str[MAX_DIGITS];            \
-        sprintf(str, "%d", _code);        \
-        ADD_CODE(str);                    \
-    } while (0);                        \
+#define APPEND_VALUE(string)                             \
+do {                                                    \
+        char buffer[(buffer_length)];                           \
+        snprintf(buffer, "%d", string, (buffer_length));         \
+        CODE_APPEND(buffer);                                  \
+    } while (0);                                        \
 
 
 #define HEADER \
@@ -210,16 +211,16 @@ print_code_string()
 int
 insert_built_in_functions()
 {
-    ADD_INST(BUILT_IN_FUNCTIONS);
+    CODE_APPEND_AND_EOL(BUILT_IN_FUNCTIONS);
 
     return RET_OK;
 }
 int
 generate_var_declare(char *var_id)
 {
-    ADD_CODE("DEFVAR LF@");
-    ADD_CODE(var_id);
-    ADD_CODE("\n");
+    CODE_APPEND("DEFVAR LF@");
+    CODE_APPEND(var_id);
+    CODE_APPEND("\n");
 
     return RET_OK;
 
@@ -227,42 +228,42 @@ generate_var_declare(char *var_id)
 int
 generate_file_header()
 {
-    ADD_INST(HEADER);
+    CODE_APPEND_AND_EOL(HEADER);
 
     return RET_OK;
 }
 int
 generate_main_scope_start()
 {
-    ADD_INST(MAIN_START);
+    CODE_APPEND_AND_EOL(MAIN_START);
 
     return RET_OK;
 }
 int
 generate_main_scope_end()
 {
-    ADD_INST(MAIN_END);
+    CODE_APPEND_AND_EOL(MAIN_END);
 
     return RET_OK;
 }
 int
 generate_function_start(char *function_id)
 {
-    ADD_CODE("\n# Start of function "); ADD_CODE(function_id); ADD_CODE("\n");
+    CODE_APPEND("\n# Start of function "); CODE_APPEND(function_id); CODE_APPEND("\n");
 
-    ADD_CODE("LABEL $"); ADD_CODE(function_id); ADD_CODE("\n");
-    ADD_INST("PUSHFRAME");
+    CODE_APPEND("LABEL $"); CODE_APPEND(function_id); CODE_APPEND("\n");
+    CODE_APPEND_AND_EOL("PUSHFRAME");
 
     return RET_OK;
 }
 int
 generate_function_end(char *function_id)
 {
-    ADD_CODE("# End of function "); ADD_CODE(function_id); ADD_CODE("\n");
+    CODE_APPEND("# End of function "); CODE_APPEND(function_id); CODE_APPEND("\n");
 
-    ADD_CODE("LABEL $"); ADD_CODE(function_id); ADD_CODE("%return\n");
-    ADD_INST("POPFRAME");
-    ADD_INST("RETURN");
+    CODE_APPEND("LABEL $"); CODE_APPEND(function_id); CODE_APPEND("%return\n");
+    CODE_APPEND_AND_EOL("POPFRAME");
+    CODE_APPEND_AND_EOL("RETURN");
 
     return RET_OK;
 }
@@ -303,22 +304,21 @@ generate_unique_identifier(const char *prefix_scope, const char *prefix_type)
 }
 
 int
-generate_print_instructions(int arg_count, const char **identifiers, const bool *scope)
+generate_write(sym_table_item* identifier, bool scope)
 {
-    for (int i = 0; i < arg_count; ++i)
+    CODE_APPEND("WRITE ")
+    if(scope == local)
     {
-        ADD_CODE("WRITE ");
-        if(scope[i] == local)
-        {
-            ADD_CODE("LF@");
-        }
-        else
-        {
-            ADD_CODE("GF@");
-        }
-
-        ADD_CODE((identifiers[arg_count]));
-        ADD_CODE("\n")
+        CODE_APPEND("LF@")
     }
+    else
+    {
+        CODE_APPEND("GF@")
+    }
+
+    CODE_APPEND(identifier->identifier.str)
+    CODE_APPEND("\n")
+
+
     return RET_OK;
 }

@@ -30,6 +30,7 @@ struct _struct_data_t
     bool parser_in_local_scope;
     int function_call_param_count;
 
+
     int get_token_res; // result of most-recent get_next_token
 
     // Feature ideas:

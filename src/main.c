@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define file_input 1234098
+//#define file_input 1234098
 
 int
 main(int argc, char **argv)

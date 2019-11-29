@@ -8,6 +8,7 @@
  */
 
 #include <stdbool.h>
+#include "symtable.h"
 
 // TODO missing javadocs
 
@@ -45,7 +46,6 @@ string_t *
 generate_unique_identifier(const char *prefix_scope, const char *prefix_type);
 
 int
-generate_print_instructions(int arg_count, const char** identifiers, const bool* scope);
-
+generate_write(sym_table_item* identifier, bool scope);
 
 #endif // HEADER_CODE_GEN
