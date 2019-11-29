@@ -3,10 +3,13 @@
 /**
  * @name IFJ19Compiler
  * @authors xmicul08 (Mičulek Petr)
-            xjacko04 (Jacko Daniel)
             xsetin00 (Setinský Jiří)
-            xsisma01 (Šišma Vojtěch)
+
  */
+
+#include <stdbool.h>
+
+// TODO missing javadocs
 
 int
 init_code_string();
@@ -35,11 +38,14 @@ generate_function_start(char *function_id);
 int
 generate_function_end(char *function_id);
 
-// TODO missing javadocs
 int
 generate_unique_number();
 
 string_t *
 generate_unique_identifier(const char *prefix_scope, const char *prefix_type);
+
+int
+generate_print_instructions(int arg_count, const char** identifiers, const bool* scope);
+
 
 #endif // HEADER_CODE_GEN

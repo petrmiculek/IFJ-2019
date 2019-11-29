@@ -18,7 +18,6 @@ int
 main(int argc, char **argv)
 {
 
-
 #ifdef file_input
     FILE *file;
     if (argc == 1)

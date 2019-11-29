@@ -10,16 +10,17 @@
 #include "stdio.h"
 #include "stdbool.h"
 #include "err.h"
+#include "parser.h"
 #include <stdlib.h>
 #include <string.h>
 
 static int append_res = 0;
 
-#define ADD_INST(_inst) if ((append_res = (int) append_c_string_to_string(&code, (_inst "\n"))) != RET_OK) \
-                            return append_res;
+    #define ADD_INST(_inst) if ((append_res = (int) append_c_string_to_string(&code, (_inst "\n"))) != RET_OK) \
+                                return append_res;
 
-#define ADD_CODE(_code) if ((append_res = (int)append_c_string_to_string(&code, (_code))) != RET_OK) \
-                            return append_res;
+    #define ADD_CODE(_code) if ((append_res = (int)append_c_string_to_string(&code, (_code))) != RET_OK) \
+                                return append_res;
 
 #define ADD_CODE_INT(_code)                \
     do {                                \
@@ -293,10 +294,31 @@ generate_unique_identifier(const char *prefix_scope, const char *prefix_type)
 
     int tmp_buffer_size = 10;
     char tmp[tmp_buffer_size];
-    memset(tmp, 0, tmp_buffer_size*sizeof(int));
+    memset(tmp, 0, tmp_buffer_size);
 
     snprintf(tmp, tmp_buffer_size, "%d", generate_unique_number());
     append_c_string_to_string(dest, tmp);
 
     return dest;
+}
+
+int
+generate_print_instructions(int arg_count, const char **identifiers, const bool *scope)
+{
+    for (int i = 0; i < arg_count; ++i)
+    {
+        ADD_CODE("WRITE ");
+        if(scope[i] == local)
+        {
+            ADD_CODE("LF@");
+        }
+        else
+        {
+            ADD_CODE("GF@");
+        }
+
+        ADD_CODE((identifiers[arg_count]));
+        ADD_CODE("\n")
+    }
+    return RET_OK;
 }
