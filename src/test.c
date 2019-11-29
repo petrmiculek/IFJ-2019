@@ -58,7 +58,6 @@ main(int argc, char **argv)
         printf("\n");
 
         free_string(&token->string);
-
         if (res != RET_OK)
             return (int) res;
     }

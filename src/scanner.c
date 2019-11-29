@@ -350,15 +350,18 @@ get_token(token_t *token, FILE *file)
                 {
                     state = STATE_BASE_X;
                 }
-                else if (read == ' ' || read == EOF || read == '\n')
+                else if('0' <= read && read <= '9')
+                {
+                    RETURN_ERR
+                }
+                else
                 {
                     APPEND('0')
                     token->type = TOKEN_INT;
                     ungetc(read, file);
                     return RET_OK;
                 }
-                else
-                    RETURN_ERR
+
                 break;
             case STATE_BASE_B:
                 if ('0' == read || read == '1')
