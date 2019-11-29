@@ -12,12 +12,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define file_input 1234098
 
 int
 main(int argc, char **argv)
 {
-    FILE *file;
 
+
+#ifdef file_input
+    FILE *file;
     if (argc == 1)
     {
         perror("No input file given\n");
@@ -28,8 +31,10 @@ main(int argc, char **argv)
         fprintf(stderr, "Error in opening file %s", argv[1]);
         return RET_INTERNAL_ERROR;
     }
-
     int res = parse(file);
+#else
+    int res = parse(stdin);
+#endif
 
     return res;
 }

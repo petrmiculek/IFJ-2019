@@ -13,6 +13,7 @@ current_dir = os.path.split(os.getcwd())[1]
 if current_dir == 'IFJ-2019':
     main_dir = "./"
 else:
+    # current_dir is most likely IFJ-2019/testing/tests/parser
     main_dir = "../../../"
 
 # binary = "test_bin"
@@ -27,19 +28,24 @@ dir.sort()
 error_count = 0
 
 for file_name in dir:
-    current_file_args = (main_dir + input_dir + '/' + file_name)
+    current_file_args_path = (main_dir + input_dir + '/' + file_name)
     # print(file_name)
-
+    """
+    current_file_args = ''
+    f = open(current_file_args_path, "r")
+    for x in f:
+        current_file_args += x
+    """
     # vvv this line determines the way the binary is run
-    args = (main_dir + binary, current_file_args)
+    args = (main_dir + binary, current_file_args_path)
 
     popen = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
     popen.wait()
     output = popen.stdout.read()
     returnCode = popen.poll()
 
-    # print(output + 'r:', returnCode, '\n---\n')
-    # ^^^ print output
+    # print(output, '\n---\n')
+
     """
     if (file_name[0:2] == 'ok' and returnCode != 0) \
             or (file_name[0:3] == 'err' and returnCode != int(file_name[3])):
