@@ -1,6 +1,4 @@
-#include "parser.h"
-#include "scanner.h"
-#include "err.h"
+
 /**
  * @name IFJ19Compiler
  * @authors xmicul08 (Mičulek Petr)
@@ -9,12 +7,17 @@
             xsisma01 (Šišma Vojtěch)
  */
 #include "token_queue.h"
+#include "symtable.h"
 #include "exp_stack.h"
 #include "psa.h"
 #include "parser.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
+#include "parser.h"
+#include "scanner.h"
+#include "err.h"
+
 
 #define TABLE_SIZE 7
 #define RETURN_IF_ERR(res) do { if ((res) != RET_OK) {return (res);} } while(0);
@@ -605,6 +608,12 @@ tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
     }
     return RET_INTERNAL_ERROR;
 }
+unsigned int init_sym(sem_t *sym)
+{
+    sym->type = 100;
+    sym->d_type = 100;
+    return init_string(&(sym->sem_data));
+}
 
 unsigned int
 solve_exp(data_t *data)
@@ -635,17 +644,23 @@ solve_exp(data_t *data)
 
     get_next_token(data, &res);
     RETURN_IF_ERR(res)
-
-    while (res != 1)
+    
+    sem_t sym1;
+    sem_t sym2;
+    sem_t sym3;
+    if((res = init_sym(&sym1)) != RET_OK)
+        return res;
+    if((res = init_sym(&sym2)) != RET_OK)
+        return res;
+    if((res = init_sym(&sym3)) != RET_OK)
+        return res;
+    while (1)
     {
 
         unsigned int sym = 0;
         if (get_symbol(data->token, &sym) == RET_SYNTAX_ERROR)
             return RET_SYNTAX_ERROR;
         sem_t stack_term = get_term(Stack);
-        sem_t sym1;
-        sem_t sym2;
-        sem_t sym3;
         int i = Stack->top;
 
         if (get_table_index(stack_term.type) == 99 || get_table_index(sym) == 99)
@@ -761,7 +776,7 @@ solve_exp(data_t *data)
                     stack_expr_push(Stack, new);
                 }
                 else if (rule == R_PLUS || rule == R_MIN || rule == R_MUL || rule == R_DIV
-                    || rule == R_IDIV) // FIXME just wanted to pass build
+                    || rule == R_IDIV) 
                 {
                     sym1 = Stack->atr[i];
                     sym2 = Stack->atr[i - 1];
