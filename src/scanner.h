@@ -70,6 +70,17 @@ enum state
     STATE_START, // 24
     STATE_EOL, // 25
     STATE_EOL_SP, // 26
+    STATE_INT_U, //27
+    STATE_FLOAT_D_U, //28
+    STATE_FLOAT_Z_U, //29
+    STATE_FLOAT_S_U, //30
+    STATE_INT_Z, //31
+    STATE_BASE_B, //32
+    STATE_BASE_O, //33
+    STATE_BASE_X, //34
+    STATE_BASE_B_U, //35
+    STATE_BASE_O_U, //36
+    STATE_BASE_X_U //37
 };
 
 typedef enum token_type

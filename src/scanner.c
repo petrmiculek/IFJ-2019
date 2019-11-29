@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <regex.h>
 
 /*######################TODO LIST######################
  * Otazky:
@@ -174,8 +175,8 @@ get_token(token_t *token, FILE *file)
 
                 if (first_call == 2)
                 {
-                    first_call = 0 ;
-                    if(read == ' ')
+                    first_call = 0;
+                    if (read == ' ')
                     {
                         first_call = 2;
                     }
@@ -194,7 +195,7 @@ get_token(token_t *token, FILE *file)
                     }
                     else
                     {
-                        RETURN_ERR
+                        return RET_SYNTAX_ERROR;
                     }
                     break;
                 }
@@ -208,7 +209,7 @@ get_token(token_t *token, FILE *file)
                     }
                 }
 
-                if ('0' <= read && read <= '9')
+                if ('1' <= read && read <= '9')
                 {
                     state = STATE_INT;
                     APPEND(read)
@@ -241,6 +242,11 @@ get_token(token_t *token, FILE *file)
                 else if (read == '#')
                 {
                     state = STATE_COMMENT;
+                    break;
+                }
+                else if (read == '0')
+                {
+                    state = STATE_INT_Z;
                     break;
                 }
                 else if ((read >= 'a' && read <= 'z')
@@ -331,7 +337,131 @@ get_token(token_t *token, FILE *file)
                 }
                 else
                     RETURN_ERR
-
+            case STATE_INT_Z:
+                if (read == 'b' || read == 'B')
+                {
+                    state = STATE_BASE_B;
+                }
+                else if (read == 'o' || read == 'O')
+                {
+                    state = STATE_BASE_O;
+                }
+                else if (read == 'x' || read == 'X')
+                {
+                    state = STATE_BASE_X;
+                }
+                else
+                    RETURN_ERR
+                break;
+            case STATE_BASE_B:
+                if ('0' == read || read == '1')
+                {
+                    APPEND(read)
+                    state = STATE_BASE_B;
+                    break;
+                }
+                else if (read == '_')
+                {
+                    if(!token->string.length)
+                        RETURN_ERR
+                    state = STATE_BASE_B_U;
+                    break;
+                }
+                else
+                {
+                    if(token->string.length == 0)
+                        RETURN_ERR
+                    sprintf(token->string.str, "%ld", strtol(token->string.str, NULL, 2));
+                    append_c_string_to_string(&token->string, token->string.str);
+                    ungetc(read, file);
+                    token->type = TOKEN_INT;
+                    return RET_OK;
+                }
+            case STATE_BASE_O:
+                if ('0' <= read && read <= '7')
+                {
+                    APPEND(read)
+                    state = STATE_BASE_O;
+                    break;
+                }
+                else if (read == '_')
+                {
+                    if(!token->string.length)
+                        RETURN_ERR
+                    state = STATE_BASE_O_U;
+                    break;
+                }
+                else
+                {
+                    if(!token->string.length)
+                        RETURN_ERR
+                    sprintf(token->string.str, "%ld", strtol(token->string.str, NULL, 8));
+                    append_c_string_to_string(&token->string, token->string.str);
+                    ungetc(read, file);
+                    token->type = TOKEN_INT;
+                    return RET_OK;
+                }
+            case STATE_BASE_X:
+                if (('0' <= read && read <= '9')
+                    || ('a' <= read && read <= 'f')
+                    || ('A' <= read && read <= 'F'))
+                {
+                    APPEND(read)
+                    state = STATE_BASE_X;
+                    break;
+                }
+                else if (read == '_')
+                {
+                    if(!token->string.length)
+                        RETURN_ERR
+                    state = STATE_BASE_X_U;
+                    break;
+                }
+                else
+                {
+                    if(token->string.length == 0)
+                        RETURN_ERR
+                    sprintf(token->string.str, "%ld", strtol(token->string.str, NULL, 16));
+                    append_c_string_to_string(&token->string, token->string.str);
+                    ungetc(read, file);
+                    token->type = TOKEN_INT;
+                    return RET_OK;
+                }
+            case STATE_BASE_X_U:
+                if (('0' <= read && read <= '9')
+                    || ('a' <= read && read <= 'f')
+                    || ('A' <= read && read <= 'F'))
+                {
+                    APPEND(read)
+                    state = STATE_BASE_X;
+                    break;
+                }
+                else
+                {
+                    RETURN_ERR
+                }
+            case STATE_BASE_O_U:
+                if ('0' <= read && read <= '7')
+                {
+                    APPEND(read)
+                    state = STATE_BASE_O;
+                    break;
+                }
+                else
+                {
+                    RETURN_ERR
+                }
+            case STATE_BASE_B_U:
+                if ('0' == read || read == '1')
+                {
+                    APPEND(read)
+                    state = STATE_BASE_B;
+                    break;
+                }
+                else
+                {
+                    RETURN_ERR
+                }
             case STATE_EOL:
 
                 spaces_num++;
@@ -342,7 +472,7 @@ get_token(token_t *token, FILE *file)
                 }
                 else
                 {
-                    if(read<33)
+                    if (read < 33)
                     {
                         spaces_num = -1;
                     }
@@ -368,7 +498,8 @@ get_token(token_t *token, FILE *file)
                 }
                 else
                 {
-                    if(read<33){
+                    if (read < 33)
+                    {
                         spaces_num = -1;
                     }
                     ungetc(read, file);
@@ -376,12 +507,49 @@ get_token(token_t *token, FILE *file)
                     previous_was_eol = 2;
                     return RET_OK;
                 }
-
+            case STATE_FLOAT_S_U:
+                if ('0' <= read && read <= '9')
+                {
+                    APPEND(read)
+                    state = STATE_FLOAT_S;
+                    break;
+                }
+                else
+                {
+                    RETURN_ERR
+                }
+            case STATE_FLOAT_D_U:
+                if ('0' <= read && read <= '9')
+                {
+                    APPEND(read)
+                    state = STATE_FLOAT_D;
+                    break;
+                }
+                else
+                {
+                    RETURN_ERR
+                }
+            case STATE_INT_U:
+                if ('0' <= read && read <= '9')
+                {
+                    APPEND(read)
+                    state = STATE_INT;
+                    break;
+                }
+                else
+                {
+                    RETURN_ERR
+                }
             case STATE_INT:
                 if (read == '.')
                 {
                     state = STATE_FLOAT;
                     APPEND(read)
+                    break;
+                }
+                else if (read == '_')
+                {
+                    state = STATE_INT_U;
                     break;
                 }
                 else if ('0' <= read && read <= '9')
@@ -398,10 +566,6 @@ get_token(token_t *token, FILE *file)
                 }
                 else
                 {
-                    if (token->string.str[0] == '0' && strlen(token->string.str) > 1)
-                    {
-                        RETURN_ERR
-                    }
                     token->type = TOKEN_INT;
                     ungetc(read, file);
                     return RET_OK;
@@ -431,6 +595,11 @@ get_token(token_t *token, FILE *file)
                     APPEND(read)
                     break;
                 }
+                else if (read == '_')
+                {
+                    state = STATE_FLOAT_S_U;
+                    break;
+                }
                 else
                 {
                     token->type = TOKEN_FLOAT;
@@ -457,8 +626,7 @@ get_token(token_t *token, FILE *file)
                 }
                 else
                     RETURN_ERR
-
-            case STATE_FLOAT_Z:
+            case STATE_FLOAT_Z_U:
                 if ('1' <= read && read <= '9')
                 {
                     state = STATE_FLOAT_S;
@@ -471,12 +639,38 @@ get_token(token_t *token, FILE *file)
                     break;
                 }
                 else
+                {
+                    RETURN_ERR
+                }
+            case STATE_FLOAT_Z:
+                if ('1' <= read && read <= '9')
+                {
+                    state = STATE_FLOAT_S;
+                    APPEND(read)
+                    break;
+                }
+                else if (read == '0')
+                {
+                    state = STATE_FLOAT_Z;
+                    break;
+                }
+                else if (read == '_')
+                {
+                    state = STATE_FLOAT_S_U;
+                    break;
+                }
+                else
                     RETURN_ERR
             case STATE_FLOAT_S:
                 if ('0' <= read && read <= '9')
                 {
                     state = STATE_FLOAT_S;
                     APPEND(read)
+                    break;
+                }
+                else if (read == '_')
+                {
+                    state = STATE_FLOAT_S_U;
                     break;
                 }
                 else
