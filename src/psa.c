@@ -222,16 +222,25 @@ unsigned int check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, 
 	bool retype_sym1_to_integer = false;
 	bool retype_sym3_to_integer = false;
     //ht_item_t operand;
-	ht_item_t *search_res;
+	ht_item_t *local_search_res;
+	ht_item_t *global_search_res;
     int res = RET_OK;
     if (rule == R_I || rule == R_BRACKETS)
 	{
         if (sym1->type == OP_ID)
         {
+            local_search_res=ht_search(data->local_sym_table,sym1->sem_data.str);
+            global_search_res=ht_search(data->local_sym_table,sym1->sem_data.str);
+            
+            if (global_search_res != NULL 
+                && global_search_res->data->is_function == true) // id is defined function
+            {
+                return RET_SEMANTICAL_ERROR;
+            }
+            
             if(data->parser_in_local_scope)
             {
-                search_res=ht_search(data->local_sym_table,sym1->sem_data.str);
-                if (search_res == NULL)
+                if (local_search_res == NULL)
                 {
                     // it could be global variable
                     // so we add id to global table as not defined
@@ -248,13 +257,13 @@ unsigned int check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, 
             }
             else // we are in global scope 
             {
-                search_res=ht_search(data->global_sym_table,sym1->sem_data.str);
-                if (search_res == NULL)
+                if (global_search_res == NULL)
                 {
                     // no found so its SEM ERR
                     return RET_SEMANTICAL_ERROR;    
                 }
-                else if (search_res->data->is_variable_defined == false) // exist but not defined
+                else if (global_search_res->data->is_variable_defined == false // exist but not defined
+                        || global_search_res->data->is_function == true) // id is functionm
                 {
                     return RET_SEMANTICAL_ERROR;   
                 }
