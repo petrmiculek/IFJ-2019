@@ -1093,9 +1093,10 @@ call_param_list()
     // CALL_PARAM_LIST -> CALL_ELEM CALL_PARAM_LIST_NEXT
 
     int res;
+
 #ifdef SEMANTICS
     ht_item_t *local_search_res;
-	ht_item_t *global_search_res;
+    ht_item_t *global_search_res;
     data->function_call_param_count = 0;
 #endif // SEMANTICS
     GET_TOKEN()
@@ -1149,7 +1150,6 @@ call_param_list()
         }
         // everything its ok
 #endif // SEMANTICS
-        
         if ((res = call_param_list_next()) != RET_OK)
         {
             return res;
@@ -1167,14 +1167,12 @@ call_param_list_next()
 {
     // CALL_PARAM_LIST_NEXT -> , CALL_ELEM CALL_PARAM_LIST_NEXT
     // CALL_PARAM_LIST_NEXT -> )
-
-    int res;
-    
     #ifdef SEMANTICS
     ht_item_t *local_search_res;
-	ht_item_t *global_search_res;
+    ht_item_t *global_search_res;
     #endif
-    
+    int res;
+
     GET_TOKEN()
 
     if (data->token->type == TOKEN_RIGHT)
