@@ -230,7 +230,7 @@ unsigned int check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, 
         if (sym1->type == OP_ID)
         {
             local_search_res=ht_search(data->local_sym_table,sym1->sem_data.str);
-            global_search_res=ht_search(data->local_sym_table,sym1->sem_data.str);
+            global_search_res=ht_search(data->global_sym_table,sym1->sem_data.str);
             
             if (global_search_res != NULL 
                 && global_search_res->data->is_function == true) // id is defined function
