@@ -107,6 +107,7 @@ copy_string(string_t *dest, string_t *src)
 
     strncpy(dest->str, src->str, src->length);
     dest->length = src->length;
+    dest->str[dest->length] = 0;
     return RET_OK;
 }
 

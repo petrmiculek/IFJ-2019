@@ -61,7 +61,7 @@ parse(FILE *file)
     free_static_stack();
     // clear_data();
 
-    if(res == RET_OK)
+    if (res == RET_OK)
     {
         generate_main_scope_end();
         RETURN_IF_ERR(res)
@@ -134,7 +134,7 @@ symtable_insert_function(const char *identifier_arr, int param_count)
 
     data_symtable->function_params_count = param_count;
     data_symtable->is_function = true;
-    data_symtable->just_index=0;
+    data_symtable->just_index = 0;
     copy_string(&data_symtable->identifier, identifier_string);
 
     res = ht_insert(data->global_sym_table, identifier_string->str, data_symtable);
@@ -147,6 +147,39 @@ symtable_insert_function(const char *identifier_arr, int param_count)
     clear_string(identifier_string);
 
     return RET_OK;
+}
+
+
+int
+add_to_symtable(string_t *identifier, bool use_local_symtable)
+{
+    int res;
+    string_t *uniq_identifier;
+    table_t *table;
+    char* prefix;
+    if (use_local_symtable)
+    {
+        table = data->local_sym_table;
+        prefix = data->function_ID->key;
+        // TODO        ^^^ ->key or ->data->identifier? (unique name)
+    }
+    else
+    {
+        table = data->global_sym_table;
+        prefix = "global";
+    }
+
+    uniq_identifier = generate_unique_identifier(prefix, identifier->str);
+
+    if(uniq_identifier == NULL)
+        return RET_INTERNAL_ERROR;
+
+    res = copy_string(&data->ID->identifier, uniq_identifier);
+    RETURN_IF_ERR(res)
+
+    res = ht_insert(table, identifier->str, data->ID);
+
+    return res;
 }
 
 void
@@ -267,18 +300,18 @@ init_data()
     {
         return RET_INTERNAL_ERROR;
     }
-
+/*
     if ((data->ID = calloc(sizeof(ht_item_t), 1)) == NULL)
     {
         return RET_INTERNAL_ERROR;
     }
-
+*/
     if ((data->function_ID = calloc(sizeof(ht_item_t), 1)) == NULL)
     {
         return RET_INTERNAL_ERROR;
     }
-    
-    if ((data->ID->data = calloc(sizeof(sym_table_item), 1)) == NULL)
+
+    if ((data->ID = calloc(sizeof(sym_table_item), 1)) == NULL)
     {
         return RET_INTERNAL_ERROR;
     }
@@ -362,12 +395,11 @@ function_def()
 
     if (search_res == NULL)
     {
-        data->ID->data->identifier = data->token->string;
-        data->ID->data->is_function = true;
-        data->ID->data->just_index=0;
-        res = ht_insert(data->global_sym_table, data->token->string.str, data->ID->data);
-        if(res != RET_OK)
-            return res;
+        data->ID->identifier = data->token->string;
+        data->ID->is_function = true;
+        data->ID->just_index = 0;
+        res = ht_insert(data->global_sym_table, data->token->string.str, data->ID);
+        RETURN_IF_ERR(res)
         // _SEM function identifier to symtable
     }
     else
@@ -393,7 +425,6 @@ function_def()
 
     GET_TOKEN()
 
-
     if (data->token->type != TOKEN_COLON)
         return RET_SYNTAX_ERROR;
 
@@ -411,7 +442,7 @@ function_def()
 #ifdef SEMANTICS
 
     // back to global scope
-    data->parser_in_local_scope = false;
+    data->parser_in_local_scope = global;
 
 #endif
 
@@ -442,7 +473,7 @@ statement()
     }
     else if (data->token->type == TOKEN_RETURN)
     {
-        if (data->parser_in_local_scope == false)
+        if (data->parser_in_local_scope == global)
         {
             return RET_SEMANTICAL_ERROR; // return statement outside function
         }
@@ -510,66 +541,54 @@ statement()
                     return res;
 
 #ifdef SEMANTICS
+
                 // definition of variable
-
-
-                if (data->parser_in_local_scope)
+                if (data->parser_in_local_scope == local)
                 {
 
                     // TODO we have to check if in function was early same variable as global
                     // find all variables in some structure in function_id if in global table are defined
                     // if variable is found RET SEM ERROR
-                    if ((res=global_variables(lhs_identifier.string.str,0))!=RET_OK)
-                        return RET_SEMANTICAL_ERROR;
+                    if ((res = global_variables(lhs_identifier.string.str, 0)) != RET_OK)
+                        return res;
 
                     if (local_search_res == NULL)
                     {
-                        // identifier of that name does not exist
-                        char* prefix = data->function_ID->key;
-                        string_t *uniq_identifier = generate_unique_identifier(prefix, lhs_identifier.string.str);
+                        // identifier does not exist
 
-                        copy_string(&data->ID->data->identifier, uniq_identifier);
+                        data->ID->is_function = false;
+                        data->ID->is_defined = true;
 
-                        data->ID->data->is_function = false;
-                        data->ID->data->is_variable_defined = true;
+                        res = add_to_symtable(&lhs_identifier.string, local);
+                        RETURN_IF_ERR((res))
 
-                        res = ht_insert(data->local_sym_table, lhs_identifier.string.str, data->ID->data);
-                        if (res != RET_OK)
-                        {
-                            return res;
-                        }
-
-                        generate_var_declare(uniq_identifier->str);
+                        generate_var_declare(data->ID->identifier.str);
+                        RETURN_IF_ERR((res))
 
                     }
 
-                }
-                else if (global_search_res == NULL)// in global scope
-                {
-                    // identifier of that name does not exist
-
-                    string_t *uniq_identifier = generate_unique_identifier("global", lhs_identifier.string.str);
-                    copy_string(&data->ID->data->identifier, uniq_identifier);
-
-                    data->ID->data->is_function = false;
-                    data->ID->data->is_variable_defined = true;
-
-                    res = ht_insert(data->global_sym_table, lhs_identifier.string.str, data->ID->data);
-                    if (res != RET_OK)
-                    {
-                        return res;
-                    }
-                    generate_var_declare(uniq_identifier->str);
                 }
                 else
                 {
-                    global_search_res->data->is_variable_defined = true; // before used as not defined in function
+                    if (global_search_res == NULL)
+                    {
+                        // identifier does not exist
+
+                        data->ID->is_function = false;
+                        data->ID->is_defined = true;
+
+                        res = add_to_symtable(&lhs_identifier.string, global);
+                        RETURN_IF_ERR((res))
+
+                        generate_var_declare(data->ID->identifier.str);
+                        RETURN_IF_ERR((res))
+                    }
+                    else
+                    {
+                        // identifier exists (in global scope)
+                        global_search_res->data->is_defined = true; // before used as not defined in function
+                    }
                 }
-
-
-
-                // identifier exists as a variable
-                // this statement just changes its value
 
 
 #endif // SEMANTICS
@@ -582,12 +601,21 @@ statement()
                 // STATEMENT -> id ( CALL_PARAM_LIST eol
                 // check if function id is defined
 #ifdef SEMANTICS
-                ht_item_t *search_res = ht_search(data->global_sym_table, lhs_identifier.string.str);
+                ht_item_t *global_search_res = ht_search(data->global_sym_table, lhs_identifier.string.str);
+                ht_item_t *local_search_res = ht_search(data->local_sym_table, lhs_identifier.string.str);
 
-                if (search_res == NULL || search_res->data->is_function == false)
+                if ((global_search_res != NULL && global_search_res->data->is_function == false)
+                || local_search_res != NULL)
                 {
                     return RET_SEMANTICAL_ERROR;
                 }
+
+                if (global_search_res == NULL)
+                {
+                    // SEM: ADD TO SYMTABLE undefined
+                }
+
+
 
 #endif // SEMANTICS
                 // _SEM check if id is defined
@@ -695,25 +723,28 @@ assign_rhs()
         {
 
 #ifdef SEMANTICS
-            if(global_search_res == NULL)
+            if (global_search_res == NULL)
             {
-                return RET_SEMANTICAL_ERROR; // id of function doesnt exist 
-            }else if (global_search_res != NULL
-                && global_search_res->data->is_function == false) //ID exists but it is NOT a defined function
-            {
+                // id of function doesnt exist
                 return RET_SEMANTICAL_ERROR;
             }
-            ht_item_t *swap=data->function_ID;
-            data->function_ID=global_search_res;
-            
-            //here i have tu check if all variables in function are defined
-            if ((res=global_variables(token_tmp.string.str, 1))!=RET_OK)
+            else if (global_search_res->data->is_function == false)
+            {
+                //ID exists but it is NOT a defined function
+                return RET_SEMANTICAL_ERROR;
+            }
+
+            ht_item_t *swap = data->function_ID;
+            data->function_ID = global_search_res;
+
+            // check if all variables in function are defined
+            if ((res = global_variables(token_tmp.string.str, 1)) != RET_OK)
             {
                 return RET_SEMANTICAL_ERROR;
             }
             // for later check of params variable
-            
-            data->function_ID=swap;
+
+            data->function_ID = swap;
 
 #endif // SEMANTICS
 
@@ -743,6 +774,7 @@ assign_rhs()
                 return RET_SEMANTICAL_ERROR;
             }*/
 #endif // SEMANTICS
+
             q_enqueue(&token_tmp, data->token_queue);
             q_enqueue(data->token, data->token_queue);
             data->use_queue_for_read = true;
@@ -802,11 +834,11 @@ statement_global()
     }
     else if (data->token->type == TOKEN_DEF)
     {
-        data->parser_in_local_scope = true;
+        data->parser_in_local_scope = local;
 
         if ((res = function_def()) == RET_OK)
         {
-            data->parser_in_local_scope = false;
+            data->parser_in_local_scope = global;
             ht_clear_all(data->local_sym_table);
 
             if ((res = statement_global()) != RET_OK)
@@ -827,7 +859,7 @@ statement_global()
         q_enqueue(data->token, data->token_queue);
         data->use_queue_for_read = true;
 
-        data->parser_in_local_scope = false;
+        data->parser_in_local_scope = global;
 
         if ((res = statement()) == RET_OK)
         {
@@ -863,10 +895,10 @@ if_clause()
         return res;
     }
 #else
-    if ((res = expression()) != RET_OK)
-    {
-        return res;
-    }
+        if ((res = expression()) != RET_OK)
+        {
+            return res;
+        }
 #endif
 
     GET_TOKEN()
@@ -942,10 +974,10 @@ while_clause()
         return res;
     }
 #else
-    if ((res = expression()) != RET_OK)
-    {
-        return res;
-    }
+        if ((res = expression()) != RET_OK)
+        {
+            return res;
+        }
 #endif
 
     GET_TOKEN()
@@ -1009,15 +1041,13 @@ def_param_list_next()
             // identifier does not exist
             // -> add param to symtable
 
-            data->ID->data->identifier = data->token->string;
-            data->ID->data->is_function = false;
-            data->ID->data->is_variable_defined = true;
+            data->ID->is_function = false;
+            data->ID->is_defined = true;
 
-            res = ht_insert(data->local_sym_table, data->token->string.str, data->ID->data);
-            if (res != RET_OK)
-            {
-                return res;
-            }
+            res = add_to_symtable(&data->token->string, local);
+
+            RETURN_IF_ERR((res))
+
         }
 #endif // SEMANTICS
 
@@ -1067,11 +1097,11 @@ def_param_list()
             // identifier does not exist
             // -> add param to symtable
 
-            data->ID->data->identifier = data->token->string;
-            data->ID->data->is_function = false;
-            data->ID->data->is_variable_defined = true;
+            data->ID->identifier = data->token->string;
+            data->ID->is_function = false;
+            data->ID->is_defined = true;
 
-            res = ht_insert(data->local_sym_table, data->token->string.str, data->ID->data);
+            res = ht_insert(data->local_sym_table, data->token->string.str, data->ID);
             if (res != RET_OK)
             {
                 return res;
@@ -1117,45 +1147,45 @@ call_param_list()
         // first param check if defined
         if (data->token->type == TOKEN_IDENTIFIER)
         {
-            local_search_res=ht_search(data->local_sym_table,data->token->string.str);
-            global_search_res=ht_search(data->global_sym_table,data->token->string.str);
-            
-                    
-            if(data->parser_in_local_scope)
+            local_search_res = ht_search(data->local_sym_table, data->token->string.str);
+            global_search_res = ht_search(data->global_sym_table, data->token->string.str);
+
+            if (data->parser_in_local_scope == local)
             {
                 if (local_search_res == NULL)
                 {
                     // it could be global variable
                     // so we add id to global table as not defined
-                    data->ID->data->identifier=data->token->string;
-                    data->ID->data->is_variable_defined=false;
-                    data->ID->data->is_function=false;
-                    if(RET_OK != (res = ht_insert(data->global_sym_table, data->token->string.str, data->ID->data)))
+                    data->ID->identifier = data->token->string;
+                    data->ID->is_defined = false;
+                    data->ID->is_function = false;
+                    if (RET_OK != (res = ht_insert(data->global_sym_table, data->token->string.str, data->ID)))
                     {
-                            return res;
+                        return res;
                     }
 
-                    data->function_ID->data->global_variables[data->function_ID->data->just_index]=data->token->string.str;
+                    data->function_ID->data->global_variables[data->function_ID->data->just_index] =
+                        data->token->string.str;
                     data->function_ID->data->just_index++;
-                    // we have to add variable to function_ID structures 
+                    // we have to add variable to function_ID structures
                 }
             }
-            else // we are in global scope 
+            else // we are in global scope
             {
                 if (global_search_res == NULL)
                 {
-                    // no found so its SEM ERR
-                    return RET_SEMANTICAL_ERROR;    
+                    // not found so its SEM ERR
+                    return RET_SEMANTICAL_ERROR;
                 }
-                else if (global_search_res->data->is_variable_defined == false // exist but not defined
-                        || global_search_res->data->is_function == true) // id is function
+                else if (global_search_res->data->is_defined == false // exist but not defined
+                    || global_search_res->data->is_function == true) // id is function
                 {
-                    return RET_SEMANTICAL_ERROR;   
+                    return RET_SEMANTICAL_ERROR;
                 }
-                
+
             }
-        }    
-        // everything its ok
+        }
+        // everything is ok
 #endif // SEMANTICS
         if ((res = call_param_list_next()) != RET_OK)
         {
@@ -1174,10 +1204,10 @@ call_param_list_next()
 {
     // CALL_PARAM_LIST_NEXT -> , CALL_ELEM CALL_PARAM_LIST_NEXT
     // CALL_PARAM_LIST_NEXT -> )
-    #ifdef SEMANTICS
+#ifdef SEMANTICS
     ht_item_t *local_search_res;
     ht_item_t *global_search_res;
-    #endif
+#endif
     int res;
 
     GET_TOKEN()
@@ -1198,42 +1228,43 @@ call_param_list_next()
         // next param check if defined
         if (data->token->type == TOKEN_IDENTIFIER)
         {
-                                   
-            local_search_res=ht_search(data->local_sym_table,data->token->string.str);
-            global_search_res=ht_search(data->global_sym_table,data->token->string.str);
-            
-                    
-            if(data->parser_in_local_scope)
+
+            local_search_res = ht_search(data->local_sym_table, data->token->string.str);
+            global_search_res = ht_search(data->global_sym_table, data->token->string.str);
+
+            if (data->parser_in_local_scope == local)
             {
                 if (local_search_res == NULL)
                 {
                     // it could be global variable
                     // so we add id to global table as not defined
-                    data->ID->data->identifier=data->token->string;
-                    data->ID->data->is_variable_defined=false;
-                    data->ID->data->is_function=false;
-                    if(RET_OK != (res = ht_insert(data->global_sym_table, data->token->string.str, data->ID->data)))
+                    data->ID->identifier = data->token->string;
+                    data->ID->is_defined = false;
+                    data->ID->is_function = false;
+                    if (RET_OK != (res = ht_insert(data->global_sym_table, data->token->string.str, data->ID)))
                     {
-                            return res;
+                        return res;
                     }
-                    data->function_ID->data->global_variables[data->function_ID->data->just_index]=data->token->string.str;
+                    data->function_ID->data->global_variables[data->function_ID->data->just_index] =
+                        data->token->string.str;
+
                     data->function_ID->data->just_index++;
-                    // we have to add variable to function_ID structures 
+                    // we have to add variable to function_ID structures
                 }
             }
-            else // we are in global scope 
+            else // we are in global scope
             {
                 if (global_search_res == NULL)
                 {
                     // no found so its SEM ERR
-                    return RET_SEMANTICAL_ERROR;    
+                    return RET_SEMANTICAL_ERROR;
                 }
-                else if (global_search_res->data->is_variable_defined == false // exist but not defined
-                        || global_search_res->data->is_function == true) // id is function
+                else if (global_search_res->data->is_defined == false // exist but not defined
+                    || global_search_res->data->is_function == true) // id is function
                 {
-                    return RET_SEMANTICAL_ERROR;   
+                    return RET_SEMANTICAL_ERROR;
                 }
-                
+
             }
         }
         // everything its ok
@@ -1371,27 +1402,28 @@ expression()
 }
 
 int
-global_variables(char* str, int a)
+global_variables(char *str, int a)
 {
-    int i=data->function_ID->data->just_index-1;
+    int i = data->function_ID->data->just_index - 1;
     ht_item_t *search_res;
     while (i >= 0)
     {
-        if ( strcmp(data->function_ID->data->global_variables[i],str) == 0 ) 
+        if (strcmp(data->function_ID->data->global_variables[i], str) == 0)
         {
             if (a == 1)
             {
-                search_res=ht_search(data->global_sym_table,data->function_ID->data->global_variables[i]);
-                if (search_res->data->is_variable_defined == false)
+                search_res = ht_search(data->global_sym_table, data->function_ID->data->global_variables[i]);
+                if (search_res->data->is_defined == false)
                 {
                     return RET_SEMANTICAL_ERROR;
                 }
 
-            }else
+            }
+            else
             {
                 return RET_SEMANTICAL_ERROR;
             }
-            
+
         }
         i--;
     }

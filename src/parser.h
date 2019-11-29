@@ -13,6 +13,9 @@
 #include "token_queue.h"
 #include "symtable.h"
 
+#define local true
+#define global false
+
 struct _struct_data_t
 {
     FILE *file;
@@ -22,7 +25,7 @@ struct _struct_data_t
 
     table_t *global_sym_table;
     table_t *local_sym_table;
-    ht_item_t *ID;
+    sym_table_item *ID;
     ht_item_t *function_ID; // in local scope we will need it
     bool parser_in_local_scope;
     int function_call_param_count;
@@ -91,6 +94,10 @@ init_data();
 
 int
 symtable_insert_predefined();
+
+
+int
+add_to_symtable(string_t *identifier, bool use_local_symtable);
 
 /**
  * @brief cleanup values used by data_t

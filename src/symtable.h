@@ -18,16 +18,16 @@ typedef struct _sym_table_item_t
 {
     string_t identifier;
     bool is_function;
-    bool is_variable_defined;
+    bool is_defined;
     int function_params_count;
-    char *global_variables[50]; // every function id has its global variables, for later check of definiton
-    int just_index; //later it can be struct 
+    char *global_variables[500]; // every function id has its global variables, for later check of definiton
+    int just_index; //later it can be struct
+
     /**
         idea - function added to symtable upon call,
         its ifjCode label is generated, so that we can generate CALL $label_of_this_function,
         sometime later a definition is supplied
      */
-    bool is_function_called;
 
 } sym_table_item;
 
