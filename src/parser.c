@@ -11,6 +11,7 @@
 #include "token_queue.h"
 #include "psa.h"
 #include "code_gen.h"
+#include "symtable.h"
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
@@ -31,6 +32,7 @@ symtable_insert_function(const char *identifier_arr, int param_count);
 #define RETURN_IF_ERR(res) do { if ((res) != RET_OK) { return (res);} } while(0);
 
 #define GET_TOKEN() do { get_next_token(); RETURN_IF_ERR(data->get_token_res) } while(0);
+
 
 int
 parse(FILE *file)
@@ -57,6 +59,9 @@ parse(FILE *file)
 
     // start syntax analysis with starting nonterminal
     res = statement_global();
+    RETURN_IF_ERR(res)
+
+    res = check_all_functions_defined(data);
 
     free_static_stack();
     // clear_data();
@@ -134,6 +139,7 @@ symtable_insert_function(const char *identifier_arr, int param_count)
 
     data_symtable->function_params_count = param_count;
     data_symtable->is_function = true;
+    data_symtable->is_defined = true;
     data_symtable->just_index = 0;
     copy_string(&data_symtable->identifier, identifier_string);
 
@@ -166,7 +172,14 @@ add_to_symtable(string_t *identifier, bool use_local_symtable)
     else
     {
         table = data->global_sym_table;
-        prefix = "global";
+        if(data->ID->is_function)
+        {
+            prefix = "";
+        }
+        else
+        {
+            prefix = "global";
+        }
     }
 
     uniq_identifier = generate_unique_identifier(prefix, identifier->str);
@@ -395,10 +408,11 @@ function_def()
 
     if (search_res == NULL)
     {
-        data->ID->identifier = data->token->string;
         data->ID->is_function = true;
+        data->ID->is_defined = true;
         data->ID->just_index = 0;
-        res = ht_insert(data->global_sym_table, data->token->string.str, data->ID);
+
+        res = add_to_symtable(&data->token->string, global);
         RETURN_IF_ERR(res)
         // _SEM function identifier to symtable
     }
@@ -409,7 +423,6 @@ function_def()
 
     data->function_ID = ht_search(data->global_sym_table, data->token->string.str);
     // for later definitions of variables in functions
-
 
 #endif
 
@@ -1097,11 +1110,10 @@ def_param_list()
             // identifier does not exist
             // -> add param to symtable
 
-            data->ID->identifier = data->token->string;
             data->ID->is_function = false;
             data->ID->is_defined = true;
 
-            res = ht_insert(data->local_sym_table, data->token->string.str, data->ID);
+            res = add_to_symtable(&data->token->string, local);
             if (res != RET_OK)
             {
                 return res;
@@ -1156,13 +1168,12 @@ call_param_list()
                 {
                     // it could be global variable
                     // so we add id to global table as not defined
-                    data->ID->identifier = data->token->string;
+
                     data->ID->is_defined = false;
                     data->ID->is_function = false;
-                    if (RET_OK != (res = ht_insert(data->global_sym_table, data->token->string.str, data->ID)))
-                    {
-                        return res;
-                    }
+
+                    res = add_to_symtable(&data->token->string, global);
+                    RETURN_IF_ERR(res)
 
                     data->function_ID->data->global_variables[data->function_ID->data->just_index] =
                         data->token->string.str;
@@ -1238,13 +1249,13 @@ call_param_list_next()
                 {
                     // it could be global variable
                     // so we add id to global table as not defined
-                    data->ID->identifier = data->token->string;
+
                     data->ID->is_defined = false;
                     data->ID->is_function = false;
-                    if (RET_OK != (res = ht_insert(data->global_sym_table, data->token->string.str, data->ID)))
-                    {
-                        return res;
-                    }
+
+                    res = add_to_symtable(&data->token->string, global);
+                    RETURN_IF_ERR(res)
+
                     data->function_ID->data->global_variables[data->function_ID->data->just_index] =
                         data->token->string.str;
 
@@ -1264,7 +1275,6 @@ call_param_list_next()
                 {
                     return RET_SEMANTICAL_ERROR;
                 }
-
             }
         }
         // everything its ok

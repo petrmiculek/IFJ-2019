@@ -7,6 +7,7 @@
  */
 #include "symtable.h"
 #include "err.h"
+#include "parser.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -188,3 +189,31 @@ ht_clear_all(table_t *ptrht)
     }
 }
 
+int
+check_all_functions_defined(void *data_void)
+{
+    data_t *data_typed = (data_t *) data_void;
+    table_t* table = data_typed->global_sym_table; // TODO cast? (ht_item_t**)
+
+    if(table == NULL)
+        return RET_INTERNAL_ERROR;
+
+    ht_item_t* tmp;
+
+    for (int i = 0; i < hash_table_size; ++i)
+    {
+        tmp = (*table)[i];
+        while (tmp != NULL)
+        {
+            if(tmp->data && tmp->data->is_function == true && tmp->data->is_defined == false)
+            {
+                fprintf(stderr, "%s, %u: undefined function (%s)\n", __func__, __LINE__, tmp->key);
+                return RET_SEMANTICAL_ERROR; // missing function definition
+            }
+
+            tmp = tmp->next;
+        }
+    }
+
+    return RET_OK;
+}

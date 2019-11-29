@@ -10,7 +10,6 @@
 
 #include <stdbool.h>
 #include "my_string.h"
-#include <stdbool.h>
 
 #define MAX_HTSIZE 101 // FIXME find suitable prime number
 
@@ -43,7 +42,6 @@ struct _hash_table_item_t
 
 typedef ht_item_t *table_t[MAX_HTSIZE]; // tHTable is an array of pointers to tHTItem, with a size of MAX_HTSIZE
 
-
 table_t *
 ht_init();
 
@@ -61,5 +59,8 @@ ht_delete(table_t *ptrht, char *key);
 
 void
 ht_clear_all(table_t *ptrht);
+
+int
+check_all_functions_defined(void* data_void);
 
 #endif // HEADER_SYM_TABLE_H
