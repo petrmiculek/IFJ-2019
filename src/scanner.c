@@ -350,6 +350,13 @@ get_token(token_t *token, FILE *file)
                 {
                     state = STATE_BASE_X;
                 }
+                else if (read == ' ' || read == EOF || read == '\n')
+                {
+                    APPEND('0')
+                    token->type = TOKEN_INT;
+                    ungetc(read, file);
+                    return RET_OK;
+                }
                 else
                     RETURN_ERR
                 break;
