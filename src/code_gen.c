@@ -11,6 +11,8 @@
 #include "stdbool.h"
 #include "err.h"
 #include "parser.h"
+#include "psa.h"
+#include "exp_stack.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -347,5 +349,117 @@ generate_function_param(string_t *identifier, int param_number)
     CODE_APPEND(identifier->str)
     CODE_APPEND("\n")
 
+    return RET_OK;
+}
+
+int
+generate_operand(string_t operand, int tmp, unsigned int symbol)
+{
+    CODE_APPEND(" MOVE ")
+    CODE_APPEND("GL@%tmp_op")
+    CODE_APPEND_VALUE(tmp)
+    switch (symbol)
+    {
+        case OP_INT:
+        {
+            CODE_APPEND(" int@")
+            CODE_APPEND(operand.str)
+            CODE_APPEND("\n")
+            return RET_OK;
+        }
+        case OP_DOC:
+        {
+            CODE_APPEND(" string@")
+            CODE_APPEND(operand.str)
+            CODE_APPEND("\n")
+            return RET_OK;
+        }
+        case OP_FLOAT:
+        {
+            CODE_APPEND(" float@")
+            CODE_APPEND(operand.str)
+            CODE_APPEND("\n")
+            return RET_OK;
+        }
+        case OP_NONE:
+        {
+            CODE_APPEND(" nil@")
+            CODE_APPEND_AND_EOL("nil")
+            return RET_OK;
+        }
+        case OP_STR:
+        {
+            CODE_APPEND(" string@")
+            CODE_APPEND(operand.str)
+            CODE_APPEND("\n")
+            return RET_OK;
+        }
+        case OP_ID:
+        {
+                return RET_OK;
+        }
+        default:
+            break;
+    }
+    return RET_INTERNAL_ERROR;
+    
+}
+
+
+int 
+generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule)
+{
+    switch(rule)
+    {
+        case R_PLUS:
+        {
+            CODE_APPEND(" ADD ")
+            break;
+        }
+        case R_MIN:
+        {
+            CODE_APPEND(" SUB ")
+            break;
+        }
+        case R_MUL:
+        {
+            CODE_APPEND(" MUL ")
+            break;
+        }
+        case R_DIV:
+        {
+            CODE_APPEND(" DIV ")
+            break;
+        }
+        case R_IDIV:
+        {
+            CODE_APPEND(" IDIV ")
+            break;
+        }
+        default:
+        {      
+           return RET_INTERNAL_ERROR;
+
+        }
+    
+    }
+    CODE_APPEND("GF@%tmp_op")
+    CODE_APPEND_VALUE(result)
+    CODE_APPEND(" GF@%")
+    CODE_APPEND(op1.sem_data.str)
+    CODE_APPEND(" GF@%")
+    CODE_APPEND(op2.sem_data.str)
+    CODE_APPEND("\n")
+    return RET_OK;
+}
+
+int
+generate_result(sem_t result)
+{
+    CODE_APPEND(" MOVE ")
+    CODE_APPEND("GL@%exp_result ")
+    CODE_APPEND("GF@%")
+    CODE_APPEND(result.sem_data.str)
+    CODE_APPEND("\n")
     return RET_OK;
 }

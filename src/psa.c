@@ -17,6 +17,7 @@
 #include "parser.h"
 #include "scanner.h"
 #include "err.h"
+#include "code_gen.h"
 
 
 #define TABLE_SIZE 7
@@ -500,86 +501,97 @@ get_rule(sym_stack *Stack, int *count, unsigned int *rule)
 }
 
 unsigned int
-tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
+tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3, int *result)
 {
     init_string(string);
     if (*tmp1 == 0 && *tmp2 == 0 && *tmp3 == 0)
     {
-        char *c = "tmp1";
+        char *c = "tmp_op1";
         if (append_c_string_to_string(string, c) == RET_INTERNAL_ERROR)
         {
             return RET_INTERNAL_ERROR;
         }
         else
         {
+            *result = 1;
             *tmp1 = 1;
+            
             return RET_OK;
         }
     }
     else if (*tmp1 == 1 && *tmp2 == 0 && *tmp3 == 0)
     {
-        char *c = "tmp2";
+        char *c = "tmp_op2";
         if (append_c_string_to_string(string, c) == RET_INTERNAL_ERROR)
         {
             return RET_INTERNAL_ERROR;
         }
         else
         {
+            *result = 2;
             *tmp2 = 1;
+            
             return RET_OK;
         }
     }
 
     else if (*tmp1 == 0 && *tmp2 == 0 && *tmp3 == 1)
     {
-        char *c = "tmp1";
+        char *c = "tmp_op1";
         if (append_c_string_to_string(string, c) == RET_INTERNAL_ERROR)
         {
             return RET_INTERNAL_ERROR;
         }
         else
         {
+            *result = 1;
             *tmp1 = 1;
+            
             return RET_OK;
         }
     }
     else if (*tmp1 == 0 && *tmp2 == 1 && *tmp3 == 0)
     {
-        char *c = "tmp1";
+        char *c = "tmp_op1";
         if (append_c_string_to_string(string, c) == RET_INTERNAL_ERROR)
         {
             return RET_INTERNAL_ERROR;
         }
         else
         {
+            *result = 1;
             *tmp1 = 1;
+            
             return RET_OK;
         }
     }
     else if (*tmp1 == 1 && *tmp2 == 1 && *tmp3 == 0)
     {
-        char *c = "tmp3";
+        char *c = "tmp_op3";
         if (append_c_string_to_string(string, c) == RET_INTERNAL_ERROR)
         {
             return RET_INTERNAL_ERROR;
         }
         else
         {
+            *result = 3;
             *tmp3 = 1;
             *tmp1 = 0;
             *tmp2 = 0;
+            
             return RET_OK;
         }
     }
     else if (*tmp1 == 0 && *tmp2 == 1 && *tmp3 == 1)
     {
-        char *c = "tmp1";
+        char *c = "tmp_op1";
         if (append_c_string_to_string(string, c) == RET_INTERNAL_ERROR)
         {
             return RET_INTERNAL_ERROR;
         }
         else
         {
+            *result = 1;
             *tmp3 = 0;
             *tmp1 = 1;
             *tmp2 = 0;
@@ -588,13 +600,14 @@ tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3)
     }
     else if (*tmp1 == 1 && *tmp2 == 0 && *tmp3 == 1)
     {
-        char *c = "tmp2";
+        char *c = "tmp_op2";
         if (append_c_string_to_string(string, c) == RET_INTERNAL_ERROR)
         {
             return RET_INTERNAL_ERROR;
         }
         else
         {
+            *result = 2;
             *tmp3 = 0;
             *tmp1 = 0;
             *tmp2 = 1;
@@ -621,6 +634,7 @@ solve_exp(data_t *data)
     Stack = (sym_stack *) calloc(sizeof(sym_stack), 1);
 
     int res;
+    int result = 0;
 
     res = 0;
 
@@ -766,10 +780,10 @@ solve_exp(data_t *data)
                     new.type = EXP;
                     new.d_type = finaltype;
 
-                    if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used) == RET_INTERNAL_ERROR)
+                    if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used, &result) == RET_INTERNAL_ERROR)
                         return RET_INTERNAL_ERROR;
 
-                    //TODO generate_expression; meybe in tmp_var
+                    generate_operand(sym1.sem_data, result, sym1.type);
 
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
@@ -787,44 +801,11 @@ solve_exp(data_t *data)
 
                     new.type = EXP;
                     new.d_type = finaltype;
-/*
-                    switch(rule)
-                    {
-                        case R_PLUS:
-                        {
-                            generate_plus
-                            break;
-                        }
-                        case R_MIN:
-                        {
-                            generate_min
-                            break;
-                        }
-                        case R_MUL:
-                        {
-                            generate_mul
-                            break;
-                        }
-                        case R_DIV:
-                        {
-                            generate_div
-                            break;
-                        }
-                        case R_IDIV:
-                        {
-                            generate_idiv
-                            break;
-                        }
-                        defaul:
-                        {
-                            return RET_INTERNAL_ERROR;
-                            break;
-                        }
-                    }
 
-*/
-                    if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used) == RET_INTERNAL_ERROR)
+                    if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used, &result) == RET_INTERNAL_ERROR)
                         return RET_INTERNAL_ERROR;
+
+                    generate_operation(sym3, sym1, result, rule);
 
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
@@ -889,7 +870,7 @@ solve_exp(data_t *data)
                             generate_ne
                             break;
                         }
-                        defaul:
+                        default:
                         {
                             return RET_INTERNAL_ERROR;
                             break;
@@ -897,7 +878,7 @@ solve_exp(data_t *data)
                     }
 */
 
-                    if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used) == RET_INTERNAL_ERROR)
+                    if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used, &result) == RET_INTERNAL_ERROR)
                         return RET_INTERNAL_ERROR;
 
                     stack_expr_pop(Stack);
@@ -922,7 +903,7 @@ solve_exp(data_t *data)
 
                 q_enqueue(data->token, data->token_queue);
                 data->use_queue_for_read = true;
-                //generate_result
+                generate_result(sym1);
                 return RET_OK;
             }
 

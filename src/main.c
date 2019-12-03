@@ -13,7 +13,7 @@
 #include <stdio.h>
 
 //#define file_input 1234098
-
+#define output
 int
 main(int argc, char **argv)
 {
@@ -32,9 +32,19 @@ main(int argc, char **argv)
     }
     int res = parse(file);
 #else
-    int res = parse(stdin);
+    int res = 0;
+    #ifdef output
+        string_t code;
+        if((res = (init_string(&code)) != RET_OK))
+            return res;
+    #endif
+    res = parse(stdin);
 #endif
 
+#ifdef output
+    if(res == RET_OK)
+        printf("%s", code.str);
+#endif
     return res;
 }
 

@@ -9,6 +9,7 @@
 
 #include <stdbool.h>
 #include "symtable.h"
+#include "exp_stack.h"
 
 // TODO missing javadocs
 
@@ -53,4 +54,13 @@ generate_function_call(string_t *identifier);
 
 int
 generate_function_param(string_t *identifier, int param_number);
+
+int
+generate_operand(string_t operand, int tmp, unsigned int symbol);
+
+int 
+generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule);
+
+int 
+generate_result(sem_t result);
 #endif // HEADER_CODE_GEN
