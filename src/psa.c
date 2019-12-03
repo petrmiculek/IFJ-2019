@@ -642,8 +642,8 @@ solve_exp(data_t *data)
         return RET_INTERNAL_ERROR;
     }
 
-    get_next_token(data, &res);
-    RETURN_IF_ERR(res)
+    get_next_token();
+    RETURN_IF_ERR(data->get_token_res)
     
     sem_t sym1;
     sem_t sym2;
@@ -711,8 +711,8 @@ solve_exp(data_t *data)
                         break;
                 }
                 stack_expr_push(Stack, new);
-                get_next_token(data, &res);
-                RETURN_IF_ERR(res)
+                get_next_token();
+                RETURN_IF_ERR(data->get_token_res)
                 break;
 
             }
@@ -745,8 +745,8 @@ solve_exp(data_t *data)
                 }
 
                 stack_expr_push(Stack, new);
-                get_next_token(data, &res);
-                RETURN_IF_ERR(res)
+                get_next_token();
+                RETURN_IF_ERR(data->get_token_res)
                 break;
             }
             case R:
