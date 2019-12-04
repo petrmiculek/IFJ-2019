@@ -85,6 +85,8 @@ read_eol(bool check_for_first_eol);
 int
 is_expression_start();
 
+// TODO missing javadocs
+
 /**
  * @brief
  *
@@ -244,5 +246,10 @@ expression();
 
 int
 global_variables(char *str, int a);
+
+int
+symtable_insert_function(const char *identifier_arr, int param_count);
+bool
+is_predefined_function(token_t *identifier);
 
 #endif //IFJ_2019__PARSER_H

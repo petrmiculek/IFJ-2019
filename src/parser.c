@@ -27,8 +27,9 @@ extern string_t code;
     shorter way of expressing: return from function when things go wrong
     typically used after reading from scanner, but can be utilized anywhere
  */
+
 int
-symtable_insert_function(const char *identifier_arr, int param_count);
+call_predefined_function(token_t *identifier);
 #define RETURN_IF_ERR(res) do { if ((res) != RET_OK) { return (res);} } while(0);
 
 #define GET_TOKEN() do { get_next_token(); RETURN_IF_ERR(data->get_token_res) } while(0);
@@ -417,7 +418,7 @@ function_def()
     }
     else
     {
-        if(global_search_res->data->is_function == true && global_search_res->data->is_defined == false)
+        if (global_search_res->data->is_function == true && global_search_res->data->is_defined == false)
         {
             global_search_res->data->is_defined = true;
         }
@@ -628,8 +629,12 @@ statement()
                     return RET_SEMANTICAL_ERROR;
                 }
 
-                if (global_search_res == NULL)
+                if (data->parser_in_local_scope == local && global_search_res == NULL)
                 {
+                    // function without definition can only be called from another function
+                    // not from global scope
+                    // (function must be defined later)
+
                     // SEM: ADD TO SYMTABLE undefined
                     data->ID->is_function = true;
                     data->ID->is_defined = false;
@@ -643,8 +648,19 @@ statement()
                 if ((res = call_param_list()) != RET_OK)
                     return res;
 
-                res = generate_function_call(&lhs_identifier.string);
-                RETURN_IF_ERR(res)
+
+                //call_predefined_function(&lhs_identifier);
+                if (strcmp(lhs_identifier.string.str, "print") == 0)
+                {
+
+                }
+
+                else
+                {
+                    res = generate_function_call(&lhs_identifier.string);
+                    RETURN_IF_ERR(res)
+
+                }
 
                 if ((res = read_eol(true)) != RET_OK)
                     return res;
@@ -708,6 +724,25 @@ statement()
         // unexpected token type
         return RET_SYNTAX_ERROR;
     }
+}
+int
+call_predefined_function(token_t *identifier)
+{
+    // TODO don't forget about this
+    return RET_SEMANTICAL_ERROR;
+}
+
+bool
+is_predefined_function(token_t *identifier)
+{
+    if (strcmp(identifier->string.str, "print") == 0)
+    {
+        return true;
+    }
+
+    // TODO add other functions (see symtable_insert_predefined)
+
+    return false;
 }
 
 int

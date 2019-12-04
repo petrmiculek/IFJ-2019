@@ -259,6 +259,9 @@ generate_function_start(char *function_id)
     CODE_APPEND(function_id)
     CODE_APPEND("\n")
     CODE_APPEND_AND_EOL("PUSHFRAME")
+    CODE_APPEND_AND_EOL("DEFVAR LF@%retval")
+    CODE_APPEND_AND_EOL("MOVE LF@%retval nil@nil")
+    // next up, arguments
 
     return RET_OK;
 }
@@ -341,11 +344,27 @@ generate_function_call(string_t *identifier)
 }
 
 int
-generate_function_param(string_t *identifier, int param_number)
+generate_function_param(int param_number, string_t *identifier, bool scope)
 {
     CODE_APPEND("DEFVAR ")
-    CODE_APPEND("TF@ ")
+    CODE_APPEND("TF@%")
     CODE_APPEND_VALUE(param_number)
+    CODE_APPEND("\n")
+
+
+    CODE_APPEND("MOVE TF@%")
+    CODE_APPEND_VALUE(param_number)
+    CODE_APPEND(" ")
+
+    if (scope == local)
+    {
+        CODE_APPEND("LF@")
+    }
+    else
+    {
+        CODE_APPEND("GF@")
+    }
+
     CODE_APPEND(identifier->str)
     CODE_APPEND("\n")
 

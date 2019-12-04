@@ -5,7 +5,6 @@
             xsetin00 (Setinský Jiří)
             xsisma01 (Šišma Vojtěch)
  */
-#include <assert.h>
 #include "token_queue.h"
 #include "err.h"
 
@@ -43,21 +42,12 @@ q_enqueue(token_t *token, token_queue_t *queue)
 
     if (queue->last == NULL)
     {
-        /* If the queue was previously empty, both the first and
-         * last must be pointed at the new entry */
-
         queue->first = token_elem;
         queue->last = token_elem;
     }
     else
     {
-        /* The current entry at the last must have next pointed to this
-         * new entry */
-
         queue->last->next = token_elem;
-
-        /* Only the last must be pointed at the new entry */
-
         queue->last = token_elem;
     }
     return RET_OK;

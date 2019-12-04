@@ -53,14 +53,14 @@ int
 generate_function_call(string_t *identifier);
 
 int
-generate_function_param(string_t *identifier, int param_number);
+generate_function_param(int param_number, string_t *identifier, bool scope);
 
 int
 generate_operand(string_t operand, int tmp, unsigned int symbol);
 
-int 
+int
 generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule);
 
-int 
+int
 generate_result(sem_t result);
 #endif // HEADER_CODE_GEN
