@@ -256,11 +256,6 @@ check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type *final
                     data->ID->is_defined = false;
                     data->ID->is_function = false;
 
-<<<<<<< HEAD
-                    
-
-=======
->>>>>>> d21cdfb889737fbf56406eedfe7bbf43eeafe45a
                     res = add_to_symtable(&sym1->sem_data, global);
                     RETURN_IF_ERR((res))
 
