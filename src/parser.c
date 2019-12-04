@@ -27,8 +27,7 @@ extern string_t code;
     shorter way of expressing: return from function when things go wrong
     typically used after reading from scanner, but can be utilized anywhere
  */
-int
-symtable_insert_function(const char *identifier_arr, int param_count);
+
 #define RETURN_IF_ERR(res) do { if ((res) != RET_OK) { return (res);} } while(0);
 
 #define GET_TOKEN() do { get_next_token(); RETURN_IF_ERR(data->get_token_res) } while(0);
@@ -60,7 +59,7 @@ parse(FILE *file)
     res = statement_global();
     RETURN_IF_ERR(res)
 
-    res = check_all_functions_defined(data);
+//    res = check_all_functions_defined(data);
 
     free_static_stack();
     // clear_data();
@@ -417,7 +416,7 @@ function_def()
     }
     else
     {
-        if(global_search_res->data->is_function == true && global_search_res->data->is_defined == false)
+        if (global_search_res->data->is_function == true && global_search_res->data->is_defined == false)
         {
             global_search_res->data->is_defined = true;
         }
@@ -618,6 +617,7 @@ statement()
             {
                 // STATEMENT -> id ( CALL_PARAM_LIST eol
                 // check if function id is defined
+/*
 #ifdef SEMANTICS
                 ht_item_t *global_search_res = ht_search(data->global_sym_table, lhs_identifier.string.str);
                 ht_item_t *local_search_res = ht_search(data->local_sym_table, lhs_identifier.string.str);
@@ -625,11 +625,18 @@ statement()
                 if ((global_search_res != NULL && global_search_res->data->is_function == false)
                     || local_search_res != NULL)
                 {
+                    // why check local scope?
+                    // local variable name cannot be the same as a name of a function
+
                     return RET_SEMANTICAL_ERROR;
                 }
 
-                if (global_search_res == NULL)
+                if (data->parser_in_local_scope == local && global_search_res == NULL)
                 {
+                    // function without definition can only be called from another function
+                    // not from global scope
+                    // (function must be defined later)
+
                     // SEM: ADD TO SYMTABLE undefined
                     data->ID->is_function = true;
                     data->ID->is_defined = false;
@@ -639,12 +646,79 @@ statement()
                 }
 
 #endif // SEMANTICS
-                // _SEM check if id is defined
+*/
+
+#ifdef SEMANTICS
+                ht_item_t *global_search_res = ht_search(data->global_sym_table, lhs_identifier.string.str);
+
+
+                if (global_search_res == NULL)
+                {
+                    if(data->parser_in_local_scope == local)
+                    {
+                        // function without definition can only be called from another function
+                        // not from global scope
+                        // (function must be defined later)
+
+                        // SEM: ADD TO SYMTABLE undefined
+                        data->ID->is_function = true;
+                        data->ID->is_defined = false;
+
+                        res = add_to_symtable(&data->token->string, global);
+                        RETURN_IF_ERR(res)
+                    }
+                    else
+                    {
+                        // cannot call undefined function from global scope
+                        return RET_SEMANTICAL_ERROR;
+                    }
+                }
+                else if (global_search_res->data->is_function == false)
+                {
+                    //ID exists but it is NOT a defined function
+                    return RET_SEMANTICAL_ERROR;
+                }
+
+
+//                 odlisne kontroly existence funkci a promennych pro aktualne globalni a lokalni scope
+//                 globalni: vyreseny z pohledu jak funkci (viz vyse), tak z pohledu promennych (viz nize)
+//                 lokalni: pro kazdou funkci udrzovat
+
+
+                if(data->parser_in_local_scope == global)
+                {
+
+                    ht_item_t *swap = data->function_ID;
+                    data->function_ID = global_search_res;
+
+                    // check if all variables in function are defined
+                    if ((res = global_variables(lhs_identifier.string.str, 1)) != RET_OK)
+                    {
+                        return RET_SEMANTICAL_ERROR;
+                    }
+                    // for later check of params variable
+
+                    data->function_ID = swap;
+                }
+
+#endif // SEMANTICS
+
                 if ((res = call_param_list()) != RET_OK)
                     return res;
 
-                res = generate_function_call(&lhs_identifier.string);
-                RETURN_IF_ERR(res)
+
+                //call_predefined_function(&lhs_identifier);
+                if (strcmp(lhs_identifier.string.str, "print") == 0)
+                {
+
+                }
+
+                else
+                {
+                    res = generate_function_call(&lhs_identifier.string);
+                    RETURN_IF_ERR(res)
+
+                }
 
                 if ((res = read_eol(true)) != RET_OK)
                     return res;
@@ -709,6 +783,25 @@ statement()
         return RET_SYNTAX_ERROR;
     }
 }
+int
+call_predefined_function(token_t *identifier)
+{
+    // TODO don't forget about this
+    return RET_SEMANTICAL_ERROR;
+}
+
+bool
+is_predefined_function(token_t *identifier)
+{
+    if (strcmp(identifier->string.str, "print") == 0)
+    {
+        return true;
+    }
+
+    // TODO add other functions (see symtable_insert_predefined)
+
+    return false;
+}
 
 int
 assign_rhs()
@@ -724,33 +817,35 @@ assign_rhs()
 
     if (data->token->type == TOKEN_IDENTIFIER)
     {
-
-#ifdef SEMANTICS
-        // _SEM check if ID is defined
-
-        //ht_item_t *local_search_res = ht_search(data->local_sym_table, token_tmp.string.str);
-        ht_item_t *global_search_res = ht_search(data->global_sym_table, token_tmp.string.str);
-
-        /*if (local_search_res == NULL && global_search_res == NULL)
-        {
-            return RET_SEMANTICAL_ERROR;
-        }
-        else
-        {
-            // id is defined
-        }*/
-#endif // SEMANTICS
-
         GET_TOKEN()
 
         if (data->token->type == TOKEN_LEFT)
         {
 
 #ifdef SEMANTICS
+            ht_item_t *global_search_res = ht_search(data->global_sym_table, token_tmp.string.str);
+
+
             if (global_search_res == NULL)
             {
-                // id of function doesnt exist
-                return RET_SEMANTICAL_ERROR;
+                if(data->parser_in_local_scope == local)
+                {
+                    // function without definition can only be called from another function
+                    // not from global scope
+                    // (function must be defined later)
+
+                    // SEM: ADD TO SYMTABLE undefined
+                    data->ID->is_function = true;
+                    data->ID->is_defined = false;
+
+                    res = add_to_symtable(&data->token->string, global);
+                    RETURN_IF_ERR(res)
+                }
+                else
+                {
+                    // cannot call undefined function from global scope
+                    return RET_SEMANTICAL_ERROR;
+                }
             }
             else if (global_search_res->data->is_function == false)
             {
@@ -758,17 +853,29 @@ assign_rhs()
                 return RET_SEMANTICAL_ERROR;
             }
 
-            ht_item_t *swap = data->function_ID;
-            data->function_ID = global_search_res;
+            /**
+             odlisne kontroly existence funkci a promennych pro aktualne globalni a lokalni scope
 
-            // check if all variables in function are defined
-            if ((res = global_variables(token_tmp.string.str, 1)) != RET_OK)
+             globalni: vyreseny z pohledu jak funkci (viz vyse), tak z pohledu promennych (viz nize)
+
+             lokalni: pro kazdou funkci udrzovat
+
+             */
+            if(data->parser_in_local_scope == global)
             {
-                return RET_SEMANTICAL_ERROR;
-            }
-            // for later check of params variable
 
-            data->function_ID = swap;
+                ht_item_t *swap = data->function_ID;
+                data->function_ID = global_search_res;
+
+                // check if all variables in function are defined
+                if ((res = global_variables(token_tmp.string.str, 1)) != RET_OK)
+                {
+                    return RET_SEMANTICAL_ERROR;
+                }
+                // for later check of params variable
+
+                data->function_ID = swap;
+            }
 
 #endif // SEMANTICS
 
@@ -790,30 +897,15 @@ assign_rhs()
         }
         else
         {
-
-#ifdef SEMANTICS
-            /*if (global_search_res != NULL
-                && global_search_res->data->is_function == true) //ID is a defined function
-            {
-                return RET_SEMANTICAL_ERROR;
-            }*/
-#endif // SEMANTICS
-
             q_enqueue(&token_tmp, data->token_queue);
             q_enqueue(data->token, data->token_queue);
             data->use_queue_for_read = true;
 
-#ifdef PSA
+
             if ((res = (int) solve_exp(data)) != RET_OK)
             {
                 return res;
             }
-#else
-            if ((res = expression()) != RET_OK)
-            {
-                return res;
-            }
-#endif
 
             return RET_OK;
         }
@@ -823,17 +915,10 @@ assign_rhs()
         q_enqueue(&token_tmp, data->token_queue);
         data->use_queue_for_read = true;
 
-#ifdef PSA
         if ((res = (int) solve_exp(data)) != RET_OK)
         {
             return res;
         }
-#else
-        if ((res = expression()) != RET_OK)
-        {
-            return res;
-        }
-#endif
 
         return RET_OK;
     }
@@ -851,10 +936,14 @@ statement_global()
 
     GET_TOKEN()
 
-    if (data->token->type == TOKEN_EOF
-        || data->token->type == TOKEN_EOL)
+    if (data->token->type == TOKEN_EOF)
     {
         return RET_OK;
+    }
+    else if (data->token->type == TOKEN_EOL)
+    {
+        read_eol(false);
+        return statement_global();
     }
     else if (data->token->type == TOKEN_DEF)
     {

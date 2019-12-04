@@ -30,6 +30,8 @@ struct _struct_data_t
     bool parser_in_local_scope;
     int function_call_param_count;
 
+    token_queue_t* call_params;
+
 
     int get_token_res; // result of most-recent get_next_token
 
@@ -84,6 +86,8 @@ read_eol(bool check_for_first_eol);
  */
 int
 is_expression_start();
+
+// TODO missing javadocs
 
 /**
  * @brief
@@ -244,5 +248,14 @@ expression();
 
 int
 global_variables(char *str, int a);
+
+int
+symtable_insert_function(const char *identifier_arr, int param_count);
+
+bool
+is_predefined_function(token_t *identifier);
+
+int
+call_predefined_function(token_t *identifier);
 
 #endif //IFJ_2019__PARSER_H
