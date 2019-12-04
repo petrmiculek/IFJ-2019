@@ -256,10 +256,7 @@ check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type *final
                     data->ID->is_defined = false;
                     data->ID->is_function = false;
 
-                    if (RET_OK != (res = ht_insert(data->global_sym_table, sym1->sem_data.str, data->ID)))
-                    {
-                        return res;
-                    }
+                    
 
                     res = add_to_symtable(&sym1->sem_data, global);
                     RETURN_IF_ERR((res))
