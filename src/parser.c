@@ -59,7 +59,7 @@ parse(FILE *file)
     res = statement_global();
     RETURN_IF_ERR(res)
 
-//    res = check_all_functions_defined(data);
+    res = check_all_functions_defined(data);
 
     free_static_stack();
     // clear_data();
@@ -664,7 +664,7 @@ statement()
                         data->ID->is_function = true;
                         data->ID->is_defined = false;
 
-                        res = add_to_symtable(&data->token->string, global);
+                        res = add_to_symtable(&lhs_identifier.string, global);
                         RETURN_IF_ERR(res)
                     }
                     else
@@ -1526,23 +1526,18 @@ global_variables(char *str, int a)
     int i = data->function_ID->data->just_index - 1;
     ht_item_t *search_res;
     while (i >= 0)
-    {
-        if (strcmp(data->function_ID->data->global_variables[i], str) == 0)
+    {   
+        if (a == 1)
         {
-            if (a == 1)
-            {
-                search_res = ht_search(data->global_sym_table, data->function_ID->data->global_variables[i]);
-                if (search_res->data->is_defined == false)
-                {
-                    return RET_SEMANTICAL_ERROR;
-                }
-
-            }
-            else
+            search_res = ht_search(data->global_sym_table, data->function_ID->data->global_variables[i]);
+            if (search_res->data->is_defined == false)
             {
                 return RET_SEMANTICAL_ERROR;
             }
 
+        }else if (strcmp(data->function_ID->data->global_variables[i], str) == 0)
+        {
+            return RET_SEMANTICAL_ERROR;
         }
         i--;
     }
