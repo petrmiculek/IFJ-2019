@@ -506,6 +506,7 @@ generate_retype(sem_t op, int to)
         CODE_APPEND(" GF@")
         CODE_APPEND(op.sem_data.str)
         CODE_APPEND("\n")
+        return RET_OK;
     }
     else
     {
@@ -515,6 +516,7 @@ generate_retype(sem_t op, int to)
         CODE_APPEND(" GF@")
         CODE_APPEND(op.sem_data.str) 
         CODE_APPEND("\n")
+        return RET_OK;
     }
     
 

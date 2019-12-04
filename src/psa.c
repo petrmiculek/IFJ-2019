@@ -381,25 +381,33 @@ check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type *final
     if (retype_sym1_to_double)
     {
         //GENERATE_CODE(generate_stack_sym2_to_douboe);
-        generate_retype(*sym1, 1);
+        res = generate_retype(*sym1, 1);
+        if(res != RET_OK)
+            return res;
     }
 
     if (retype_sym3_to_double)
     {
         //GENERATE_CODE(generate_stack_sym1_to_double);
-        generate_retype(*sym3, 1);
+        res = generate_retype(*sym3, 1);
+        if(res != RET_OK)
+            return res;
     }
 
     if (retype_sym1_to_integer)
     {
         //GENERATE_CODE(generate_stack_sym2_to_inteoer);
-        generate_retype(*sym1, 0);
+        res = generate_retype(*sym1, 0);
+        if(res != RET_OK)
+            return res;
     }
 
     if (retype_sym3_to_integer)
     {
         //GENERATE_CODE(generate_stack_sym1_to_integer);
-        generate_retype(*sym3, 0);
+        res = generate_retype(*sym3, 0);
+        if(res != RET_OK)
+            return res;
     }
 
     return RET_OK;
@@ -792,7 +800,9 @@ solve_exp(data_t *data)
                     if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used, &result) == RET_INTERNAL_ERROR)
                         return RET_INTERNAL_ERROR;
 
-                    generate_operand(sym1.sem_data, result, sym1.type, frame);
+                    res = generate_operand(sym1.sem_data, result, sym1.type, frame);
+                    if(res != RET_OK)
+                        return res;
 
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
@@ -814,7 +824,9 @@ solve_exp(data_t *data)
                     if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used, &result) == RET_INTERNAL_ERROR)
                         return RET_INTERNAL_ERROR;
 
-                    generate_operation(sym3, sym1, result, rule);
+                    res = generate_operation(sym3, sym1, result, rule);
+                    if(res != RET_OK)
+                        return res;
 
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
@@ -873,7 +885,9 @@ solve_exp(data_t *data)
 
                 q_enqueue(data->token, data->token_queue);
                 data->use_queue_for_read = true;
-                generate_result(sym1);
+                res = generate_result(sym1);
+                if(res != RET_OK)
+                    return res;
                 return RET_OK;
             }
 
