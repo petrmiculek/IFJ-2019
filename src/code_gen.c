@@ -353,7 +353,7 @@ generate_function_param(string_t *identifier, int param_number)
 }
 
 int
-generate_operand(string_t operand, int tmp, unsigned int symbol)
+generate_operand(string_t operand, int tmp, unsigned int symbol, int frame)
 {
     CODE_APPEND(" MOVE ")
     CODE_APPEND("GL@%tmp_op")
@@ -396,6 +396,18 @@ generate_operand(string_t operand, int tmp, unsigned int symbol)
         }
         case OP_ID:
         {
+            //TODO 
+            if(frame == 1)
+                CODE_APPEND(" LF@")
+                CODE_APPEND(operand.str)
+                CODE_APPEND("\n")
+            else
+            {
+                CODE_APPEND(" GF@")
+                CODE_APPEND(operand.str)
+                CODE_APPEND("\n")
+            }
+            
                 return RET_OK;
         }
         default:
@@ -462,4 +474,99 @@ generate_result(sem_t result)
     CODE_APPEND(result.sem_data.str)
     CODE_APPEND("\n")
     return RET_OK;
+}
+
+int
+generate_retype(sem_t op, int to)
+{
+    if(to == 1) //to float
+    {
+        CODE_APPEND(" INT2FLOAT ")
+        CODE_APPEND("GF@")
+        CODE_APPEND(op.sem_data.str)
+        CODE_APPEND(" GF@")
+        CODE_APPEND(op.sem_data.str)
+        CODE_APPEND("\n")
+    }
+    else
+    {
+        CODE_APPEND(" FLOAT2INT ")
+        CODE_APPEND("GF@")
+        CODE_APPEND(op.sem_data.str)
+        CODE_APPEND(" GF@")
+        CODE_APPEND(op.sem_data.str) 
+        CODE_APPEND("\n")
+    }
+    
+
+}
+
+int
+generate_relop(sem_t op1, sem_t op2, int result, unsigned int rule)
+{
+    switch(rule)
+    {
+        case R_EA:
+        {
+            CODE_APPEND(" GT ")
+            break;
+        }
+        case R_A:
+        {
+            CODE_APPEND(" GT ")
+            break;
+        }
+        case R_EL:
+        {
+            CODE_APPEND(" LT ")
+            break;
+        }
+        case R_L:
+        {
+            CODE_APPEND(" LT ")
+            break;
+        }
+        case R_EQ:
+        {
+            CODE_APPEND(" EQ ")
+            break;
+        }
+        case R_NE:
+        {
+            CODE_APPEND(" EQ ")
+            break;
+        }
+        default:
+        {      
+           return RET_INTERNAL_ERROR;
+
+        }
+    
+    }
+    CODE_APPEND("GF@%tmp_op")
+    CODE_APPEND_VALUE(result)
+    CODE_APPEND(" GF@%")
+    CODE_APPEND(op1.sem_data.str)
+    if(rule != NE)
+    {
+        CODE_APPEND(" GF@%")
+        CODE_APPEND(op2.sem_data.str)
+        CODE_APPEND("\n")
+    }
+    else
+    {
+        CODE_APPEND("\n")
+    }
+    
+    if(rule == R_EA || rule == R_EL || rule == R_NE)
+    {
+        CODE_APPEND(" NOT ")
+        CODE_APPEND("GF@%tmp_op")
+        CODE_APPEND_VALUE(result)
+        CODE_APPEND(" GF@%tmp_op")
+        CODE_APPEND_VALUE(result)
+        CODE_APPEND("\n")
+
+    }
+    return RET_OK; 
 }

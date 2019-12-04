@@ -222,7 +222,7 @@ get_symbol(token_t *token, unsigned int *sym)
     return RET_SYNTAX_ERROR;
 }
 unsigned int
-check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type *final_type, data_t *data)
+check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type *final_type, data_t *data, int *frame)
 {
     bool retype_sym1_to_double = false;
     bool retype_sym3_to_double = false;
@@ -268,6 +268,11 @@ check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type *final
                     data->function_ID->data->just_index++;
                     // we have to add variable to function_ID structures
                 }
+                else if(local_search_res != NULL)
+                {
+                    *frame = 1;
+                }
+                
             }
             else // we are in global scope
             {
@@ -376,21 +381,25 @@ check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type *final
     if (retype_sym1_to_double)
     {
         //GENERATE_CODE(generate_stack_sym2_to_douboe);
+        generate_retype(*sym1, 1);
     }
 
     if (retype_sym3_to_double)
     {
         //GENERATE_CODE(generate_stack_sym1_to_double);
+        generate_retype(*sym3, 1);
     }
 
     if (retype_sym1_to_integer)
     {
         //GENERATE_CODE(generate_stack_sym2_to_inteoer);
+        generate_retype(*sym1, 0);
     }
 
     if (retype_sym3_to_integer)
     {
         //GENERATE_CODE(generate_stack_sym1_to_integer);
+        generate_retype(*sym3, 0);
     }
 
     return RET_OK;
@@ -670,7 +679,7 @@ solve_exp(data_t *data)
         return res;
     while (1)
     {
-
+        int frame = 0;
         unsigned int sym = 0;
         if (get_symbol(data->token, &sym) == RET_SYNTAX_ERROR)
             return RET_SYNTAX_ERROR;
@@ -774,7 +783,7 @@ solve_exp(data_t *data)
                 {
                     sym1 = Stack->atr[i];
 
-                    if ((res = check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data)) != RET_OK)
+                    if ((res = check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data, &frame)) != RET_OK)
                         return res;
 
                     new.type = EXP;
@@ -783,7 +792,7 @@ solve_exp(data_t *data)
                     if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used, &result) == RET_INTERNAL_ERROR)
                         return RET_INTERNAL_ERROR;
 
-                    generate_operand(sym1.sem_data, result, sym1.type);
+                    generate_operand(sym1.sem_data, result, sym1.type, frame);
 
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
@@ -796,7 +805,7 @@ solve_exp(data_t *data)
                     sym2 = Stack->atr[i - 1];
                     sym3 = Stack->atr[i - 2];
 
-                    if ((res = check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data)) != RET_OK)
+                    if ((res = check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data, &frame)) != RET_OK)
                         return res;
 
                     new.type = EXP;
@@ -817,7 +826,7 @@ solve_exp(data_t *data)
                 {
                     new = Stack->atr[i - 1];
 
-                    if ((res = check_semantics(rule, &new, &sym2, &sym3, &finaltype, data)) != RET_OK)
+                    if ((res = check_semantics(rule, &new, &sym2, &sym3, &finaltype, data, &frame)) != RET_OK)
                         return res;
 
                     stack_expr_pop(Stack);
@@ -832,55 +841,16 @@ solve_exp(data_t *data)
                     sym2 = Stack->atr[i - 1];
                     sym3 = Stack->atr[i - 2];
 
-                    if ((res = check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data)) != RET_OK)
+                    if ((res = check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data, &frame)) != RET_OK)
                         return res;
 
                     new.type = EXP;
                     new.d_type = finaltype;
-/*
-                    switch(rule)
-                    {
-                        case R_EA:
-                        {
-                            generate_ea
-                            break;
-                        }
-                        case R_A:
-                        {
-                            generate_a
-                            break;
-                        }
-                        case R_L:
-                        {
-                            generate_l
-                            break;
-                        }
-                        case R_EL:
-                        {
-                            generate_el
-                            break;
-                        }
-                        case R_EQ:
-                        {
-                            generate_eq
-                            break;
-                        }
-                        case R_NE:
-                        {
-                            generate_ne
-                            break;
-                        }
-                        default:
-                        {
-                            return RET_INTERNAL_ERROR;
-                            break;
-                        }
-                    }
-*/
 
                     if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used, &result) == RET_INTERNAL_ERROR)
                         return RET_INTERNAL_ERROR;
-
+                    
+                    generate_relop(sym1, sym3,result, rule);
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
