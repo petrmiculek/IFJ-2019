@@ -62,7 +62,7 @@ typedef enum rules
 } rules;
 
 unsigned int
-check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type *final_type, data_t *data);
+check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type *final_type, data_t *data, int *frame);
 
 unsigned int
 tmp_var();
