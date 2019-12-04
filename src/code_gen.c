@@ -217,6 +217,7 @@ insert_built_in_functions()
 
     return RET_OK;
 }
+
 int
 generate_var_declare(char *var_id)
 {
@@ -225,8 +226,8 @@ generate_var_declare(char *var_id)
     CODE_APPEND("\n");
 
     return RET_OK;
-
 }
+
 int
 generate_file_header()
 {
@@ -241,6 +242,7 @@ generate_main_scope_start()
 
     return RET_OK;
 }
+
 int
 generate_main_scope_end()
 {
@@ -248,6 +250,7 @@ generate_main_scope_end()
 
     return RET_OK;
 }
+
 int
 generate_function_start(char *function_id)
 {
@@ -265,6 +268,7 @@ generate_function_start(char *function_id)
 
     return RET_OK;
 }
+
 int
 generate_function_end(char *function_id)
 {
@@ -351,7 +355,6 @@ generate_function_param(int param_number, string_t *identifier, bool scope)
     CODE_APPEND_VALUE(param_number)
     CODE_APPEND("\n")
 
-
     CODE_APPEND("MOVE TF@%")
     CODE_APPEND_VALUE(param_number)
     CODE_APPEND(" ")
@@ -421,11 +424,9 @@ generate_operand(string_t operand, int tmp, unsigned int symbol)
             break;
     }
     return RET_INTERNAL_ERROR;
-    
 }
 
-
-int 
+int
 generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule)
 {
     switch(rule)
@@ -456,11 +457,10 @@ generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule)
             break;
         }
         default:
-        {      
+        {
            return RET_INTERNAL_ERROR;
-
         }
-    
+
     }
     CODE_APPEND("GF@%tmp_op")
     CODE_APPEND_VALUE(result)

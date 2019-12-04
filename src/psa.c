@@ -256,11 +256,6 @@ check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type *final
                     data->ID->is_defined = false;
                     data->ID->is_function = false;
 
-                    if (RET_OK != (res = ht_insert(data->global_sym_table, sym1->sem_data.str, data->ID)))
-                    {
-                        return res;
-                    }
-
                     res = add_to_symtable(&sym1->sem_data, global);
                     RETURN_IF_ERR((res))
 
@@ -515,7 +510,7 @@ tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3, int *result)
         {
             *result = 1;
             *tmp1 = 1;
-            
+
             return RET_OK;
         }
     }
@@ -530,7 +525,7 @@ tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3, int *result)
         {
             *result = 2;
             *tmp2 = 1;
-            
+
             return RET_OK;
         }
     }
@@ -546,7 +541,7 @@ tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3, int *result)
         {
             *result = 1;
             *tmp1 = 1;
-            
+
             return RET_OK;
         }
     }
@@ -561,7 +556,7 @@ tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3, int *result)
         {
             *result = 1;
             *tmp1 = 1;
-            
+
             return RET_OK;
         }
     }
@@ -578,7 +573,7 @@ tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3, int *result)
             *tmp3 = 1;
             *tmp1 = 0;
             *tmp2 = 0;
-            
+
             return RET_OK;
         }
     }
@@ -658,7 +653,7 @@ solve_exp(data_t *data)
 
     get_next_token();
     RETURN_IF_ERR(data->get_token_res)
-    
+
     sem_t sym1;
     sem_t sym2;
     sem_t sym3;
@@ -790,7 +785,7 @@ solve_exp(data_t *data)
                     stack_expr_push(Stack, new);
                 }
                 else if (rule == R_PLUS || rule == R_MIN || rule == R_MUL || rule == R_DIV
-                    || rule == R_IDIV) 
+                    || rule == R_IDIV)
                 {
                     sym1 = Stack->atr[i];
                     sym2 = Stack->atr[i - 1];
