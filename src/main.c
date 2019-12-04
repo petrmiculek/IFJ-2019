@@ -5,15 +5,15 @@
             xsetin00 (Setinský Jiří)
             xsisma01 (Šišma Vojtěch)
  */
-#include "scanner.h"
-#include "my_string.h"
+
 #include "parser.h"
 #include "err.h"
-#include <stdlib.h>
 #include <stdio.h>
 
 //#define file_input 1234098
-#define output
+
+// TODO factorial2.py
+
 int
 main(int argc, char **argv)
 {
@@ -39,11 +39,6 @@ main(int argc, char **argv)
             return res;
     #endif
     res = parse(stdin);
-#endif
-
-#ifdef output
-    if(res == RET_OK)
-        printf("%s", code.str);
 #endif
     return res;
 }
