@@ -61,7 +61,7 @@ parse(FILE *file)
     res = statement_global();
     RETURN_IF_ERR(res)
 
-//    res = check_all_functions_defined(data);
+    res = check_all_functions_defined(data);
 
     free_static_stack();
     // clear_data();
@@ -619,36 +619,7 @@ statement()
             {
                 // STATEMENT -> id ( CALL_PARAM_LIST eol
                 // check if function id is defined
-/*
-#ifdef SEMANTICS
-                ht_item_t *global_search_res = ht_search(data->global_sym_table, lhs_identifier.string.str);
-                ht_item_t *local_search_res = ht_search(data->local_sym_table, lhs_identifier.string.str);
 
-                if ((global_search_res != NULL && global_search_res->data->is_function == false)
-                    || local_search_res != NULL)
-                {
-                    // why check local scope?
-                    // local variable name cannot be the same as a name of a function
-
-                    return RET_SEMANTICAL_ERROR;
-                }
-
-                if (data->parser_in_local_scope == local && global_search_res == NULL)
-                {
-                    // function without definition can only be called from another function
-                    // not from global scope
-                    // (function must be defined later)
-
-                    // SEM: ADD TO SYMTABLE undefined
-                    data->ID->is_function = true;
-                    data->ID->is_defined = false;
-
-                    res = add_to_symtable(&lhs_identifier.string, global);
-                    RETURN_IF_ERR(res)
-                }
-
-#endif // SEMANTICS
-*/
 
 #ifdef SEMANTICS
                 ht_item_t *global_search_res = ht_search(data->global_sym_table, lhs_identifier.string.str);
@@ -666,7 +637,7 @@ statement()
                         data->ID->is_function = true;
                         data->ID->is_defined = false;
 
-                        res = add_to_symtable(&data->token->string, global);
+                        res = add_to_symtable(&lhs_identifier.string, global);
                         RETURN_IF_ERR(res)
                     }
                     else
@@ -855,14 +826,6 @@ assign_rhs()
                 return RET_SEMANTICAL_ERROR;
             }
 
-            /**
-             odlisne kontroly existence funkci a promennych pro aktualne globalni a lokalni scope
-
-             globalni: vyreseny z pohledu jak funkci (viz vyse), tak z pohledu promennych (viz nize)
-
-             lokalni: pro kazdou funkci udrzovat
-
-             */
             if(data->parser_in_local_scope == global)
             {
 
@@ -1528,23 +1491,18 @@ global_variables(char *str, int a)
     int i = data->function_ID->data->just_index - 1;
     ht_item_t *search_res;
     while (i >= 0)
-    {
-        if (strcmp(data->function_ID->data->global_variables[i], str) == 0)
+    {   
+        if (a == 1)
         {
-            if (a == 1)
-            {
-                search_res = ht_search(data->global_sym_table, data->function_ID->data->global_variables[i]);
-                if (search_res->data->is_defined == false)
-                {
-                    return RET_SEMANTICAL_ERROR;
-                }
-
-            }
-            else
+            search_res = ht_search(data->global_sym_table, data->function_ID->data->global_variables[i]);
+            if (search_res->data->is_defined == false)
             {
                 return RET_SEMANTICAL_ERROR;
             }
 
+        }else if (strcmp(data->function_ID->data->global_variables[i], str) == 0)
+        {
+            return RET_SEMANTICAL_ERROR;
         }
         i--;
     }

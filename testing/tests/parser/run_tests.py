@@ -19,8 +19,8 @@ else:
 # binary = "test_bin"
 binary = "compiler"
 
-#input_dir = "snippets"
-input_dir = "kamil_snippets"
+input_dir = "snippets"
+#input_dir = "kamil_snippets"
 
 dir = os.listdir(main_dir + input_dir)
 dir.sort()

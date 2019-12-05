@@ -206,7 +206,7 @@ check_all_functions_defined(void *data_void)
         while (tmp != NULL)
         {
             // TODO zkusit zmenu: kontrolovat i promenne, ne jen funkce
-            if(tmp->data && tmp->data->is_function == true && tmp->data->is_defined == false)
+            if(tmp->data && tmp->data->is_defined == false)
             {
                 fprintf(stderr, "%s, %u: undefined function (%s)\n", __func__, __LINE__, tmp->key);
                 return RET_SEMANTICAL_ERROR; // missing function definition
