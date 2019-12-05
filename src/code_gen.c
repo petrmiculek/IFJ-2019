@@ -52,6 +52,43 @@ do {                                                     \
 "\n POPFRAME"\
 "\n CLEARS"\
 
+#define CONVERT_TO_BOOL \
+"\n LABEL convert%to%bool"\
+"\n PUSHFRAME"\
+"\n CREATEFRAME"\
+"\n DEFVAR TF@compare"\
+"\n TYPE TF@compare GF@exp_result"\
+"\n JUMPIFEQ exp_result%is%string TF@compare string@string"\
+"\n JUMPIFEQ exp_result%is%int TF@compare string@int"\
+"\n JUMPIFEQ exp_result%is%float TF@compare string@float"\
+"\n JUMPIFEQ convert%to%bool%end TF@compare string@bool"\
+"\n #exp_result is nil"\
+"\n MOVE GF@exp_result bool@false"\
+"\n JUMP convert%to%bool%end"\
+\
+"\n LABEL exp_result%is%string"\
+"\n JUMPIFNEQ result%true  GF@%exp_result string@"\
+"\n MOVE GF@exp_result bool@false"\
+"\n JUMP convert%to%bool%end"\
+\
+"\n LABEL exp_result%is%int"\
+"\n JUMPIFNEQ result%true  GF@%exp_result int@0"\
+"\n MOVE GF@exp_result bool@false"\
+"\n JUMP convert%to%bool%end"\
+\
+"\n LABEL exp_result%is%float"\
+"\n JUMPIFNEQ result%true  GF@%exp_result float@0.0"\
+"\n MOVE GF@exp_result bool@false"\
+"\n JUMP convert%to%bool%end"\
+\
+"\n LABEL result%true"\
+"\n MOVE GF@exp_result bool@true"\
+\
+"\n LABEL convert%to%bool%end"\
+"\n LABEL POPFRAME"\
+"\n LABEL RETURN"\
+
+
 #define BUILT_IN_FUNCTIONS \
  "\n# Built-in function Ord"\
  "\n LABEL $ord"\
@@ -217,7 +254,13 @@ insert_built_in_functions()
 
     return RET_OK;
 }
+int
+insert_convert_to_bool_function()
+{
+    CODE_APPEND_AND_EOL(CONVERT_TO_BOOL)
 
+    return RET_OK;
+}
 int
 generate_var_declare(char *var_id)
 {
@@ -226,8 +269,8 @@ generate_var_declare(char *var_id)
     CODE_APPEND("\n");
 
     return RET_OK;
-}
 
+}
 int
 generate_file_header()
 {
@@ -242,7 +285,6 @@ generate_main_scope_start()
 
     return RET_OK;
 }
-
 int
 generate_main_scope_end()
 {
@@ -250,7 +292,6 @@ generate_main_scope_end()
 
     return RET_OK;
 }
-
 int
 generate_function_start(char *function_id)
 {
@@ -268,7 +309,6 @@ generate_function_start(char *function_id)
 
     return RET_OK;
 }
-
 int
 generate_function_end(char *function_id)
 {
@@ -418,7 +458,7 @@ generate_operand(string_t operand, int tmp, unsigned int symbol, int frame)
         }
         case OP_ID:
         {
-            //TODO 
+            //TODO
             if(frame == 1)
                 CODE_APPEND(" LF@")
                 CODE_APPEND(operand.str)
@@ -429,16 +469,18 @@ generate_operand(string_t operand, int tmp, unsigned int symbol, int frame)
                 CODE_APPEND(operand.str)
                 CODE_APPEND("\n")
             }
-            
+
                 return RET_OK;
         }
         default:
             break;
     }
     return RET_INTERNAL_ERROR;
+    
 }
 
-int
+
+int 
 generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule)
 {
     switch(rule)
@@ -469,10 +511,11 @@ generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule)
             break;
         }
         default:
-        {
+        {      
            return RET_INTERNAL_ERROR;
-        }
 
+        }
+    
     }
     CODE_APPEND("GF@%tmp_op")
     CODE_APPEND_VALUE(result)
@@ -514,11 +557,11 @@ generate_retype(sem_t op, int to)
         CODE_APPEND("GF@")
         CODE_APPEND(op.sem_data.str)
         CODE_APPEND(" GF@")
-        CODE_APPEND(op.sem_data.str) 
+        CODE_APPEND(op.sem_data.str)
         CODE_APPEND("\n")
         return RET_OK;
     }
-    
+
 
 }
 
@@ -558,11 +601,11 @@ generate_relop(sem_t op1, sem_t op2, int result, unsigned int rule)
             break;
         }
         default:
-        {      
+        {
            return RET_INTERNAL_ERROR;
 
         }
-    
+
     }
     CODE_APPEND("GF@%tmp_op")
     CODE_APPEND_VALUE(result)
@@ -578,7 +621,7 @@ generate_relop(sem_t op1, sem_t op2, int result, unsigned int rule)
     {
         CODE_APPEND("\n")
     }
-    
+
     if(rule == R_EA || rule == R_EL || rule == R_NE)
     {
         CODE_APPEND(" NOT ")

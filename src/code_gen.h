@@ -23,6 +23,9 @@ int
 insert_built_in_functions();
 
 int
+insert_convert_to_bool_function();
+
+int
 generate_var_declare(char *var_id);
 
 int

@@ -51,6 +51,8 @@ parse(FILE *file)
     RETURN_IF_ERR(res)
     insert_built_in_functions();
     RETURN_IF_ERR(res)
+    res = insert_convert_to_bool_function();
+    RETURN_IF_ERR(res)
     generate_main_scope_start();
     RETURN_IF_ERR(res)
 
