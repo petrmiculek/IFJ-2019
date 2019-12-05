@@ -325,7 +325,7 @@ check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type *final
                 retype_sym3_to_double = true;
 
             break;
-
+            
         case R_DIV: *final_type = FLOAT;
 
             if (sym1->d_type == STRING || sym3->d_type == STRING)
@@ -373,6 +373,15 @@ check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type *final
         default: break;
     }
 
+    // any operand is id, so we need to generate runtime type check
+    if(sym1->type == OP_ID || sym3->type == OP_ID)
+    {                
+        if ((res=typecheck(sym1, sym3, rule))!= RET_OK)
+        {
+            return res;
+        }
+    }
+    
     if (retype_sym1_to_double)
     {
         //GENERATE_CODE(generate_stack_sym2_to_douboe);

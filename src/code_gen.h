@@ -69,4 +69,12 @@ generate_retype(sem_t op, int to);
 
 int
 generate_relop(sem_t op1, sem_t op2, int result, unsigned int rule);
+
+int
+typecheck(sem_t *op1, sem_t *op2, unsigned int rule);
+
+int
+DEFVAR_TYPE(sem_t *op);
+
 #endif // HEADER_CODE_GEN
+

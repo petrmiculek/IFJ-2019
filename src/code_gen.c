@@ -593,15 +593,41 @@ generate_relop(sem_t op1, sem_t op2, int result, unsigned int rule)
 }
 
 int
-typecheck(sem_t op1, sem_t op2, int result, unsigned int rule)
+typecheck(sem_t *op1, sem_t *op2, unsigned int rule)
 {   
+    int res;
     switch (rule)
     {
-    case R_I:
-        /* code */
-        break;
     case R_PLUS:
-        /* code */
+        if(op1->type == OP_ID && op2->type == OP_ID) // both operators are variables
+        {
+            if ((res=DEFVAR_TYPE(op1)) != RET_OK)
+            {
+                return res;
+            }
+        
+            if ((res=DEFVAR_TYPE(op1)) != RET_OK)
+            {
+                return res;
+            }
+
+        }
+        else if (op1->type == OP_ID) // op1 is ID
+        {
+            if ((res=DEFVAR_TYPE(op1)) != RET_OK)
+            {
+                return res;
+            }
+
+        }
+        else // op2 is ID
+        {
+            if ((res=DEFVAR_TYPE(op2)) != RET_OK)
+            {
+                return res;
+            }
+        }
+        
         break;
     case R_MIN:
         /* code */
@@ -637,4 +663,20 @@ typecheck(sem_t op1, sem_t op2, int result, unsigned int rule)
     default:
         break;
     }
+    return RET_OK;
+}
+
+int
+DEFVAR_TYPE(sem_t *op)
+{
+    CODE_APPEND("DEFVAR LF@$");
+    CODE_APPEND(op->sem_data.str);
+    CODE_APPEND_AND_EOL("$type");
+    CODE_APPEND("TYPE LF@");
+    CODE_APPEND(op->sem_data.str);
+    CODE_APPEND("$type");
+    CODE_APPEND("LF@");
+    CODE_APPEND(op->sem_data.str);
+    CODE_APPEND("\n");
+    return RET_OK;
 }
