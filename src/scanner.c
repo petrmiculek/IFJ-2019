@@ -346,6 +346,12 @@ get_token(token_t *token, FILE *file)
                 {
                     state = STATE_BASE_O;
                 }
+                else if (read == '.')
+                {
+                    APPEND('0')
+                    APPEND(read)
+                    state = STATE_FLOAT;
+                }
                 else if (read == 'x' || read == 'X')
                 {
                     state = STATE_BASE_X;
