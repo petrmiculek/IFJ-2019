@@ -46,19 +46,19 @@ typedef enum
 
 typedef enum rules
 {
-    R_I,
-    R_PLUS,
-    R_MIN,
-    R_MUL,
-    R_DIV,
-    R_IDIV,
-    R_A,
-    R_EA,
-    R_L,
-    R_EL,
-    R_EQ,
-    R_NE,
-    R_BRACKETS
+    R_I,        //E=i
+    R_PLUS,     //E=E+E
+    R_MIN,      //E=E-E
+    R_MUL,      //E=E*E
+    R_DIV,      //E=E/E
+    R_IDIV,     //E=E/E
+    R_A,        //E=E>E
+    R_EA,       //E=E=>E
+    R_L,        //E=E<E
+    R_EL,       //E=E=<E
+    R_EQ,       //E=E==E
+    R_NE,       //E=E!=E
+    R_BRACKETS  //E=(E)
 } rules;
 
 unsigned int

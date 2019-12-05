@@ -591,3 +591,50 @@ generate_relop(sem_t op1, sem_t op2, int result, unsigned int rule)
     }
     return RET_OK; 
 }
+
+int
+typecheck(sem_t op1, sem_t op2, int result, unsigned int rule)
+{   
+    switch (rule)
+    {
+    case R_I:
+        /* code */
+        break;
+    case R_PLUS:
+        /* code */
+        break;
+    case R_MIN:
+        /* code */
+        break;
+    case R_MUL:
+        /* code */
+        break;
+    case R_DIV:
+        /* code */
+        break;
+    case R_IDIV:
+        /* code */
+        break;
+    case R_A:
+        /* code */
+        break;
+    case R_EA:
+        /* code */
+        break;
+    case R_EQ:
+        /* code */
+        break;
+    case R_L:
+        /* code */
+        break;
+    case R_EL:
+        /* code */
+        break;
+    case R_NE:
+        /* code */
+        break;
+    
+    default:
+        break;
+    }
+}
