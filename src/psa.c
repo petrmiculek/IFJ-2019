@@ -292,10 +292,24 @@ check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type *final
 
     switch (rule)
     {
-        case R_I:*final_type = sym1->d_type;
-            break;
-
-        case R_BRACKETS:*final_type = sym2->d_type;
+        case R_I:
+        case R_BRACKETS:
+            if (sym1->type == OP_INT)
+            {   
+                *final_type = INT;
+            }
+            else if (sym1->type == OP_FLOAT)
+            {
+                *final_type = FLOAT;
+            }
+            else if (sym1->type == OP_STR)
+            {
+                *final_type = STRING;
+            }else
+            {
+                *final_type = UNDEFINED;
+            }
+                      
             break;
 
         case R_PLUS:
@@ -406,8 +420,10 @@ check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type *final
             return res;
     }
 
+    
     // we need to generate runtime type check
-    if ((res=typecheck(sym1, sym3, rule))!= RET_OK)
+    // TODO some frame
+    if ((res=typecheck(sym1, sym3, rule /*frame*/))!= RET_OK)
     {
         return res;
     }
