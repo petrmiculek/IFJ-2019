@@ -486,6 +486,18 @@ get_token(token_t *token, FILE *file)
                     state = STATE_EOL_SP;
                     break;
                 }
+                else if (read == '#')
+                {
+                    spaces_num = -1;
+                    state = STATE_COMMENT;
+                    break;
+                }
+                else if (read == '"')
+                {
+                    spaces_num = -1;
+                    state = STATE_BLOCK1;
+                    break;
+                }
                 else
                 {
                     if (read < 33)
@@ -510,6 +522,12 @@ get_token(token_t *token, FILE *file)
                 {
                     spaces_num = -1;
                     state = STATE_COMMENT;
+                    break;
+                }
+                else if (read == '"')
+                {
+                    spaces_num = -1;
+                    state = STATE_BLOCK1;
                     break;
                 }
                 else
