@@ -145,7 +145,6 @@
 	RETURN													
 
     LABEL $$main
-    
 #testord
     DEFVAR GF@a
     CREATEFRAME

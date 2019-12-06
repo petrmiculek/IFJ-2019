@@ -355,7 +355,7 @@ get_token(token_t *token, FILE *file)
                 {
                     state = STATE_BASE_X;
                 }
-                else if('0' <= read && read <= '9')
+                else if ('0' <= read && read <= '9')
                 {
                     RETURN_ERR
                 }
@@ -377,14 +377,14 @@ get_token(token_t *token, FILE *file)
                 }
                 else if (read == '_')
                 {
-                    if(!token->string.length)
+                    if (!token->string.length)
                         RETURN_ERR
                     state = STATE_BASE_B_U;
                     break;
                 }
                 else
                 {
-                    if(token->string.length == 0)
+                    if (token->string.length == 0)
                         RETURN_ERR
                     sprintf(token->string.str, "%ld", strtol(token->string.str, NULL, 2));
                     append_c_string_to_string(&token->string, token->string.str);
@@ -401,14 +401,14 @@ get_token(token_t *token, FILE *file)
                 }
                 else if (read == '_')
                 {
-                    if(!token->string.length)
+                    if (!token->string.length)
                         RETURN_ERR
                     state = STATE_BASE_O_U;
                     break;
                 }
                 else
                 {
-                    if(!token->string.length)
+                    if (!token->string.length)
                         RETURN_ERR
                     sprintf(token->string.str, "%ld", strtol(token->string.str, NULL, 8));
                     append_c_string_to_string(&token->string, token->string.str);
@@ -427,14 +427,14 @@ get_token(token_t *token, FILE *file)
                 }
                 else if (read == '_')
                 {
-                    if(!token->string.length)
+                    if (!token->string.length)
                         RETURN_ERR
                     state = STATE_BASE_X_U;
                     break;
                 }
                 else
                 {
-                    if(token->string.length == 0)
+                    if (token->string.length == 0)
                         RETURN_ERR
                     sprintf(token->string.str, "%ld", strtol(token->string.str, NULL, 16));
                     append_c_string_to_string(&token->string, token->string.str);

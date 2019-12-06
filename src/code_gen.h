@@ -75,13 +75,13 @@ int
 generate_relop(sem_t op1, sem_t op2, int result, unsigned int rule);
 
 int
-typecheck(sem_t *op1, sem_t *op2, unsigned int rule);
+typecheck(sem_t *op1, sem_t *op2, unsigned int rule, int result);
 
 int
 defvar_type(sem_t *op);
 
 int
-compiler_ret_value_comment (int retval);
+compiler_ret_value_comment(int retval);
 
 int
 generate_move_exp_result_to_variable(token_t *token, data_t *data);

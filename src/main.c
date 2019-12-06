@@ -31,11 +31,11 @@ main(int argc, char **argv)
     int res = parse(file);
 #else
     int res = 0;
-    #ifdef output
-        string_t code;
-        if((res = (init_string(&code)) != RET_OK))
-            return res;
-    #endif
+#ifdef output
+    string_t code;
+    if((res = (init_string(&code)) != RET_OK))
+        return res;
+#endif
     res = parse(stdin);
 #endif
     return res;

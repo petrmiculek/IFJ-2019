@@ -16,7 +16,6 @@
 unsigned int
 get_symbol(token_t *token, unsigned int *sym);
 
-
 #define EXP 42
 #define SHIFT 21
 
@@ -42,7 +41,7 @@ typedef enum
     DOLAR,
     L_BRAC,
     R_BRAC
-}table_symbol;
+} table_symbol;
 
 typedef enum rules
 {
@@ -62,7 +61,7 @@ typedef enum rules
 } rules;
 
 unsigned int
-check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type *final_type, data_t *data, int *frame);
+check_semantics(rules rule, sem_t *sym1, int result, sem_t *sym3, d_type *final_type, data_t *data, int *frame);
 
 unsigned int
 tmp_var();

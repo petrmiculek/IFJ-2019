@@ -46,6 +46,8 @@ do {                                                     \
 "\n DEFVAR GF@%tmp_op1"\
 "\n DEFVAR GF@%tmp_op2"\
 "\n DEFVAR GF@%tmp_op3"\
+"\n DEFVAR GF@%tmp_op1$type"\
+"\n DEFVAR GF@%tmp_op2$type"\
 "\n DEFVAR GF@%exp_result"\
 "\n JUMP $$main"\
 
@@ -194,7 +196,7 @@ do {                                                     \
  "\n LABEL $substr"\
  "\n PUSHFRAME"\
  "\n DEFVAR LF@%retval"\
- "\n MOVE LF@%retval string@" /* TODO string@what? */  \
+ "\n MOVE LF@%retval"\
  "\n DEFVAR LF@length_str"\
  "\n CREATEFRAME"\
  "\n DEFVAR TF@%0"\
@@ -240,6 +242,89 @@ do {                                                     \
  "\n LABEL $substr$return"\
  "\n POPFRAME"\
  "\n RETURN"\
+ 
+#define SEMANTICS_FUNCTIONS \
+ "\n # semantic_plus"\
+ "\n LABEL $semantics_runtime_check_plus"\
+ "\n PUSHFRAME"\
+ "\n DEFVAR LF@%retval"\
+ "\n DEFVAR LF@op1_type"\
+ "\n MOVE LF@op1_type LF@%1"\
+ "\n DEFVAR LF@op2_type"\
+ "\n MOVE LF@op2_type LF@%2"\
+ "\n DEFVAR LF@op1"\
+ "\n MOVE LF@op1 LF@%3"\
+ "\n DEFVAR LF@op2"\
+ "\n MOVE LF@op2 LF@%4"\
+ "\n JUMPIFEQ $OK LF@op1_type LF@op2_type"\
+ "\n LABEL $OK"\
+ "\n JUMPIFEQ $CONCAT LF@op1_type string@string"\
+ "\n ADD LF@%retval LF@op1 LF@op2"\
+ "\n LABEL $CONCAT"\
+ "\n CONCAT LF@%retval LF@op1 LF@op2"\
+ "\n LABEL $RET"\
+ "\n POPFRAME"\
+ "\n RETURN"\
+ \
+ "\n # semantic_min"\
+ "\n LABEL $semantics_runtime_check_min"\
+ "\n PUSHFRAME"\
+ "\n DEFVAR LF@%retval"\
+ "\n DEFVAR LF@op1_type"\
+ "\n MOVE LF@op1_type LF@%1"\
+ "\n DEFVAR LF@op2_type"\
+ "\n MOVE LF@op2_type LF@%2"\
+ "\n DEFVAR LF@op1"\
+ "\n MOVE LF@op1 LF@%3"\
+ "\n DEFVAR LF@op2"\
+ "\n MOVE LF@op2 LF@%4"\
+ "\n POPFRAME"\
+ "\n RETURN"\
+ \
+ "\n # semantic_mul"\
+ "\n LABEL $semantics_runtime_check_mul"\
+ "\n PUSHFRAME"\
+ "\n DEFVAR LF@%retval"\
+ "\n DEFVAR LF@op1_type"\
+ "\n MOVE LF@op1_type LF@%1"\
+ "\n DEFVAR LF@op2_type"\
+ "\n MOVE LF@op2_type LF@%2"\
+ "\n DEFVAR LF@op1"\
+ "\n MOVE LF@op1 LF@%3"\
+ "\n DEFVAR LF@op2"\
+ "\n MOVE LF@op2 LF@%4"\
+ "\n POPFRAME"\
+ "\n RETURN"\
+ \
+ "\n # semantic_div"\
+ "\n LABEL $semantics_runtime_check_div"\
+ "\n PUSHFRAME"\
+ "\n DEFVAR LF@%retval"\
+ "\n DEFVAR LF@op1_type"\
+ "\n MOVE LF@op1_type LF@%1"\
+ "\n DEFVAR LF@op2_type"\
+ "\n MOVE LF@op2_type LF@%2"\
+ "\n DEFVAR LF@op1"\
+ "\n MOVE LF@op1 LF@%3"\
+ "\n DEFVAR LF@op2"\
+ "\n MOVE LF@op2 LF@%4"\
+ "\n POPFRAME"\
+ "\n RETURN"\
+ \
+ "\n # semantic_idiv"\
+ "\n LABEL $semantics_runtime_check_idiv"\
+ "\n PUSHFRAME"\
+ "\n DEFVAR LF@%retval"\
+ "\n DEFVAR LF@op1_type"\
+ "\n MOVE LF@op1_type LF@%1"\
+ "\n DEFVAR LF@op2_type"\
+ "\n MOVE LF@op2_type LF@%2"\
+ "\n DEFVAR LF@op1"\
+ "\n MOVE LF@op1 LF@%3"\
+ "\n DEFVAR LF@op2"\
+ "\n MOVE LF@op2 LF@%4"\
+ "\n POPFRAME"\
+ "\n RETURN"\
 
 string_t code;
 
@@ -259,6 +344,7 @@ int
 insert_built_in_functions()
 {
     CODE_APPEND_AND_EOL(BUILT_IN_FUNCTIONS)
+    CODE_APPEND_AND_EOL(SEMANTICS_FUNCTIONS)
 
     return RET_OK;
 }
@@ -375,6 +461,8 @@ generate_unique_identifier(const char *prefix_scope, const char *prefix_type)
     return dest;
 }
 
+// token_t chenge to strint_t please
+
 int
 append_identifier(const token_t *token, const data_t *data)
 {
@@ -419,48 +507,47 @@ append_identifier(const token_t *token, const data_t *data)
 }
 
 int
-generate_write(token_t *token, data_t* data)
+generate_write(token_t *token, data_t *data)
 {
     int res;
 
     CODE_APPEND("WRITE ")
 
-    if(token->type == TOKEN_IDENTIFIER)
+    if (token->type == TOKEN_IDENTIFIER)
     {
-        if((res = append_identifier(token, data)) != RET_OK)
+        if ((res = append_identifier(token, data)) != RET_OK)
         {
             return res;
         }
     }
-    else if(token->type == TOKEN_INT)
+    else if (token->type == TOKEN_INT)
     {
         CODE_APPEND("int@")
         CODE_APPEND(token->string.str)
     }
-    else if(token->type == TOKEN_LIT
+    else if (token->type == TOKEN_LIT
         || token->type == TOKEN_DOC)
     {
         CODE_APPEND("string@")
         CODE_APPEND(token->string.str)
     }
-    else if(token->type == TOKEN_FLOAT)
+    else if (token->type == TOKEN_FLOAT)
     {
         CODE_APPEND("float@")
         CODE_APPEND_AS_FLOAT(token->string.str)
     }
-    else if(token->type == TOKEN_NONE)
+    else if (token->type == TOKEN_NONE)
     {
         CODE_APPEND("nil@nil")
     }
     else
     {
         fprintf(stderr, "# %s, %u: invalid parameter passed (%d, %s)",
-            __func__, __LINE__,
-            token->type, token->string.str);
+                __func__, __LINE__,
+                token->type, token->string.str);
 
         return RET_SEMANTICAL_ERROR;
     }
-
 
     CODE_APPEND("\n")
 
@@ -549,7 +636,7 @@ generate_operand(string_t operand, int tmp, unsigned int symbol, int frame)
         case OP_ID:
         {
             //TODO
-            if(frame == 1)
+            if (frame == 1)
             {
                 CODE_APPEND(" LF@")
                 CODE_APPEND(operand.str)
@@ -570,7 +657,6 @@ generate_operand(string_t operand, int tmp, unsigned int symbol, int frame)
 
 }
 
-
 int
 generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule)
 {
@@ -578,6 +664,7 @@ generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule)
     {
         case R_PLUS:
         {
+
             CODE_APPEND(" ADD ")
             break;
         }
@@ -603,7 +690,7 @@ generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule)
         }
         default:
         {
-           return RET_INTERNAL_ERROR;
+            return RET_INTERNAL_ERROR;
 
         }
 
@@ -615,6 +702,8 @@ generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule)
     CODE_APPEND(" GF@%")
     CODE_APPEND(op2.sem_data.str)
     CODE_APPEND("\n")
+
+
     return RET_OK;
 }
 
@@ -726,70 +815,100 @@ generate_relop(sem_t op1, sem_t op2, int result, unsigned int rule)
 }
 
 int
-typecheck(sem_t *op1, sem_t *op2, unsigned int rule)
+typecheck(sem_t *op1, sem_t *op2, unsigned int rule, int result)
 {
     int res;
+    if ((res = defvar_type(op1)) != RET_OK)
+        {
+            return res;
+        }
+
+        if ((res = defvar_type(op2)) != RET_OK)
+        {
+           return res;
+        }
+    CODE_APPEND_AND_EOL(" CREATEFRAME")
+    
+    CODE_APPEND_AND_EOL(" DEFVAR TF@%1")
+    CODE_APPEND("MOVE TF@%1 ")
+    CODE_APPEND("LF@");
+    CODE_APPEND(op1->sem_data.str);
+    CODE_APPEND_AND_EOL("$type");
+    
+    CODE_APPEND_AND_EOL(" DEFVAR TF@%2")
+    CODE_APPEND("MOVE TF@%2 ")
+    CODE_APPEND("LF@");
+    CODE_APPEND(op2->sem_data.str);
+    CODE_APPEND_AND_EOL("$type");
+    
+    CODE_APPEND_AND_EOL(" DEFVAR TF@%3")
+    CODE_APPEND("MOVE TF@%3 ")
+    CODE_APPEND("LF@");
+    CODE_APPEND(op1->sem_data.str);
+    
+    CODE_APPEND_AND_EOL(" DEFVAR TF@%4")
+    CODE_APPEND("MOVE TF@%4 ")
+    CODE_APPEND("LF@");
+    CODE_APPEND(op2->sem_data.str);
+
     switch (rule)
     {
-    case R_PLUS:
-        if ((res=defvar_type(op1)) != RET_OK)
-        {
-            return res;
-        }
+        case R_PLUS:
+            
+            CODE_APPEND_AND_EOL("CALL $semantics_runtime_check_plus");
+            CODE_APPEND("MOVE GF@tmp_op");
+            CODE_APPEND_VALUE_INT(result); 
+            CODE_APPEND_AND_EOL("TF@%retval"); 
+            break;
 
-        if ((res=defvar_type(op2)) != RET_OK)
-        {
-            return res;
-        }
-        CODE_APPEND("JUMPIFEQ uniquelabelOK");
-        CODE_APPEND("LF@");
-        CODE_APPEND(op1->sem_data.str);
-        CODE_APPEND("$type ");
-        CODE_APPEND("LF@");
-        CODE_APPEND(op2->sem_data.str);
-        CODE_APPEND_AND_EOL("$type");
-        /*CODE_APPEND();
-        CODE_APPEND();
-        CODE_APPEND();
-        CODE_APPEND();
-        CODE_APPEND();
-        CODE_APPEND();
-        CODE_APPEND();
-        */break;
+        case R_MIN:
+            CODE_APPEND_AND_EOL("CALL $semantics_runtime_check_min");
+            CODE_APPEND("MOVE GF@tmp_op");
+            CODE_APPEND_VALUE_INT(result); 
+            CODE_APPEND_AND_EOL("TF@%retval"); 
+            break;
+        
+        case R_MUL:
+            CODE_APPEND_AND_EOL("CALL $semantics_runtime_check_mul");
+            CODE_APPEND("MOVE GF@tmp_op");
+            CODE_APPEND_VALUE_INT(result); 
+            CODE_APPEND_AND_EOL("TF@%retval"); 
+            break;
+        
+        case R_DIV:
+            CODE_APPEND_AND_EOL("CALL $semantics_runtime_check_div");
+            CODE_APPEND("MOVE GF@tmp_op");
+            CODE_APPEND_VALUE_INT(result); 
+            CODE_APPEND_AND_EOL("TF@%retval"); 
+            break;
+        
+        case R_IDIV:
+            CODE_APPEND_AND_EOL("CALL $semantics_runtime_check_idiv");
+            CODE_APPEND("MOVE GF@tmp_op");
+            CODE_APPEND_VALUE_INT(result); 
+            CODE_APPEND_AND_EOL("TF@%retval"); 
+            break;
+        
+        case R_A:
+            /* code */
+            break;
+        case R_EA:
+            /* code */
+            break;
+        case R_EQ:
+            /* code */
+            break;
+        case R_L:
+            /* code */
+            break;
+        case R_EL:
+            /* code */
+            break;
+        case R_NE:
+            /* code */
+            break;
 
-    case R_MIN:
-        /* code */
-        break;
-    case R_MUL:
-        /* code */
-        break;
-    case R_DIV:
-        /* code */
-        break;
-    case R_IDIV:
-        /* code */
-        break;
-    case R_A:
-        /* code */
-        break;
-    case R_EA:
-        /* code */
-        break;
-    case R_EQ:
-        /* code */
-        break;
-    case R_L:
-        /* code */
-        break;
-    case R_EL:
-        /* code */
-        break;
-    case R_NE:
-        /* code */
-        break;
-
-    default:
-        break;
+        default:break;
     }
     return RET_OK;
 }
@@ -797,13 +916,10 @@ typecheck(sem_t *op1, sem_t *op2, unsigned int rule)
 int
 defvar_type(sem_t *op)
 {
-    CODE_APPEND(" DEFVAR LF@$");
-    CODE_APPEND(op->sem_data.str);
-    CODE_APPEND_AND_EOL("$type");
-    CODE_APPEND(" TYPE LF@");
+    CODE_APPEND(" TYPE GF@");
     CODE_APPEND(op->sem_data.str);
     CODE_APPEND("$type ");
-    CODE_APPEND("LF@");
+    CODE_APPEND("GF@");
     CODE_APPEND(op->sem_data.str);
     CODE_APPEND("\n");
     return RET_OK;
@@ -827,7 +943,6 @@ generate_move_exp_result_to_variable(token_t *token, data_t *data)
 
     return RET_OK;
 }
-
 
 int
 generate_if_begin(char *label)

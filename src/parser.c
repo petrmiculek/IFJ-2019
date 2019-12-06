@@ -551,6 +551,9 @@ statement()
                     return RET_SEMANTICAL_ERROR;
                 }
 
+                if ((res = assign_rhs()) != RET_OK)
+                    return res;
+
                 // definition of variable
                 if (data->parser_in_local_scope == local)
                 {
@@ -599,8 +602,7 @@ statement()
                     }
                 }
 
-                if ((res = assign_rhs()) != RET_OK)
-                    return res;
+
 
                 if ((res = read_eol(true)) != RET_OK)
                     return res;
@@ -659,6 +661,7 @@ statement()
 
                     data->function_ID = swap;
                 }
+                // end of if-else chain, no errors -> carry on
 
                 if ((res = call_param_list()) != RET_OK)
                     return res;
@@ -667,7 +670,11 @@ statement()
                 //call_predefined_function(&lhs_identifier);
                 if (strcmp(lhs_identifier.string.str, "print") == 0)
                 {
-
+                    while(data->call_params->first != NULL)
+                    {
+                        token_t *param = q_pop(data->call_params);
+                        generate_write(param, data);
+                    }
                 }
 
                 else

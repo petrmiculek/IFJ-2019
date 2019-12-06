@@ -102,7 +102,7 @@ ht_insert(table_t *ptrht, char *key, sym_table_item *data)
         tmp->key = calloc(strlen(key) + 1, 1);
         tmp->data = calloc(sizeof(sym_table_item), 1);
 
-        if(tmp->key == NULL || tmp->data == NULL)
+        if (tmp->key == NULL || tmp->data == NULL)
         {
             return RET_INTERNAL_ERROR;
         }
@@ -193,12 +193,12 @@ int
 check_all_functions_defined(void *data_void)
 {
     data_t *data_typed = (data_t *) data_void;
-    table_t* table = data_typed->global_sym_table; // TODO cast? (ht_item_t**)
+    table_t *table = data_typed->global_sym_table; // TODO cast? (ht_item_t**)
 
-    if(table == NULL)
+    if (table == NULL)
         return RET_INTERNAL_ERROR;
 
-    ht_item_t* tmp;
+    ht_item_t *tmp;
 
     for (int i = 0; i < hash_table_size; ++i)
     {
@@ -206,7 +206,7 @@ check_all_functions_defined(void *data_void)
         while (tmp != NULL)
         {
             // TODO recent change
-            if(tmp->data && tmp->data->is_defined == false)
+            if (tmp->data && tmp->data->is_defined == false)
             {
                 fprintf(stderr, "# %s, %u: undefined function (%s)\n", __func__, __LINE__, tmp->key);
                 return RET_SEMANTICAL_ERROR; // missing function definition
