@@ -104,5 +104,8 @@ generate_while_begin(char *label);
 int
 generate_while_end(char *label);
 
+int
+generate_var_declare_while(char *var_id, char *label, int counter);
+
 #endif // HEADER_CODE_GEN
 

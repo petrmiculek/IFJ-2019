@@ -911,3 +911,37 @@ generate_while_end(char *label)
     return RET_OK;
 }
 
+
+int
+generate_var_declare_while(char *var_id, char *label, int counter)
+{
+
+
+    CODE_APPEND("JUMPIFNEQ declaration%while%")
+    CODE_APPEND(label)
+    CODE_APPEND_VALUE_INT(counter)
+    CODE_APPEND(" LF@counter%")
+    CODE_APPEND(label)
+    CODE_APPEND(" int@")
+    CODE_APPEND_VALUE_INT(counter)
+    CODE_APPEND("\n")
+
+    generate_var_declare(var_id, true);
+
+    CODE_APPEND("ADD ")
+    CODE_APPEND("LF@counter%")
+    CODE_APPEND(label)
+    CODE_APPEND(" LF@counter%")
+    CODE_APPEND(label)
+    CODE_APPEND(" int@1")
+    CODE_APPEND("\n")
+
+
+    CODE_APPEND("LABEL declaration%while%")
+    CODE_APPEND(label)
+    CODE_APPEND_VALUE_INT(counter)
+    CODE_APPEND("\n")
+
+    return RET_OK;
+
+}
