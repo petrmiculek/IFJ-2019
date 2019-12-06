@@ -31,7 +31,7 @@ main(int argc, char **argv)
 
     if (fp == NULL)
     {
-        fprintf(stderr, "Error in opening file \"%s\"\n", file);
+        fprintf(stderr, "# Error in opening file \"%s\"\n", file);
         return RET_INTERNAL_ERROR;
     }
 

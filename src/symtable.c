@@ -38,7 +38,7 @@ ht_init()
     table_t *ptrht = malloc(sizeof(table_t));
     if (ptrht == NULL)
     {
-        fprintf(stderr, "%s: failed to alloc \n", __func__);
+        fprintf(stderr, "# %s: failed to alloc \n", __func__);
         return NULL;
     }
 
@@ -79,7 +79,7 @@ ht_insert(table_t *ptrht, char *key, sym_table_item *data)
 
     if (searched_item)
     {
-        fprintf(stderr, "%s,%u: overwriting sym_table_item (%s)\n", __func__, __LINE__, key);
+        fprintf(stderr, "# %s,%u: overwriting sym_table_item (%s)\n", __func__, __LINE__, key);
         return RET_SEMANTICAL_ERROR; // Redefining identifier
     }
     else
@@ -93,7 +93,7 @@ ht_insert(table_t *ptrht, char *key, sym_table_item *data)
 
         if (NULL == (tmp = calloc(sizeof(ht_item_t), 1)))
         {
-            fprintf(stderr, "%s, %u: alloc error\n", __func__, __LINE__);
+            fprintf(stderr, "# %s, %u: alloc error\n", __func__, __LINE__);
             return RET_INTERNAL_ERROR;
         }
 
@@ -205,10 +205,10 @@ check_all_functions_defined(void *data_void)
         tmp = (*table)[i];
         while (tmp != NULL)
         {
-            // TODO zkusit zmenu: kontrolovat i promenne, ne jen funkce
+            // TODO recent change
             if(tmp->data && tmp->data->is_defined == false)
             {
-                fprintf(stderr, "%s, %u: undefined function (%s)\n", __func__, __LINE__, tmp->key);
+                fprintf(stderr, "# %s, %u: undefined function (%s)\n", __func__, __LINE__, tmp->key);
                 return RET_SEMANTICAL_ERROR; // missing function definition
             }
 
