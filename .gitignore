@@ -52,5 +52,6 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-/ifj19-testsuite/
+
+ifj19-testsuite/*
 
