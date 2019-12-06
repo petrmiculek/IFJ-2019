@@ -250,7 +250,7 @@ print_code_string()
 int
 insert_built_in_functions()
 {
-    CODE_APPEND_AND_EOL(BUILT_IN_FUNCTIONS);
+    CODE_APPEND_AND_EOL(BUILT_IN_FUNCTIONS)
 
     return RET_OK;
 }
@@ -264,9 +264,9 @@ insert_convert_to_bool_function()
 int
 generate_var_declare(char *var_id)
 {
-    CODE_APPEND("DEFVAR LF@");
-    CODE_APPEND(var_id);
-    CODE_APPEND("\n");
+    CODE_APPEND("DEFVAR LF@")
+    CODE_APPEND(var_id)
+    CODE_APPEND("\n")
 
     return RET_OK;
 
@@ -274,21 +274,21 @@ generate_var_declare(char *var_id)
 int
 generate_file_header()
 {
-    CODE_APPEND_AND_EOL(HEADER);
+    CODE_APPEND_AND_EOL(HEADER)
 
     return RET_OK;
 }
 int
 generate_main_scope_start()
 {
-    CODE_APPEND_AND_EOL(MAIN_START);
+    CODE_APPEND_AND_EOL(MAIN_START)
 
     return RET_OK;
 }
 int
 generate_main_scope_end()
 {
-    CODE_APPEND_AND_EOL(MAIN_END);
+    CODE_APPEND_AND_EOL(MAIN_END)
 
     return RET_OK;
 }
@@ -459,10 +459,10 @@ generate_operand(string_t operand, int tmp, unsigned int symbol, int frame)
         case OP_ID:
         {
             //TODO
-            if(frame == 1)
+            if (frame == 1)
                 CODE_APPEND(" LF@")
-                CODE_APPEND(operand.str)
-                CODE_APPEND("\n")
+            CODE_APPEND(operand.str)
+            CODE_APPEND("\n")
             else
             {
                 CODE_APPEND(" GF@")
@@ -470,20 +470,18 @@ generate_operand(string_t operand, int tmp, unsigned int symbol, int frame)
                 CODE_APPEND("\n")
             }
 
-                return RET_OK;
+            return RET_OK;
         }
-        default:
-            break;
+        default:break;
     }
     return RET_INTERNAL_ERROR;
-    
+
 }
 
-
-int 
+int
 generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule)
 {
-    switch(rule)
+    switch (rule)
     {
         case R_PLUS:
         {
@@ -511,11 +509,11 @@ generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule)
             break;
         }
         default:
-        {      
-           return RET_INTERNAL_ERROR;
+        {
+            return RET_INTERNAL_ERROR;
 
         }
-    
+
     }
     CODE_APPEND("GF@%tmp_op")
     CODE_APPEND_VALUE(result)
@@ -541,7 +539,7 @@ generate_result(sem_t result)
 int
 generate_retype(sem_t op, int to)
 {
-    if(to == 1) //to float
+    if (to == 1) //to float
     {
         CODE_APPEND(" INT2FLOAT ")
         CODE_APPEND("GF@")
@@ -562,13 +560,12 @@ generate_retype(sem_t op, int to)
         return RET_OK;
     }
 
-
 }
 
 int
 generate_relop(sem_t op1, sem_t op2, int result, unsigned int rule)
 {
-    switch(rule)
+    switch (rule)
     {
         case R_EA:
         {
@@ -602,7 +599,7 @@ generate_relop(sem_t op1, sem_t op2, int result, unsigned int rule)
         }
         default:
         {
-           return RET_INTERNAL_ERROR;
+            return RET_INTERNAL_ERROR;
 
         }
 
@@ -611,7 +608,7 @@ generate_relop(sem_t op1, sem_t op2, int result, unsigned int rule)
     CODE_APPEND_VALUE(result)
     CODE_APPEND(" GF@%")
     CODE_APPEND(op1.sem_data.str)
-    if(rule != NE)
+    if (rule != NE)
     {
         CODE_APPEND(" GF@%")
         CODE_APPEND(op2.sem_data.str)
@@ -622,7 +619,7 @@ generate_relop(sem_t op1, sem_t op2, int result, unsigned int rule)
         CODE_APPEND("\n")
     }
 
-    if(rule == R_EA || rule == R_EL || rule == R_NE)
+    if (rule == R_EA || rule == R_EL || rule == R_NE)
     {
         CODE_APPEND(" NOT ")
         CODE_APPEND("GF@%tmp_op")
@@ -634,3 +631,86 @@ generate_relop(sem_t op1, sem_t op2, int result, unsigned int rule)
     }
     return RET_OK;
 }
+
+int
+generate_if_begin(char *label)
+{
+    CODE_APPEND("CALL convert%to%bool\n")
+    CODE_APPEND("JUMPIFEQ ")
+    CODE_APPEND(label)
+    CODE_APPEND(" GF@%exp_result bool@false\n")
+
+    return RET_OK;
+}
+
+int
+generate_if_else(char *label)
+{
+    CODE_APPEND("JUMP ")
+    CODE_APPEND(label)
+    CODE_APPEND("%end\n")
+
+    CODE_APPEND("LABEL ")
+    CODE_APPEND(label)
+    CODE_APPEND("\n")
+
+    return RET_OK;
+}
+
+int
+generate_if_end(char *label)
+{
+    CODE_APPEND("LABEL ")
+    CODE_APPEND(label)
+    CODE_APPEND("%end\n")
+
+    return RET_OK;
+}
+
+int
+generate_while_label(char *label)
+{
+    CODE_APPEND("DEFVAR LF@counter%")
+    CODE_APPEND(label)
+    CODE_APPEND("\n")
+
+    CODE_APPEND("MOVE ")
+    CODE_APPEND("LF@counter%")
+    CODE_APPEND(label)
+    CODE_APPEND(" int@0")
+    CODE_APPEND("\n")
+
+    CODE_APPEND("LABEL ")
+    CODE_APPEND(label)
+    CODE_APPEND("\n")
+
+    return RET_OK;
+}
+
+int
+generate_while_begin(char *label)
+{
+    CODE_APPEND("CALL convert%to%bool\n")
+    CODE_APPEND("JUMPIFEQ ")
+    CODE_APPEND(label)
+    CODE_APPEND("%end")
+    CODE_APPEND(" GF@%exp_result bool@false\n")
+
+    return RET_OK;
+
+}
+
+int
+generate_while_end(char *label)
+{
+    CODE_APPEND("JUMP")
+    CODE_APPEND(label)
+    CODE_APPEND("\n")
+
+    CODE_APPEND("LABEL")
+    CODE_APPEND(label)
+    CODE_APPEND("%end\n")
+
+    return RET_OK;
+}
+

@@ -73,3 +73,21 @@ generate_retype(sem_t op, int to);
 int
 generate_relop(sem_t op1, sem_t op2, int result, unsigned int rule);
 #endif // HEADER_CODE_GEN
+
+int
+generate_if_begin(char *label);
+
+int
+generate_if_else(char *label);
+
+int
+generate_if_end(char *label);
+
+int
+generate_while_label(char *label);
+
+int
+generate_while_begin(char *label);
+
+int
+generate_while_end(char *label);

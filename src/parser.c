@@ -49,7 +49,7 @@ parse(FILE *file)
 
     res = generate_file_header();
     RETURN_IF_ERR(res)
-    insert_built_in_functions();
+    //insert_built_in_functions();
     RETURN_IF_ERR(res)
     res = insert_convert_to_bool_function();
     RETURN_IF_ERR(res)
@@ -624,10 +624,9 @@ statement()
 #ifdef SEMANTICS
                 ht_item_t *global_search_res = ht_search(data->global_sym_table, lhs_identifier.string.str);
 
-
                 if (global_search_res == NULL)
                 {
-                    if(data->parser_in_local_scope == local)
+                    if (data->parser_in_local_scope == local)
                     {
                         // function without definition can only be called from another function
                         // not from global scope
@@ -658,7 +657,7 @@ statement()
 //                 lokalni: pro kazdou funkci udrzovat
 
 
-                if(data->parser_in_local_scope == global)
+                if (data->parser_in_local_scope == global)
                 {
 
                     ht_item_t *swap = data->function_ID;
@@ -798,10 +797,9 @@ assign_rhs()
 #ifdef SEMANTICS
             ht_item_t *global_search_res = ht_search(data->global_sym_table, token_tmp.string.str);
 
-
             if (global_search_res == NULL)
             {
-                if(data->parser_in_local_scope == local)
+                if (data->parser_in_local_scope == local)
                 {
                     // function without definition can only be called from another function
                     // not from global scope
@@ -826,7 +824,7 @@ assign_rhs()
                 return RET_SEMANTICAL_ERROR;
             }
 
-            if(data->parser_in_local_scope == global)
+            if (data->parser_in_local_scope == global)
             {
 
                 ht_item_t *swap = data->function_ID;
@@ -865,7 +863,6 @@ assign_rhs()
             q_enqueue(&token_tmp, data->token_queue);
             q_enqueue(data->token, data->token_queue);
             data->use_queue_for_read = true;
-
 
             if ((res = (int) solve_exp(data)) != RET_OK)
             {
@@ -973,12 +970,15 @@ if_clause()
         return res;
     }
 #else
-        if ((res = expression()) != RET_OK)
-        {
-            return res;
-        }
+    if ((res = expression()) != RET_OK)
+    {
+        return res;
+    }
 #endif
 
+    string_t *uniq_identifier_if = generate_unique_identifier("local%label", "if");
+
+    generate_if_begin(uniq_identifier_if->str);
     GET_TOKEN()
 
     if (data->token->type != TOKEN_COLON)
@@ -1007,6 +1007,7 @@ if_clause()
     {
         return RET_SYNTAX_ERROR;
     }
+    generate_if_else(uniq_identifier_if->str);
 
     GET_TOKEN()
 
@@ -1033,7 +1034,7 @@ if_clause()
     {
         return res;
     }
-
+    generate_if_end(uniq_identifier_if->str);
     return RET_OK;
 }
 
@@ -1043,6 +1044,8 @@ while_clause()
     // WHILE_CLAUSE -> while EXPRESSION : eol indent STATEMENT_LIST_NONEMPTY
 
     int res;
+    string_t *uniq_identifier_while = generate_unique_identifier("local%label", "while");
+    generate_while_label(uniq_identifier_while->str);
 
     // 'while' token checked already
 
@@ -1068,6 +1071,8 @@ while_clause()
     if ((res = read_eol(true)) != RET_OK)
         return res;
 
+    generate_while_begin(uniq_identifier_while->str);
+
     GET_TOKEN()
 
     if (data->token->type != TOKEN_INDENT)
@@ -1079,6 +1084,8 @@ while_clause()
     {
         return res;
     }
+
+    generate_while_end(uniq_identifier_while->str);
 
     return RET_OK;
 }
@@ -1491,7 +1498,7 @@ global_variables(char *str, int a)
     int i = data->function_ID->data->just_index - 1;
     ht_item_t *search_res;
     while (i >= 0)
-    {   
+    {
         if (a == 1)
         {
             search_res = ht_search(data->global_sym_table, data->function_ID->data->global_variables[i]);
@@ -1500,7 +1507,8 @@ global_variables(char *str, int a)
                 return RET_SEMANTICAL_ERROR;
             }
 
-        }else if (strcmp(data->function_ID->data->global_variables[i], str) == 0)
+        }
+        else if (strcmp(data->function_ID->data->global_variables[i], str) == 0)
         {
             return RET_SEMANTICAL_ERROR;
         }

@@ -163,7 +163,6 @@ get_token(token_t *token, FILE *file)
 
     while (1)
     {
-
         read = fgetc(file);
         if (previous_was_eol)
         {
