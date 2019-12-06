@@ -196,7 +196,7 @@ do {                                                     \
  "\n LABEL $substr"\
  "\n PUSHFRAME"\
  "\n DEFVAR LF@%retval"\
- "\n MOVE LF@%retval string@" /* TODO string@what? */  \
+ "\n MOVE LF@%retval"\
  "\n DEFVAR LF@length_str"\
  "\n CREATEFRAME"\
  "\n DEFVAR TF@%0"\
@@ -242,10 +242,87 @@ do {                                                     \
  "\n LABEL $substr$return"\
  "\n POPFRAME"\
  "\n RETURN"\
- \
+ 
+#define SEMANTICS_FUNCTIONS \
  "\n # semantic_plus"\
  "\n LABEL $semantics_runtime_check_plus"\
  "\n PUSHFRAME"\
+ "\n DEFVAR LF@%retval"\
+ "\n DEFVAR LF@op1_type"\
+ "\n MOVE LF@op1_type LF@%1"\
+ "\n DEFVAR LF@op2_type"\
+ "\n MOVE LF@op2_type LF@%2"\
+ "\n DEFVAR LF@op1"\
+ "\n MOVE LF@op1 LF@%3"\
+ "\n DEFVAR LF@op2"\
+ "\n MOVE LF@op2 LF@%4"\
+ "\n JUMPIFEQ $OK LF@op1_type LF@op2_type"\
+ "\n LABEL $OK"\
+ "\n JUMPIFEQ $CONCAT LF@op1_type string@string"\
+ "\n ADD LF@%retval LF@op1 LF@op2"\
+ "\n LABEL $CONCAT"\
+ "\n CONCAT LF@%retval LF@op1 LF@op2"\
+ "\n LABEL $RET"\
+ "\n POPFRAME"\
+ "\n RETURN"\
+ \
+ "\n # semantic_min"\
+ "\n LABEL $semantics_runtime_check_min"\
+ "\n PUSHFRAME"\
+ "\n DEFVAR LF@%retval"\
+ "\n DEFVAR LF@op1_type"\
+ "\n MOVE LF@op1_type LF@%1"\
+ "\n DEFVAR LF@op2_type"\
+ "\n MOVE LF@op2_type LF@%2"\
+ "\n DEFVAR LF@op1"\
+ "\n MOVE LF@op1 LF@%3"\
+ "\n DEFVAR LF@op2"\
+ "\n MOVE LF@op2 LF@%4"\
+ "\n POPFRAME"\
+ "\n RETURN"\
+ \
+ "\n # semantic_mul"\
+ "\n LABEL $semantics_runtime_check_mul"\
+ "\n PUSHFRAME"\
+ "\n DEFVAR LF@%retval"\
+ "\n DEFVAR LF@op1_type"\
+ "\n MOVE LF@op1_type LF@%1"\
+ "\n DEFVAR LF@op2_type"\
+ "\n MOVE LF@op2_type LF@%2"\
+ "\n DEFVAR LF@op1"\
+ "\n MOVE LF@op1 LF@%3"\
+ "\n DEFVAR LF@op2"\
+ "\n MOVE LF@op2 LF@%4"\
+ "\n POPFRAME"\
+ "\n RETURN"\
+ \
+ "\n # semantic_div"\
+ "\n LABEL $semantics_runtime_check_div"\
+ "\n PUSHFRAME"\
+ "\n DEFVAR LF@%retval"\
+ "\n DEFVAR LF@op1_type"\
+ "\n MOVE LF@op1_type LF@%1"\
+ "\n DEFVAR LF@op2_type"\
+ "\n MOVE LF@op2_type LF@%2"\
+ "\n DEFVAR LF@op1"\
+ "\n MOVE LF@op1 LF@%3"\
+ "\n DEFVAR LF@op2"\
+ "\n MOVE LF@op2 LF@%4"\
+ "\n POPFRAME"\
+ "\n RETURN"\
+ \
+ "\n # semantic_idiv"\
+ "\n LABEL $semantics_runtime_check_idiv"\
+ "\n PUSHFRAME"\
+ "\n DEFVAR LF@%retval"\
+ "\n DEFVAR LF@op1_type"\
+ "\n MOVE LF@op1_type LF@%1"\
+ "\n DEFVAR LF@op2_type"\
+ "\n MOVE LF@op2_type LF@%2"\
+ "\n DEFVAR LF@op1"\
+ "\n MOVE LF@op1 LF@%3"\
+ "\n DEFVAR LF@op2"\
+ "\n MOVE LF@op2 LF@%4"\
  "\n POPFRAME"\
  "\n RETURN"\
 
@@ -267,6 +344,7 @@ int
 insert_built_in_functions()
 {
     CODE_APPEND_AND_EOL(BUILT_IN_FUNCTIONS)
+    CODE_APPEND_AND_EOL(SEMANTICS_FUNCTIONS)
 
     return RET_OK;
 }
@@ -737,7 +815,7 @@ generate_relop(sem_t op1, sem_t op2, int result, unsigned int rule)
 }
 
 int
-typecheck(sem_t *op1, sem_t *op2, unsigned int rule)
+typecheck(sem_t *op1, sem_t *op2, unsigned int rule, int result)
 {
     int res;
     if ((res = defvar_type(op1)) != RET_OK)
@@ -750,37 +828,67 @@ typecheck(sem_t *op1, sem_t *op2, unsigned int rule)
            return res;
         }
     CODE_APPEND_AND_EOL(" CREATEFRAME")
+    
     CODE_APPEND_AND_EOL(" DEFVAR TF@%1")
     CODE_APPEND("MOVE TF@%1 ")
     CODE_APPEND("LF@");
     CODE_APPEND(op1->sem_data.str);
     CODE_APPEND_AND_EOL("$type");
+    
     CODE_APPEND_AND_EOL(" DEFVAR TF@%2")
     CODE_APPEND("MOVE TF@%2 ")
     CODE_APPEND("LF@");
     CODE_APPEND(op2->sem_data.str);
     CODE_APPEND_AND_EOL("$type");
+    
+    CODE_APPEND_AND_EOL(" DEFVAR TF@%3")
+    CODE_APPEND("MOVE TF@%3 ")
+    CODE_APPEND("LF@");
+    CODE_APPEND(op1->sem_data.str);
+    
+    CODE_APPEND_AND_EOL(" DEFVAR TF@%4")
+    CODE_APPEND("MOVE TF@%4 ")
+    CODE_APPEND("LF@");
+    CODE_APPEND(op2->sem_data.str);
 
     switch (rule)
     {
         case R_PLUS:
             
-            CODE_APPEND("CALL uniquelabelOK \n");
-            // MOVE GF@tmp_op(result) tf@%retval 
+            CODE_APPEND_AND_EOL("CALL $semantics_runtime_check_plus");
+            CODE_APPEND("MOVE GF@tmp_op");
+            CODE_APPEND_VALUE_INT(result); 
+            CODE_APPEND_AND_EOL("TF@%retval"); 
             break;
 
         case R_MIN:
-            /* code */
+            CODE_APPEND_AND_EOL("CALL $semantics_runtime_check_min");
+            CODE_APPEND("MOVE GF@tmp_op");
+            CODE_APPEND_VALUE_INT(result); 
+            CODE_APPEND_AND_EOL("TF@%retval"); 
             break;
+        
         case R_MUL:
-            /* code */
+            CODE_APPEND_AND_EOL("CALL $semantics_runtime_check_mul");
+            CODE_APPEND("MOVE GF@tmp_op");
+            CODE_APPEND_VALUE_INT(result); 
+            CODE_APPEND_AND_EOL("TF@%retval"); 
             break;
+        
         case R_DIV:
-            /* code */
+            CODE_APPEND_AND_EOL("CALL $semantics_runtime_check_div");
+            CODE_APPEND("MOVE GF@tmp_op");
+            CODE_APPEND_VALUE_INT(result); 
+            CODE_APPEND_AND_EOL("TF@%retval"); 
             break;
+        
         case R_IDIV:
-            /* code */
+            CODE_APPEND_AND_EOL("CALL $semantics_runtime_check_idiv");
+            CODE_APPEND("MOVE GF@tmp_op");
+            CODE_APPEND_VALUE_INT(result); 
+            CODE_APPEND_AND_EOL("TF@%retval"); 
             break;
+        
         case R_A:
             /* code */
             break;
