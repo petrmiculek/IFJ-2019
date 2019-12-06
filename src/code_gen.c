@@ -46,6 +46,8 @@ do {                                                     \
 "\n DEFVAR GF@%tmp_op1"\
 "\n DEFVAR GF@%tmp_op2"\
 "\n DEFVAR GF@%tmp_op3"\
+"\n DEFVAR GF@%tmp_op1$type"\
+"\n DEFVAR GF@%tmp_op2$type"\
 "\n DEFVAR GF@%exp_result"\
 "\n JUMP $$main"\
 
@@ -240,6 +242,12 @@ do {                                                     \
  "\n LABEL $substr$return"\
  "\n POPFRAME"\
  "\n RETURN"\
+ \
+ "\n # semantic_plus"\
+ "\n LABEL $semantics_runtime_check_plus"\
+ "\n PUSHFRAME"\
+ "\n POPFRAME"\
+ "\n RETURN"\
 
 string_t code;
 
@@ -374,6 +382,8 @@ generate_unique_identifier(const char *prefix_scope, const char *prefix_type)
 
     return dest;
 }
+
+// token_t chenge to strint_t please
 
 int
 append_identifier(const token_t *token, const data_t *data)
@@ -576,6 +586,7 @@ generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule)
     {
         case R_PLUS:
         {
+
             CODE_APPEND(" ADD ")
             break;
         }
@@ -613,6 +624,8 @@ generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule)
     CODE_APPEND(" GF@%")
     CODE_APPEND(op2.sem_data.str)
     CODE_APPEND("\n")
+
+
     return RET_OK;
 }
 
@@ -727,33 +740,34 @@ int
 typecheck(sem_t *op1, sem_t *op2, unsigned int rule)
 {
     int res;
+    if ((res = defvar_type(op1)) != RET_OK)
+        {
+            return res;
+        }
+
+        if ((res = defvar_type(op2)) != RET_OK)
+        {
+           return res;
+        }
+    CODE_APPEND_AND_EOL(" CREATEFRAME")
+    CODE_APPEND_AND_EOL(" DEFVAR TF@%1")
+    CODE_APPEND("MOVE TF@%1 ")
+    CODE_APPEND("LF@");
+    CODE_APPEND(op1->sem_data.str);
+    CODE_APPEND_AND_EOL("$type");
+    CODE_APPEND_AND_EOL(" DEFVAR TF@%2")
+    CODE_APPEND("MOVE TF@%2 ")
+    CODE_APPEND("LF@");
+    CODE_APPEND(op2->sem_data.str);
+    CODE_APPEND_AND_EOL("$type");
+
     switch (rule)
     {
         case R_PLUS:
-            if ((res = defvar_type(op1)) != RET_OK)
-            {
-                return res;
-            }
-
-            if ((res = defvar_type(op2)) != RET_OK)
-            {
-                return res;
-            }
-            CODE_APPEND("JUMPIFEQ uniquelabelOK");
-            CODE_APPEND("LF@");
-            CODE_APPEND(op1->sem_data.str);
-            CODE_APPEND("$type ");
-            CODE_APPEND("LF@");
-            CODE_APPEND(op2->sem_data.str);
-            CODE_APPEND_AND_EOL("$type");
-            /*CODE_APPEND();
-            CODE_APPEND();
-            CODE_APPEND();
-            CODE_APPEND();
-            CODE_APPEND();
-            CODE_APPEND();
-            CODE_APPEND();
-            */break;
+            
+            CODE_APPEND("CALL uniquelabelOK \n");
+            // MOVE GF@tmp_op(result) tf@%retval 
+            break;
 
         case R_MIN:
             /* code */
@@ -794,13 +808,10 @@ typecheck(sem_t *op1, sem_t *op2, unsigned int rule)
 int
 defvar_type(sem_t *op)
 {
-    CODE_APPEND(" DEFVAR LF@$");
-    CODE_APPEND(op->sem_data.str);
-    CODE_APPEND_AND_EOL("$type");
-    CODE_APPEND(" TYPE LF@");
+    CODE_APPEND(" TYPE GF@");
     CODE_APPEND(op->sem_data.str);
     CODE_APPEND("$type ");
-    CODE_APPEND("LF@");
+    CODE_APPEND("GF@");
     CODE_APPEND(op->sem_data.str);
     CODE_APPEND("\n");
     return RET_OK;

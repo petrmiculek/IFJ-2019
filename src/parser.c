@@ -551,6 +551,9 @@ statement()
                     return RET_SEMANTICAL_ERROR;
                 }
 
+                if ((res = assign_rhs()) != RET_OK)
+                    return res;
+                    
                 // definition of variable
                 if (data->parser_in_local_scope == local)
                 {
@@ -599,8 +602,7 @@ statement()
                     }
                 }
 
-                if ((res = assign_rhs()) != RET_OK)
-                    return res;
+                
 
                 if ((res = read_eol(true)) != RET_OK)
                     return res;

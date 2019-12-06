@@ -415,11 +415,10 @@ check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type *final
     else
     {
         // we need to generate runtime type check
-        // TODO some frame
-        /*if ((res=typecheck(sym1, sym3, rule))!= RET_OK)
+        if ((res=typecheck(sym1, sym3, rule))!= RET_OK)
         {
             return res;
-        }*/
+        }
 
     }
 
@@ -825,15 +824,16 @@ solve_exp(data_t *data)
                     sym1 = Stack->atr[i];
                     sym2 = Stack->atr[i - 1];
                     sym3 = Stack->atr[i - 2];
-
+                    if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used, &result) == RET_INTERNAL_ERROR)
+                        return RET_INTERNAL_ERROR;
+                    
                     if ((res = check_semantics(rule, &sym1, &sym2, &sym3, &finaltype, data, &frame)) != RET_OK)
                         return res;
 
                     new.type = EXP;
                     new.d_type = finaltype;
 
-                    if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used, &result) == RET_INTERNAL_ERROR)
-                        return RET_INTERNAL_ERROR;
+                    
 
                     res = generate_operation(sym3, sym1, result, rule);
                     if (res != RET_OK)
