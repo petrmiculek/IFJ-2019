@@ -79,8 +79,6 @@ typecheck(sem_t *op1, sem_t *op2, unsigned int rule);
 int
 defvar_type(sem_t *op);
 
-#endif // HEADER_CODE_GEN
-
 int
 generate_if_begin(char *label);
 
@@ -98,3 +96,5 @@ generate_while_begin(char *label);
 
 int
 generate_while_end(char *label);
+
+#endif // HEADER_CODE_GEN
