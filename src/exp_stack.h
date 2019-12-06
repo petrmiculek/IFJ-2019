@@ -33,7 +33,8 @@ typedef enum d_type
 {
     INT,
     FLOAT,
-    STRING
+    STRING,
+    UNDEFINED
 } d_type;
 
 unsigned int

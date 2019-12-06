@@ -283,128 +283,154 @@ check_semantics(rules rule, sem_t *sym1, sem_t *sym2, sem_t *sym3, d_type *final
                 }
 
             }
+            *final_type = UNDEFINED;
         }
-        //operand=ht_search()
-        //check if the operand is defined probably sym table
-        //return RET_SEMANTICAL_ERROR
-
-    }
-
-    switch (rule)
-    {
-        case R_I:*final_type = sym1->d_type;
-            break;
-
-        case R_BRACKETS:*final_type = sym2->d_type;
-            break;
-
-        case R_PLUS:
-        case R_MIN:
-        case R_MUL:
-            if (sym1->d_type == STRING && sym3->d_type == STRING && rule == R_PLUS)
-            {
-                *final_type = STRING;
-                break;
-            }
-
-            if (sym1->d_type == INT && sym3->d_type == INT)
-            {
-                *final_type = INT;
-                break;
-            }
-
-            if (sym1->d_type == STRING || sym3->d_type == STRING)
-                return RET_SEMANTICAL_RUNTIME_ERROR;
-
+        else if (sym1->type == OP_INT)
+        {   
+            *final_type = INT;
+        }
+        else if (sym1->type == OP_FLOAT)
+        {
             *final_type = FLOAT;
-
-            if (sym1->d_type == INT)
-                retype_sym1_to_double = true;
-
-            if (sym3->d_type == INT)
-                retype_sym3_to_double = true;
-
-            break;
-
-        case R_DIV: *final_type = FLOAT;
-
-            if (sym1->d_type == STRING || sym3->d_type == STRING)
-                return RET_SEMANTICAL_RUNTIME_ERROR;
-
-            if (sym1->d_type == INT)
-                retype_sym1_to_double = true;
-
-            if (sym3->d_type == INT)
-                retype_sym3_to_double = true;
-
-            break;
-
-        case R_IDIV: *final_type = INT;
-
-            if (sym1->d_type == STRING || sym3->d_type == STRING)
-                return RET_SEMANTICAL_RUNTIME_ERROR;
-
-            if (sym1->d_type == FLOAT)
-                retype_sym1_to_integer = true;
-
-            if (sym3->d_type == FLOAT)
-                retype_sym3_to_integer = true;
-
-            break;
-
-        case R_EQ:
-        case R_NE:
-        case R_EL:
-        case R_L:
-        case R_EA:
-        case R_A: *final_type = INT;
-
-            if (sym1->d_type == INT && sym3->d_type == FLOAT)
-                retype_sym1_to_double = true;
-
-            else if (sym1->d_type == FLOAT && sym3->d_type == INT)
-                retype_sym3_to_double = true;
-
-            else if (sym1->d_type != sym3->d_type)
-                return RET_SEMANTICAL_RUNTIME_ERROR;
-
-            break;
-
-        default: break;
+        }
+        else if (sym1->type == OP_STR)
+        {
+            *final_type = STRING;
+        }
+        else
+        {
+            *final_type = UNDEFINED;
+        }        
     }
 
-    if (retype_sym1_to_double)
+    if (sym1->d_type != UNDEFINED && sym3->d_type != UNDEFINED)
     {
-        //GENERATE_CODE(generate_stack_sym2_to_douboe);
-        res = generate_retype(*sym1, 1);
-        if(res != RET_OK)
-            return res;
-    }
+        switch (rule)
+        {
+            case R_PLUS:
+            case R_MIN:
+            case R_MUL:
+                if (sym1->d_type == STRING && sym3->d_type == STRING && rule == R_PLUS)
+                {
+                    *final_type = STRING;
+                    break;
+                }
 
-    if (retype_sym3_to_double)
+                if (sym1->d_type == INT && sym3->d_type == INT)
+                {
+                    *final_type = INT;
+                    break;
+                }
+
+                if (sym1->d_type == STRING || sym3->d_type == STRING)
+                    return RET_SEMANTICAL_RUNTIME_ERROR;
+
+                *final_type = FLOAT;
+
+                if (sym1->d_type == INT)
+                    retype_sym1_to_double = true;
+
+                if (sym3->d_type == INT)
+                    retype_sym3_to_double = true;
+
+                break;
+                
+            case R_DIV: *final_type = FLOAT;
+
+                if (sym1->d_type == STRING || sym3->d_type == STRING)
+                    return RET_SEMANTICAL_RUNTIME_ERROR;
+
+                if (sym1->d_type == INT)
+                    retype_sym1_to_double = true;
+
+                if (sym3->d_type == INT)
+                    retype_sym3_to_double = true;
+
+                break;
+
+            case R_IDIV: *final_type = INT;
+
+                if (sym1->d_type == STRING || sym3->d_type == STRING)
+                    return RET_SEMANTICAL_RUNTIME_ERROR;
+
+                if (sym1->d_type == FLOAT)
+                    retype_sym1_to_integer = true;
+
+                if (sym3->d_type == FLOAT)
+                    retype_sym3_to_integer = true;
+
+                break;
+
+            case R_EQ:
+            case R_NE:
+            case R_EL:
+            case R_L:
+            case R_EA:
+            case R_A: *final_type = INT;
+
+                if (sym1->d_type == INT && sym3->d_type == FLOAT)
+                    retype_sym1_to_double = true;
+
+                else if (sym1->d_type == FLOAT && sym3->d_type == INT)
+                    retype_sym3_to_double = true;
+
+                else if (sym1->d_type != sym3->d_type)
+                    return RET_SEMANTICAL_RUNTIME_ERROR;
+
+                break;
+
+            default: break;
+        }
+        
+        if (retype_sym1_to_double)
+        {
+            //GENERATE_CODE(generate_stack_sym2_to_douboe);
+            res = generate_retype(*sym1, 1);
+            if(res != RET_OK)
+                return res;
+        }
+
+        if (retype_sym3_to_double)
+        {
+            //GENERATE_CODE(generate_stack_sym1_to_double);
+            res = generate_retype(*sym3, 1);
+            if(res != RET_OK)
+                return res;
+        }
+
+        if (retype_sym1_to_integer)
+        {
+            //GENERATE_CODE(generate_stack_sym2_to_inteoer);
+            res = generate_retype(*sym1, 0);
+            if(res != RET_OK)
+                return res;
+        }
+
+        if (retype_sym3_to_integer)
+        {
+            //GENERATE_CODE(generate_stack_sym1_to_integer);
+            res = generate_retype(*sym3, 0);
+            if(res != RET_OK)
+                return res;
+        }
+    
+    }
+    else
     {
-        //GENERATE_CODE(generate_stack_sym1_to_double);
-        res = generate_retype(*sym3, 1);
-        if(res != RET_OK)
+        // we need to generate runtime type check
+        // TODO some frame
+        /*if ((res=typecheck(sym1, sym3, rule))!= RET_OK)
+        {
             return res;
+        }*/
+       
     }
+    
+    
 
-    if (retype_sym1_to_integer)
-    {
-        //GENERATE_CODE(generate_stack_sym2_to_inteoer);
-        res = generate_retype(*sym1, 0);
-        if(res != RET_OK)
-            return res;
-    }
 
-    if (retype_sym3_to_integer)
-    {
-        //GENERATE_CODE(generate_stack_sym1_to_integer);
-        res = generate_retype(*sym3, 0);
-        if(res != RET_OK)
-            return res;
-    }
-
+    
+    
     return RET_OK;
 }
 
