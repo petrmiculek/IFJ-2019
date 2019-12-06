@@ -81,7 +81,7 @@ int
 defvar_type(sem_t *op);
 
 int
-compiler_ret_value_comment (int retval);
+compiler_ret_value_comment(int retval);
 
 int
 generate_move_exp_result_to_variable(token_t *token, data_t *data);

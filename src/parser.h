@@ -30,8 +30,7 @@ struct _struct_data_t
     bool parser_in_local_scope;
     int function_call_param_count;
 
-    token_queue_t* call_params;
-
+    token_queue_t *call_params;
 
     int get_token_res; // result of most-recent get_next_token
 
@@ -99,7 +98,6 @@ init_data();
 
 int
 symtable_insert_predefined();
-
 
 int
 add_to_symtable(string_t *identifier, bool use_local_symtable);

@@ -16,7 +16,6 @@
 unsigned int
 get_symbol(token_t *token, unsigned int *sym);
 
-
 #define EXP 42
 #define SHIFT 21
 
@@ -42,7 +41,7 @@ typedef enum
     DOLAR,
     L_BRAC,
     R_BRAC
-}table_symbol;
+} table_symbol;
 
 typedef enum rules
 {

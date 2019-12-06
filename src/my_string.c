@@ -26,8 +26,6 @@ init_string(string_t *string)
     return RET_OK;
 }
 
-
-
 unsigned int
 append_char_to_string(string_t *dest, char var)
 {
@@ -111,11 +109,10 @@ copy_string(string_t *dest, string_t *src)
     return RET_OK;
 }
 
-
 void
 clear_string(string_t *string)
 {
-    if(string == NULL)
+    if (string == NULL)
         return;
 
     memset(string->str, 0, string->size);

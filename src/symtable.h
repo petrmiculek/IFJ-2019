@@ -61,6 +61,6 @@ void
 ht_clear_all(table_t *ptrht);
 
 int
-check_all_functions_defined(void* data_void);
+check_all_functions_defined(void *data_void);
 
 #endif // HEADER_SYM_TABLE_H

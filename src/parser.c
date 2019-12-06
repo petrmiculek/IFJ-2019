@@ -329,7 +329,7 @@ init_data()
         return RET_INTERNAL_ERROR;
     }
 
-    if((data->call_params = q_init_queue()) == NULL)
+    if ((data->call_params = q_init_queue()) == NULL)
     {
         return RET_INTERNAL_ERROR;
     }
@@ -599,7 +599,6 @@ statement()
                     }
                 }
 
-
                 if ((res = assign_rhs()) != RET_OK)
                     return res;
 
@@ -619,10 +618,9 @@ statement()
 
                 ht_item_t *global_search_res = ht_search(data->global_sym_table, lhs_identifier.string.str);
 
-
                 if (global_search_res == NULL)
                 {
-                    if(data->parser_in_local_scope == local)
+                    if (data->parser_in_local_scope == local)
                     {
                         // function without definition can only be called from another function
                         // not from global scope
@@ -646,7 +644,7 @@ statement()
                     //ID exists but it is NOT a defined function
                     return RET_SEMANTICAL_ERROR;
                 }
-                else if(data->parser_in_local_scope == global)
+                else if (data->parser_in_local_scope == global)
                 {
 
                     ht_item_t *swap = data->function_ID;
@@ -661,7 +659,6 @@ statement()
 
                     data->function_ID = swap;
                 }
-
 
                 if ((res = call_param_list()) != RET_OK)
                     return res;
@@ -770,10 +767,9 @@ assign_rhs()
 
             ht_item_t *global_search_res = ht_search(data->global_sym_table, token_tmp.string.str);
 
-
             if (global_search_res == NULL)
             {
-                if(data->parser_in_local_scope == local)
+                if (data->parser_in_local_scope == local)
                 {
                     // function without definition can only be called from another function
                     // not from global scope
@@ -798,7 +794,7 @@ assign_rhs()
                 return RET_SEMANTICAL_ERROR;
             }
 
-            if(data->parser_in_local_scope == global)
+            if (data->parser_in_local_scope == global)
             {
 
                 ht_item_t *swap = data->function_ID;
@@ -813,7 +809,6 @@ assign_rhs()
 
                 data->function_ID = swap;
             }
-
 
             if ((res = call_param_list()) != RET_OK)
             {
@@ -1217,7 +1212,7 @@ call_param_list()
 
             }
         }
-            q_enqueue(data->token, data->call_params);
+        q_enqueue(data->token, data->call_params);
 
         if ((res = call_param_list_next()) != RET_OK)
         {
@@ -1254,7 +1249,6 @@ call_param_list_next()
 
         if ((res = call_elem()) != RET_OK)
             return res;
-
 
         data->function_call_param_count++;
 
@@ -1305,8 +1299,6 @@ call_param_list_next()
         }
         // everything is ok
         q_enqueue(data->token, data->call_params);
-
-
 
         if ((res = call_param_list_next()) != RET_OK)
         {
@@ -1426,7 +1418,8 @@ global_variables(char *str, int a)
                 return RET_SEMANTICAL_ERROR;
             }
 
-        }else if (strcmp(data->function_ID->data->global_variables[i], str) == 0)
+        }
+        else if (strcmp(data->function_ID->data->global_variables[i], str) == 0)
         {
             return RET_SEMANTICAL_ERROR;
         }

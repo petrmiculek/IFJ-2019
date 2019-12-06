@@ -419,48 +419,47 @@ append_identifier(const token_t *token, const data_t *data)
 }
 
 int
-generate_write(token_t *token, data_t* data)
+generate_write(token_t *token, data_t *data)
 {
     int res;
 
     CODE_APPEND("WRITE ")
 
-    if(token->type == TOKEN_IDENTIFIER)
+    if (token->type == TOKEN_IDENTIFIER)
     {
-        if((res = append_identifier(token, data)) != RET_OK)
+        if ((res = append_identifier(token, data)) != RET_OK)
         {
             return res;
         }
     }
-    else if(token->type == TOKEN_INT)
+    else if (token->type == TOKEN_INT)
     {
         CODE_APPEND("int@")
         CODE_APPEND(token->string.str)
     }
-    else if(token->type == TOKEN_LIT
+    else if (token->type == TOKEN_LIT
         || token->type == TOKEN_DOC)
     {
         CODE_APPEND("string@")
         CODE_APPEND(token->string.str)
     }
-    else if(token->type == TOKEN_FLOAT)
+    else if (token->type == TOKEN_FLOAT)
     {
         CODE_APPEND("float@")
         CODE_APPEND_AS_FLOAT(token->string.str)
     }
-    else if(token->type == TOKEN_NONE)
+    else if (token->type == TOKEN_NONE)
     {
         CODE_APPEND("nil@nil")
     }
     else
     {
         fprintf(stderr, "# %s, %u: invalid parameter passed (%d, %s)",
-            __func__, __LINE__,
-            token->type, token->string.str);
+                __func__, __LINE__,
+                token->type, token->string.str);
 
         return RET_SEMANTICAL_ERROR;
     }
-
 
     CODE_APPEND("\n")
 
@@ -549,7 +548,7 @@ generate_operand(string_t operand, int tmp, unsigned int symbol, int frame)
         case OP_ID:
         {
             //TODO
-            if(frame == 1)
+            if (frame == 1)
             {
                 CODE_APPEND(" LF@")
                 CODE_APPEND(operand.str)
@@ -569,7 +568,6 @@ generate_operand(string_t operand, int tmp, unsigned int symbol, int frame)
     return RET_INTERNAL_ERROR;
 
 }
-
 
 int
 generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule)
@@ -603,7 +601,7 @@ generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule)
         }
         default:
         {
-           return RET_INTERNAL_ERROR;
+            return RET_INTERNAL_ERROR;
 
         }
 
@@ -731,65 +729,64 @@ typecheck(sem_t *op1, sem_t *op2, unsigned int rule)
     int res;
     switch (rule)
     {
-    case R_PLUS:
-        if ((res=defvar_type(op1)) != RET_OK)
-        {
-            return res;
-        }
+        case R_PLUS:
+            if ((res = defvar_type(op1)) != RET_OK)
+            {
+                return res;
+            }
 
-        if ((res=defvar_type(op2)) != RET_OK)
-        {
-            return res;
-        }
-        CODE_APPEND("JUMPIFEQ uniquelabelOK");
-        CODE_APPEND("LF@");
-        CODE_APPEND(op1->sem_data.str);
-        CODE_APPEND("$type ");
-        CODE_APPEND("LF@");
-        CODE_APPEND(op2->sem_data.str);
-        CODE_APPEND_AND_EOL("$type");
-        /*CODE_APPEND();
-        CODE_APPEND();
-        CODE_APPEND();
-        CODE_APPEND();
-        CODE_APPEND();
-        CODE_APPEND();
-        CODE_APPEND();
-        */break;
+            if ((res = defvar_type(op2)) != RET_OK)
+            {
+                return res;
+            }
+            CODE_APPEND("JUMPIFEQ uniquelabelOK");
+            CODE_APPEND("LF@");
+            CODE_APPEND(op1->sem_data.str);
+            CODE_APPEND("$type ");
+            CODE_APPEND("LF@");
+            CODE_APPEND(op2->sem_data.str);
+            CODE_APPEND_AND_EOL("$type");
+            /*CODE_APPEND();
+            CODE_APPEND();
+            CODE_APPEND();
+            CODE_APPEND();
+            CODE_APPEND();
+            CODE_APPEND();
+            CODE_APPEND();
+            */break;
 
-    case R_MIN:
-        /* code */
-        break;
-    case R_MUL:
-        /* code */
-        break;
-    case R_DIV:
-        /* code */
-        break;
-    case R_IDIV:
-        /* code */
-        break;
-    case R_A:
-        /* code */
-        break;
-    case R_EA:
-        /* code */
-        break;
-    case R_EQ:
-        /* code */
-        break;
-    case R_L:
-        /* code */
-        break;
-    case R_EL:
-        /* code */
-        break;
-    case R_NE:
-        /* code */
-        break;
+        case R_MIN:
+            /* code */
+            break;
+        case R_MUL:
+            /* code */
+            break;
+        case R_DIV:
+            /* code */
+            break;
+        case R_IDIV:
+            /* code */
+            break;
+        case R_A:
+            /* code */
+            break;
+        case R_EA:
+            /* code */
+            break;
+        case R_EQ:
+            /* code */
+            break;
+        case R_L:
+            /* code */
+            break;
+        case R_EL:
+            /* code */
+            break;
+        case R_NE:
+            /* code */
+            break;
 
-    default:
-        break;
+        default:break;
     }
     return RET_OK;
 }
@@ -827,7 +824,6 @@ generate_move_exp_result_to_variable(token_t *token, data_t *data)
 
     return RET_OK;
 }
-
 
 int
 generate_if_begin(char *label)

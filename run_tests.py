@@ -11,10 +11,10 @@ import string
 current_dir = os.path.split(os.getcwd())[1]
 
 if current_dir == 'IFJ-2019':
-    main_dir = "./"
+    main_dir = "testing/tests/parser/"
 else:
     # current_dir is most likely IFJ-2019/testing/tests/parser
-    main_dir = "../../../"
+    main_dir = "/"
 
 # binary = "test_bin"
 binary = "compiler"

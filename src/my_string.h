@@ -72,7 +72,7 @@ copy_string(string_t *dest, string_t *src);
  * @param string to be emptied
  */
 void
-clear_string(string_t* string);
+clear_string(string_t *string);
 
 /**
  * @brief free
