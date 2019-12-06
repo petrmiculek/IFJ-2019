@@ -662,7 +662,6 @@ statement()
                     data->function_ID = swap;
                 }
 
-#endif // SEMANTICS
 
                 if ((res = call_param_list()) != RET_OK)
                     return res;
@@ -720,17 +719,10 @@ statement()
             q_enqueue(data->token, data->token_queue);
             data->use_queue_for_read = true;
 
-#ifdef PSA
             if ((res = (int) solve_exp(data)) != RET_OK)
             {
                 return res;
             }
-#else
-            if ((res = expression()) != RET_OK)
-            {
-                return res;
-            }
-#endif
 
             if ((res = read_eol(true)) != RET_OK)
                 return res;
