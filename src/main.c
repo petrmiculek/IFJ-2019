@@ -12,8 +12,6 @@
 
 //#define file_input 1234098
 
-// TODO factorial2.py
-
 int
 main(int argc, char **argv)
 {
@@ -27,7 +25,7 @@ main(int argc, char **argv)
     }
     if ((file = fopen(argv[1], "r")) == NULL)
     {
-        fprintf(stderr, "Error in opening file %s", argv[1]);
+        fprintf(stderr, "# Error in opening file %s", argv[1]);
         return RET_INTERNAL_ERROR;
     }
     int res = parse(file);

@@ -16,9 +16,6 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define SEMANTICS 897987
-#define PSA 123123
-
 data_t *data = NULL;
 
 extern string_t code;
@@ -66,6 +63,8 @@ parse(FILE *file)
     free_static_stack();
     // clear_data();
 
+    res = compiler_ret_value_comment(res);
+
     if (res == RET_OK)
     {
         generate_main_scope_end();
@@ -74,7 +73,7 @@ parse(FILE *file)
     }
     else
     {
-        fprintf(stdout, "err");
+        fprintf(stderr, "# err");
     }
     fprintf(stdout, "\n");
 
@@ -101,6 +100,7 @@ symtable_insert_predefined()
     // ord
     if (RET_OK != (res = symtable_insert_function("ord", 2)))
         return res;
+
     // chr
     if (RET_OK != (res = symtable_insert_function("chr", 1)))
         return res;
@@ -329,6 +329,11 @@ init_data()
         return RET_INTERNAL_ERROR;
     }
 
+    if((data->call_params = q_init_queue()) == NULL)
+    {
+        return RET_INTERNAL_ERROR;
+    }
+
     // add more init from data_t
     data->use_queue_for_read = false;
     data->get_token_res = RET_OK;
@@ -402,7 +407,7 @@ function_def()
     if (data->token->type != TOKEN_IDENTIFIER)
         return RET_SYNTAX_ERROR;
 
-#ifdef SEMANTICS
+
     // add function id to sym_table
     ht_item_t *global_search_res = ht_search(data->global_sym_table, data->token->string.str);
 
@@ -431,7 +436,6 @@ function_def()
     data->function_ID = ht_search(data->global_sym_table, data->token->string.str);
     // for later definitions of variables in functions
 
-#endif
 
     GET_TOKEN()
 
@@ -459,12 +463,8 @@ function_def()
     if ((res = statement_list_nonempty()) != RET_OK)
         return res;
 
-#ifdef SEMANTICS
-
     // back to global scope
     data->parser_in_local_scope = global;
-
-#endif
 
     return RET_OK;
 }
@@ -540,7 +540,6 @@ statement()
             {
                 // STATEMENT -> id = ASSIGN_RHS eol
 
-#ifdef SEMANTICS
 
                 // definition of variable
                 ht_item_t *local_search_res = ht_search(data->local_sym_table, lhs_identifier.string.str);
@@ -551,16 +550,6 @@ statement()
                     // identifier exists as a function (in global scope)
                     return RET_SEMANTICAL_ERROR;
                 }
-
-#endif // SEMANTICS
-
-                if ((res = assign_rhs()) != RET_OK)
-                    return res;
-
-                if ((res = read_eol(true)) != RET_OK)
-                    return res;
-
-#ifdef SEMANTICS
 
                 // definition of variable
                 if (data->parser_in_local_scope == local)
@@ -582,7 +571,7 @@ statement()
                         res = add_to_symtable(&lhs_identifier.string, local);
                         RETURN_IF_ERR((res))
 
-                        generate_var_declare(data->ID->identifier.str);
+                        generate_var_declare(data->ID->identifier.str, data->parser_in_local_scope);
                         RETURN_IF_ERR((res))
 
                     }
@@ -600,7 +589,7 @@ statement()
                         res = add_to_symtable(&lhs_identifier.string, global);
                         RETURN_IF_ERR((res))
 
-                        generate_var_declare(data->ID->identifier.str);
+                        generate_var_declare(data->ID->identifier.str, data->parser_in_local_scope);
                         RETURN_IF_ERR((res))
                     }
                     else
@@ -610,7 +599,14 @@ statement()
                     }
                 }
 
-#endif // SEMANTICS
+
+                if ((res = assign_rhs()) != RET_OK)
+                    return res;
+
+                if ((res = read_eol(true)) != RET_OK)
+                    return res;
+
+                generate_move_exp_result_to_variable(&lhs_identifier, data);
 
                 return RET_OK;
 
@@ -621,9 +617,7 @@ statement()
                 // check if function id is defined
 
 
-#ifdef SEMANTICS
                 ht_item_t *global_search_res = ht_search(data->global_sym_table, lhs_identifier.string.str);
-
 
                 if (global_search_res == NULL)
                 {
@@ -651,14 +645,7 @@ statement()
                     //ID exists but it is NOT a defined function
                     return RET_SEMANTICAL_ERROR;
                 }
-
-
-//                 odlisne kontroly existence funkci a promennych pro aktualne globalni a lokalni scope
-//                 globalni: vyreseny z pohledu jak funkci (viz vyse), tak z pohledu promennych (viz nize)
-//                 lokalni: pro kazdou funkci udrzovat
-
-
-                if(data->parser_in_local_scope == global)
+                else if(data->parser_in_local_scope == global)
                 {
 
                     ht_item_t *swap = data->function_ID;
@@ -673,8 +660,8 @@ statement()
 
                     data->function_ID = swap;
                 }
+                // end of if-else chain, no errors -> carry on
 
-#endif // SEMANTICS
 
                 if ((res = call_param_list()) != RET_OK)
                     return res;
@@ -683,7 +670,11 @@ statement()
                 //call_predefined_function(&lhs_identifier);
                 if (strcmp(lhs_identifier.string.str, "print") == 0)
                 {
-
+                    while(data->call_params->first != NULL)
+                    {
+                        token_t *param = q_pop(data->call_params);
+                        generate_write(param, data);
+                    }
                 }
 
                 else
@@ -706,17 +697,11 @@ statement()
                 q_enqueue(data->token, data->token_queue); // token past identifier
                 data->use_queue_for_read = true;
 
-#ifdef PSA
                 if ((res = (int) solve_exp(data)) != RET_OK)
                 {
                     return res;
                 }
-#else
-                if ((res = expression()) != RET_OK)
-                {
-                    return res;
-                }
-#endif
+
 
                 if ((res = read_eol(true)) != RET_OK)
                     return res;
@@ -732,17 +717,10 @@ statement()
             q_enqueue(data->token, data->token_queue);
             data->use_queue_for_read = true;
 
-#ifdef PSA
             if ((res = (int) solve_exp(data)) != RET_OK)
             {
                 return res;
             }
-#else
-            if ((res = expression()) != RET_OK)
-            {
-                return res;
-            }
-#endif
 
             if ((res = read_eol(true)) != RET_OK)
                 return res;
@@ -795,7 +773,6 @@ assign_rhs()
         if (data->token->type == TOKEN_LEFT)
         {
 
-#ifdef SEMANTICS
             ht_item_t *global_search_res = ht_search(data->global_sym_table, token_tmp.string.str);
 
 
@@ -842,21 +819,18 @@ assign_rhs()
                 data->function_ID = swap;
             }
 
-#endif // SEMANTICS
 
             if ((res = call_param_list()) != RET_OK)
             {
                 return res;
             }
 
-#ifdef SEMANTICS
             if (global_search_res != NULL
                 && global_search_res->data->function_params_count != -1
                 && global_search_res->data->function_params_count != data->function_call_param_count)
             {
                 return RET_SEMANTICAL_PARAMS_ERROR;
             }
-#endif // SEMANTICS
 
             return res;
         }
@@ -925,7 +899,6 @@ statement_global()
             }
 
             return RET_OK;
-
         }
         else
         {
@@ -967,17 +940,10 @@ if_clause()
 
     int res;
 
-#ifdef PSA
     if ((res = (int) solve_exp(data)) != RET_OK)
     {
         return res;
     }
-#else
-        if ((res = expression()) != RET_OK)
-        {
-            return res;
-        }
-#endif
 
     GET_TOKEN()
 
@@ -1015,12 +981,7 @@ if_clause()
         return RET_SYNTAX_ERROR;
     }
 
-    GET_TOKEN()
-
-    if (data->token->type != TOKEN_EOL)
-    {
-        return RET_SYNTAX_ERROR;
-    }
+    read_eol(true);
 
     GET_TOKEN()
 
@@ -1046,17 +1007,10 @@ while_clause()
 
     // 'while' token checked already
 
-#ifdef PSA
     if ((res = (int) solve_exp(data)) != RET_OK)
     {
         return res;
     }
-#else
-        if ((res = expression()) != RET_OK)
-        {
-            return res;
-        }
-#endif
 
     GET_TOKEN()
 
@@ -1104,7 +1058,6 @@ def_param_list_next()
         if (data->token->type != TOKEN_IDENTIFIER)
             return (RET_SYNTAX_ERROR);
 
-#ifdef SEMANTICS
         data->function_ID->data->function_params_count++;
 
         ht_item_t *local_search_res = ht_search(data->local_sym_table, data->token->string.str);
@@ -1127,7 +1080,6 @@ def_param_list_next()
             RETURN_IF_ERR((res))
 
         }
-#endif // SEMANTICS
 
         if ((res = def_param_list_next()) != RET_OK)
         {
@@ -1148,9 +1100,8 @@ def_param_list()
     // DEF_PARAM_LIST -> id DEF_PARAM_LIST_NEXT
     int res;
 
-#ifdef SEMANTICS
     data->function_ID->data->function_params_count = 0;
-#endif // SEMANTICS
+
     GET_TOKEN()
 
     if (data->token->type == TOKEN_RIGHT)
@@ -1160,7 +1111,6 @@ def_param_list()
     else if (data->token->type == TOKEN_IDENTIFIER)
     {
 
-#ifdef SEMANTICS
         data->function_ID->data->function_params_count++;
 
         ht_item_t *local_search_res = ht_search(data->local_sym_table, data->token->string.str);
@@ -1184,7 +1134,6 @@ def_param_list()
                 return res;
             }
         }
-#endif // SEMANTICS
 
         if ((res = def_param_list_next()) != RET_OK)
         {
@@ -1206,11 +1155,10 @@ call_param_list()
 
     int res;
 
-#ifdef SEMANTICS
     ht_item_t *local_search_res;
     ht_item_t *global_search_res;
     data->function_call_param_count = 0;
-#endif // SEMANTICS
+
     GET_TOKEN()
 
     if (data->token->type == TOKEN_RIGHT)
@@ -1219,7 +1167,7 @@ call_param_list()
     }
     else if ((res = call_elem()) == RET_OK)
     {
-#ifdef SEMANTICS
+
         data->function_call_param_count++;
 
         // first param check if defined
@@ -1264,9 +1212,9 @@ call_param_list()
                 }
 
             }
-
         }
-#endif // SEMANTICS
+            q_enqueue(data->token, data->call_params);
+
         if ((res = call_param_list_next()) != RET_OK)
         {
             return res;
@@ -1284,10 +1232,10 @@ call_param_list_next()
 {
     // CALL_PARAM_LIST_NEXT -> , CALL_ELEM CALL_PARAM_LIST_NEXT
     // CALL_PARAM_LIST_NEXT -> )
-#ifdef SEMANTICS
+
     ht_item_t *local_search_res;
     ht_item_t *global_search_res;
-#endif
+
     int res;
 
     GET_TOKEN()
@@ -1303,7 +1251,7 @@ call_param_list_next()
         if ((res = call_elem()) != RET_OK)
             return res;
 
-#ifdef SEMANTICS
+
         data->function_call_param_count++;
 
         // next param check if defined
@@ -1351,8 +1299,10 @@ call_param_list_next()
             }
 
         }
-        // everything its ok
-#endif // SEMANTICS
+        // everything is ok
+        q_enqueue(data->token, data->call_params);
+
+
 
         if ((res = call_param_list_next()) != RET_OK)
         {
@@ -1443,17 +1393,10 @@ return_expression()
         q_enqueue(data->token, data->token_queue);
         data->use_queue_for_read = true;
 
-#ifdef PSA
         if ((res = (int) solve_exp(data)) != RET_OK)
         {
             return res;
         }
-#else
-        if ((res = expression()) != RET_OK)
-        {
-            return res;
-        }
-#endif
 
         if ((res = read_eol(true)) != RET_OK)
         {
@@ -1465,33 +1408,12 @@ return_expression()
 }
 
 int
-expression()
-{
-    // call PSA here
-
-
-    // temporary solution:
-    // --------- simulate PSA ---------
-    do
-    {
-        GET_TOKEN()
-    }
-    while (data->token->type != TOKEN_EOL && data->token->type != TOKEN_EOF && data->token->type != TOKEN_COLON);
-
-    q_enqueue(data->token, data->token_queue);
-    data->use_queue_for_read = true;
-
-    return RET_OK;
-    // -------------- end --------------
-}
-
-int
 global_variables(char *str, int a)
 {
     int i = data->function_ID->data->just_index - 1;
     ht_item_t *search_res;
     while (i >= 0)
-    {   
+    {
         if (a == 1)
         {
             search_res = ht_search(data->global_sym_table, data->function_ID->data->global_variables[i]);

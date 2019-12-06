@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include "symtable.h"
 #include "exp_stack.h"
+#include "parser.h"
 
 // TODO missing javadocs
 
@@ -26,7 +27,7 @@ int
 insert_convert_to_bool_function();
 
 int
-generate_var_declare(char *var_id);
+generate_var_declare(char *var_id, bool is_scope_local);
 
 int
 generate_file_header();
@@ -50,7 +51,7 @@ string_t *
 generate_unique_identifier(const char *prefix_scope, const char *prefix_type);
 
 int
-generate_write(sym_table_item *identifier, bool scope);
+generate_write(token_t *token, data_t *data);
 
 int
 generate_function_call(string_t *identifier);
@@ -78,6 +79,12 @@ typecheck(sem_t *op1, sem_t *op2, unsigned int rule);
 
 int
 defvar_type(sem_t *op);
+
+int
+compiler_ret_value_comment (int retval);
+
+int
+generate_move_exp_result_to_variable(token_t *token, data_t *data);
 
 #endif // HEADER_CODE_GEN
 

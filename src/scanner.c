@@ -1020,7 +1020,7 @@ get_token(token_t *token, FILE *file)
             default:
 
                 state = STATE_ERROR;
-                fprintf(stderr, "%s, %u: reached default state", __func__, __LINE__);
+                fprintf(stderr, "# %s, %u: reached default state", __func__, __LINE__);
                 break;
         }
     }

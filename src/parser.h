@@ -238,14 +238,6 @@ return_statement();
 int
 return_expression();
 
-/**
- * @brief
- *
- * @return predefined return value, see err.h
- */
-int
-expression();
-
 int
 global_variables(char *str, int a);
 

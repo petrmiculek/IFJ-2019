@@ -18,14 +18,14 @@
 
 static int append_res = 0;
 
-#define buffer_length 10
+#define buffer_length 25
 #define CODE_APPEND(string) if ((append_res = (int)append_c_string_to_string(&code, (string))) != RET_OK) \
                                 return append_res;
 
 #define CODE_APPEND_AND_EOL(string) if ((append_res = (int) append_c_string_to_string(&code, (string "\n"))) != RET_OK)\
                                 return append_res;
 
-#define CODE_APPEND_VALUE(value)                         \
+#define CODE_APPEND_VALUE_INT(value)                     \
 do {                                                     \
         char buffer[(buffer_length)];                    \
         snprintf(buffer, (buffer_length), "%d", value);  \
@@ -33,8 +33,16 @@ do {                                                     \
     } while (0);                                         \
 
 
+#define CODE_APPEND_AS_FLOAT(string)                     \
+do {                                                     \
+        double float_value = strtod((string), NULL);\
+        char buffer[(buffer_length)];                    \
+        snprintf(buffer, (buffer_length), "%a", float_value);  \
+        CODE_APPEND(buffer);                             \
+    } while (0);                                         \
+
 #define HEADER \
-"\n .IFJcode19"\
+".IFJcode19"\
 "\n DEFVAR GF@%tmp_op1"\
 "\n DEFVAR GF@%tmp_op2"\
 "\n DEFVAR GF@%tmp_op3"\
@@ -77,7 +85,7 @@ do {                                                     \
 "\n JUMP convert%to%bool%end"\
 \
 "\n LABEL exp_result%is%float"\
-"\n JUMPIFNEQ result%true  GF@%exp_result float@0.0"\
+"\n JUMPIFNEQ result%true  GF@%exp_result float@0x0p+0"\
 "\n MOVE GF@exp_result bool@false"\
 "\n JUMP convert%to%bool%end"\
 \
@@ -111,6 +119,24 @@ do {                                                     \
  "\n LABEL $ord$err"\
  "\n MOVE LF@%retval nil@nil"\
  "\n LABEL $ord$ok"\
+ "\n POPFRAME"\
+ "\n RETURN"\
+  \
+ "\n# Built-in function Print"\
+ "\n LABEL $print"\
+ "\n PUSHFRAME"\
+ "\n DEFVAR LF@%retval"\
+ "\n MOVE LF@%retval nil@nil"\
+ "\n # DEFVAR LF@print_loop_cond"\
+ "\n # DEFVAR LF@pr_arg"\
+ "\n # LABEL $print$loop"\
+ "\n # GT LF@print_loop_cond LF@%0 int@0"\
+ "\n # JUMPIFEQ $end$loop LF@print_loop_cond bool@false"\
+ "\n WRITE LF@%0"\
+ "\n WRITE string@\\032"\
+ "\n # WRITE string@\\010"\
+ "\n # JUMP $print$loop"\
+ "\n # LABEL $end$loop"\
  "\n POPFRAME"\
  "\n RETURN"\
  \
@@ -153,24 +179,6 @@ do {                                                     \
  "\n PUSHFRAME"\
  "\n DEFVAR LF@%retval"\
  "\n READ LF@%retval float"\
- "\n POPFRAME"\
- "\n RETURN"\
- \
- "\n# Built-in function Print"\
- "\n LABEL $print"\
- "\n PUSHFRAME"\
- "\n DEFVAR LF@%retval"\
- "\n MOVE LF@%retval nil@nil"\
- "\n # DEFVAR LF@print_loop_cond"\
- "\n # DEFVAR LF@pr_arg"\
- "\n # LABEL $print$loop"\
- "\n # GT LF@print_loop_cond LF@%0 int@0"\
- "\n # JUMPIFEQ $end$loop LF@print_loop_cond bool@false"\
- "\n WRITE LF@%0"\
- "\n WRITE string@\032"\
- "\n # WRITE string@\010"\
- "\n # JUMP $print$loop"\
- "\n # LABEL $end$loop"\
  "\n POPFRAME"\
  "\n RETURN"\
  \
@@ -262,9 +270,19 @@ insert_convert_to_bool_function()
     return RET_OK;
 }
 int
-generate_var_declare(char *var_id)
+generate_var_declare(char *var_id, bool is_scope_local)
 {
-    CODE_APPEND("DEFVAR LF@");
+    CODE_APPEND("DEFVAR ");
+
+    if (is_scope_local == local)
+    {
+        CODE_APPEND("LF@")
+    }
+    else
+    {
+        CODE_APPEND("GF@")
+    }
+
     CODE_APPEND(var_id);
     CODE_APPEND("\n");
 
@@ -358,20 +376,92 @@ generate_unique_identifier(const char *prefix_scope, const char *prefix_type)
 }
 
 int
-generate_write(sym_table_item *identifier, bool scope)
+append_identifier(const token_t *token, const data_t *data)
 {
-    CODE_APPEND("WRITE ")
-
-    if (scope == local)
+    table_t *table;
+    if (data->parser_in_local_scope == local)
     {
         CODE_APPEND("LF@")
+        table = data->local_sym_table;
     }
     else
     {
         CODE_APPEND("GF@")
+        table = data->global_sym_table;
+    }
+    ht_item_t *identifier = ht_search(table, token->string.str);
+
+    if (identifier == NULL)
+    {
+        fprintf(stderr, "# %s, %d: identifier (%d, %s) not found in (%s)\n",
+                __func__, __LINE__,
+                token->type, token->string.str,
+                (data->parser_in_local_scope == local ? "local" : "global"));
+
+        return RET_SEMANTICAL_ERROR;
     }
 
-    CODE_APPEND(identifier->identifier.str)
+    if (identifier->data->is_defined == false)
+    {
+        fprintf(stderr, "# %s, %d: using undefined identifier(%d, %s)\n",
+                __func__, __LINE__,
+                token->type, token->string.str);
+
+        // don't throw error, I just wanted to know about when this happens
+        // TODO remove this if-block in final submission
+    }
+
+    char *token_uniq_identifier = identifier->data->identifier.str;
+
+    CODE_APPEND(token_uniq_identifier)
+
+    return RET_OK;
+}
+
+int
+generate_write(token_t *token, data_t* data)
+{
+    int res;
+
+    CODE_APPEND("WRITE ")
+
+    if(token->type == TOKEN_IDENTIFIER)
+    {
+        if((res = append_identifier(token, data)) != RET_OK)
+        {
+            return res;
+        }
+    }
+    else if(token->type == TOKEN_INT)
+    {
+        CODE_APPEND("int@")
+        CODE_APPEND(token->string.str)
+    }
+    else if(token->type == TOKEN_LIT
+        || token->type == TOKEN_DOC)
+    {
+        CODE_APPEND("string@")
+        CODE_APPEND(token->string.str)
+    }
+    else if(token->type == TOKEN_FLOAT)
+    {
+        CODE_APPEND("float@")
+        CODE_APPEND_AS_FLOAT(token->string.str)
+    }
+    else if(token->type == TOKEN_NONE)
+    {
+        CODE_APPEND("nil@nil")
+    }
+    else
+    {
+        fprintf(stderr, "# %s, %u: invalid parameter passed (%d, %s)",
+            __func__, __LINE__,
+            token->type, token->string.str);
+
+        return RET_SEMANTICAL_ERROR;
+    }
+
+
     CODE_APPEND("\n")
 
     return RET_OK;
@@ -392,11 +482,11 @@ generate_function_param(int param_number, string_t *identifier, bool scope)
 {
     CODE_APPEND("DEFVAR ")
     CODE_APPEND("TF@%")
-    CODE_APPEND_VALUE(param_number)
+    CODE_APPEND_VALUE_INT(param_number)
     CODE_APPEND("\n")
 
     CODE_APPEND("MOVE TF@%")
-    CODE_APPEND_VALUE(param_number)
+    CODE_APPEND_VALUE_INT(param_number)
     CODE_APPEND(" ")
 
     if (scope == local)
@@ -418,8 +508,8 @@ int
 generate_operand(string_t operand, int tmp, unsigned int symbol, int frame)
 {
     CODE_APPEND(" MOVE ")
-    CODE_APPEND("GL@%tmp_op")
-    CODE_APPEND_VALUE(tmp)
+    CODE_APPEND("GF@%tmp_op")
+    CODE_APPEND_VALUE_INT(tmp)
     switch (symbol)
     {
         case OP_INT:
@@ -439,7 +529,7 @@ generate_operand(string_t operand, int tmp, unsigned int symbol, int frame)
         case OP_FLOAT:
         {
             CODE_APPEND(" float@")
-            CODE_APPEND(operand.str)
+            CODE_APPEND_AS_FLOAT(operand.str)
             CODE_APPEND("\n")
             return RET_OK;
         }
@@ -478,11 +568,11 @@ generate_operand(string_t operand, int tmp, unsigned int symbol, int frame)
             break;
     }
     return RET_INTERNAL_ERROR;
-    
+
 }
 
 
-int 
+int
 generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule)
 {
     switch(rule)
@@ -513,14 +603,14 @@ generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule)
             break;
         }
         default:
-        {      
+        {
            return RET_INTERNAL_ERROR;
 
         }
-    
+
     }
     CODE_APPEND("GF@%tmp_op")
-    CODE_APPEND_VALUE(result)
+    CODE_APPEND_VALUE_INT(result)
     CODE_APPEND(" GF@%")
     CODE_APPEND(op1.sem_data.str)
     CODE_APPEND(" GF@%")
@@ -533,7 +623,7 @@ int
 generate_result(sem_t result)
 {
     CODE_APPEND(" MOVE ")
-    CODE_APPEND("GL@%exp_result ")
+    CODE_APPEND("GF@%exp_result ")
     CODE_APPEND("GF@%")
     CODE_APPEND(result.sem_data.str)
     CODE_APPEND("\n")
@@ -610,7 +700,7 @@ generate_relop(sem_t op1, sem_t op2, int result, unsigned int rule)
 
     }
     CODE_APPEND("GF@%tmp_op")
-    CODE_APPEND_VALUE(result)
+    CODE_APPEND_VALUE_INT(result)
     CODE_APPEND(" GF@%")
     CODE_APPEND(op1.sem_data.str)
     if(rule != NE)
@@ -628,18 +718,18 @@ generate_relop(sem_t op1, sem_t op2, int result, unsigned int rule)
     {
         CODE_APPEND(" NOT ")
         CODE_APPEND("GF@%tmp_op")
-        CODE_APPEND_VALUE(result)
+        CODE_APPEND_VALUE_INT(result)
         CODE_APPEND(" GF@%tmp_op")
-        CODE_APPEND_VALUE(result)
+        CODE_APPEND_VALUE_INT(result)
         CODE_APPEND("\n")
 
     }
-    return RET_OK; 
+    return RET_OK;
 }
 
 int
 typecheck(sem_t *op1, sem_t *op2, unsigned int rule)
-{   
+{
     int res;
     switch (rule)
     {
@@ -648,7 +738,7 @@ typecheck(sem_t *op1, sem_t *op2, unsigned int rule)
         {
             return res;
         }
-    
+
         if ((res=defvar_type(op2)) != RET_OK)
         {
             return res;
@@ -699,7 +789,7 @@ typecheck(sem_t *op1, sem_t *op2, unsigned int rule)
     case R_NE:
         /* code */
         break;
-    
+
     default:
         break;
     }
@@ -718,5 +808,24 @@ defvar_type(sem_t *op)
     CODE_APPEND("LF@");
     CODE_APPEND(op->sem_data.str);
     CODE_APPEND("\n");
+    return RET_OK;
+}
+
+int
+compiler_ret_value_comment(int retval)
+{
+    CODE_APPEND("# compiler finished with return code: ")
+    CODE_APPEND_VALUE_INT(retval)
+    return RET_OK;
+}
+
+int
+generate_move_exp_result_to_variable(token_t *token, data_t *data)
+{
+    CODE_APPEND("MOVE ");
+    append_identifier(token, data);
+    CODE_APPEND(" GF@%exp_result");
+    CODE_APPEND("\n");
+
     return RET_OK;
 }
