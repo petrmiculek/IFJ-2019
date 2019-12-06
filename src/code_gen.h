@@ -77,7 +77,7 @@ int
 typecheck(sem_t *op1, sem_t *op2, unsigned int rule);
 
 int
-DEFVAR_TYPE(sem_t *op);
+defvar_type(sem_t *op);
 
 #endif // HEADER_CODE_GEN
 

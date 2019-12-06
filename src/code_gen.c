@@ -460,9 +460,11 @@ generate_operand(string_t operand, int tmp, unsigned int symbol, int frame)
         {
             //TODO
             if(frame == 1)
+            {
                 CODE_APPEND(" LF@")
                 CODE_APPEND(operand.str)
                 CODE_APPEND("\n")
+            }
             else
             {
                 CODE_APPEND(" GF@")
@@ -642,16 +644,31 @@ typecheck(sem_t *op1, sem_t *op2, unsigned int rule)
     switch (rule)
     {
     case R_PLUS:
-        if ((res=DEFVAR_TYPE(op1)) != RET_OK)
+        if ((res=defvar_type(op1)) != RET_OK)
         {
             return res;
         }
     
-        if ((res=DEFVAR_TYPE(op2)) != RET_OK)
+        if ((res=defvar_type(op2)) != RET_OK)
         {
             return res;
         }
-        break;
+        CODE_APPEND("JUMPIFEQ uniquelabelOK");
+        CODE_APPEND("LF@");
+        CODE_APPEND(op1->sem_data.str);
+        CODE_APPEND("$type ");
+        CODE_APPEND("LF@");
+        CODE_APPEND(op2->sem_data.str);
+        CODE_APPEND_AND_EOL("$type");
+        /*CODE_APPEND();
+        CODE_APPEND();
+        CODE_APPEND();
+        CODE_APPEND();
+        CODE_APPEND();
+        CODE_APPEND();
+        CODE_APPEND();
+        */break;
+
     case R_MIN:
         /* code */
         break;
@@ -690,12 +707,12 @@ typecheck(sem_t *op1, sem_t *op2, unsigned int rule)
 }
 
 int
-DEFVAR_TYPE(sem_t *op)
+defvar_type(sem_t *op)
 {
-    CODE_APPEND("DEFVAR LF@$");
+    CODE_APPEND(" DEFVAR LF@$");
     CODE_APPEND(op->sem_data.str);
     CODE_APPEND_AND_EOL("$type");
-    CODE_APPEND("TYPE LF@");
+    CODE_APPEND(" TYPE LF@");
     CODE_APPEND(op->sem_data.str);
     CODE_APPEND("$type ");
     CODE_APPEND("LF@");
