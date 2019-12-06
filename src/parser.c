@@ -693,17 +693,10 @@ statement()
                 q_enqueue(data->token, data->token_queue); // token past identifier
                 data->use_queue_for_read = true;
 
-#ifdef PSA
                 if ((res = (int) solve_exp(data)) != RET_OK)
                 {
                     return res;
                 }
-#else
-                if ((res = expression()) != RET_OK)
-                {
-                    return res;
-                }
-#endif
 
                 if ((res = read_eol(true)) != RET_OK)
                     return res;
