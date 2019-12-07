@@ -60,7 +60,7 @@ int
 generate_function_param(int param_number, string_t *identifier, bool scope);
 
 int
-generate_operand(string_t operand, int tmp, unsigned int symbol, int frame);
+generate_operand(string_t operand, int tmp, unsigned int symbol, data_t *data);
 
 int
 generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule);

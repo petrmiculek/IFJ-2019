@@ -846,7 +846,7 @@ generate_function_param(int param_number, string_t *identifier, bool scope)
 }
 
 int
-generate_operand(string_t operand, int tmp, unsigned int symbol, int frame, data_t  *data)
+generate_operand(string_t operand, int tmp, unsigned int symbol, data_t  *data)
 {
     CODE_APPEND(" MOVE ")
     CODE_APPEND("GF@%tmp_op")
@@ -889,7 +889,6 @@ generate_operand(string_t operand, int tmp, unsigned int symbol, int frame, data
         }
         case OP_ID:
         {
-            //TODO
             append_identifier_string(operand, data);
             CODE_APPEND("\n")
 

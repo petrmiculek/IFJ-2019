@@ -810,7 +810,7 @@ solve_exp(data_t *data)
                     if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used, &result) == RET_INTERNAL_ERROR)
                         return RET_INTERNAL_ERROR;
 
-                    res = generate_operand(sym1.sem_data, result, sym1.type, frame);
+                    res = generate_operand(sym1.sem_data, result, sym1.type, data);
                     if (res != RET_OK)
                         return res;
 
