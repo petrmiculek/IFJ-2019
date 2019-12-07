@@ -63,16 +63,10 @@ int
 generate_operand(string_t operand, int tmp, unsigned int symbol, data_t *data);
 
 int
-generate_operation(sem_t op1, sem_t op2, int result, unsigned int rule);
-
-int
 generate_result(sem_t result);
 
 int
 generate_retype(sem_t op, int to);
-
-int
-generate_relop(sem_t op1, sem_t op2, int result, unsigned int rule);
 
 int
 typecheck(sem_t *op1, sem_t *op2, unsigned int rule, int result);

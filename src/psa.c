@@ -294,6 +294,10 @@ check_semantics(rules rule, sem_t *sym1, int result, sem_t *sym3, d_type *final_
         {
             *final_type = STRING;
         }
+        else if (sym1->type == OP_DOC)
+        {
+            *final_type = STRING;
+        }
         else
         {
             *final_type = UNDEFINED;
@@ -412,15 +416,16 @@ check_semantics(rules rule, sem_t *sym1, int result, sem_t *sym3, d_type *final_
         }
 
     }
-    else
+
+    if (rule != R_I && rule != R_BRACKETS)
     {
-        // we need to generate runtime type check
-        if ((res=typecheck(sym1, sym3, rule, result))!= RET_OK)
+        // we need to generate runtime type check and get result
+        if ((res=typecheck(sym3, sym1, rule, result))!= RET_OK)
         {
             return res;
         }
-
     }
+    
 
     return RET_OK;
 }
@@ -801,14 +806,14 @@ solve_exp(data_t *data)
                 {
                     sym1 = Stack->atr[i];
 
+                    if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used, &result) == RET_INTERNAL_ERROR)
+                        return RET_INTERNAL_ERROR;
+                    
                     if ((res = check_semantics(rule, &sym1, result, &sym3, &finaltype, data, &frame)) != RET_OK)
                         return res;
 
                     new.type = EXP;
                     new.d_type = finaltype;
-
-                    if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used, &result) == RET_INTERNAL_ERROR)
-                        return RET_INTERNAL_ERROR;
 
                     res = generate_operand(sym1.sem_data, result, sym1.type, data);
                     if (res != RET_OK)
@@ -832,12 +837,6 @@ solve_exp(data_t *data)
 
                     new.type = EXP;
                     new.d_type = finaltype;
-
-                    
-
-                    res = generate_operation(sym3, sym1, result, rule);
-                    if (res != RET_OK)
-                        return res;
 
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
@@ -864,16 +863,15 @@ solve_exp(data_t *data)
                     sym2 = Stack->atr[i - 1];
                     sym3 = Stack->atr[i - 2];
 
+                    if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used, &result) == RET_INTERNAL_ERROR)
+                        return RET_INTERNAL_ERROR;
+                    
                     if ((res = check_semantics(rule, &sym1, result, &sym3, &finaltype, data, &frame)) != RET_OK)
                         return res;
 
                     new.type = EXP;
                     new.d_type = finaltype;
 
-                    if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used, &result) == RET_INTERNAL_ERROR)
-                        return RET_INTERNAL_ERROR;
-
-                    generate_relop(sym1, sym3, result, rule);
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
                     stack_expr_pop(Stack);
