@@ -196,7 +196,6 @@ do {                                                     \
  "\n LABEL $substr"\
  "\n PUSHFRAME"\
  "\n DEFVAR LF@%retval"\
- "\n MOVE LF@%retval"\
  "\n DEFVAR LF@length_str"\
  "\n CREATEFRAME"\
  "\n DEFVAR TF@%0"\
@@ -243,7 +242,7 @@ do {                                                     \
  "\n POPFRAME"\
  "\n RETURN"\
  
-#define SEMANTICS_FUNCTIONS \
+#define ARITHMETIC1_SEMANTICS_FUNCTIONS \
  "\n # semantic_plus"\
  "\n LABEL $semantics_runtime_check_plus"\
  "\n PUSHFRAME"\
@@ -256,13 +255,30 @@ do {                                                     \
  "\n MOVE LF@op1 LF@%3"\
  "\n DEFVAR LF@op2"\
  "\n MOVE LF@op2 LF@%4"\
- "\n JUMPIFEQ $OK LF@op1_type LF@op2_type"\
- "\n LABEL $OK"\
+ "\n JUMPIFEQ $OK$semantics_runtime_check_plus LF@op1_type LF@op2_type"\
+ "\n JUMPIFEQ $OP1_INT$semantics_runtime_check_plus LF@op1_type string@int"\
+ "\n JUMPIFEQ $OP2_INT$semantics_runtime_check_plus LF@op2_type string@int"\
+ "\n LABEL $EXIT$semantics_runtime_check_plus"\
+ "\n EXIT int@4"\
+ "\n LABEL $OP1_INT$semantics_runtime_check_plus"\
+ "\n INT2FLOAT LF@op1 LF@op1"\
+ "\n TYPE LF@op1_type LF@op1"\
+ "\n JUMPIFEQ $OK$semantics_runtime_check_plus LF@op1_type LF@op2_type"\
+ "\n JUMP $EXIT$semantics_runtime_check_plus"\
+ "\n LABEL $OP2_INT$semantics_runtime_check_plus"\
+ "\n INT2FLOAT LF@op2 LF@op2"\
+ "\n TYPE LF@op2_type LF@op2"\
+ "\n JUMPIFEQ $OK$semantics_runtime_check_plus LF@op1_type LF@op2_type"\
+ "\n JUMP $EXIT$semantics_runtime_check_plus"\
+ "\n LABEL $OK$semantics_runtime_check_plus"\
  "\n JUMPIFEQ $CONCAT LF@op1_type string@string"\
+ "\n JUMPIFEQ $EXIT$semantics_runtime_check_plus LF@op1_type string@nil"\
+ "\n JUMPIFEQ $EXIT$semantics_runtime_check_plus LF@op1_type string@bool"\
  "\n ADD LF@%retval LF@op1 LF@op2"\
- "\n LABEL $CONCAT"\
+ "\n JUMP $RET$semantics_runtime_check_plus"\
+ "\n LABEL $CONCAT$semantics_runtime_check_plus"\
  "\n CONCAT LF@%retval LF@op1 LF@op2"\
- "\n LABEL $RET"\
+ "\n LABEL $RET$semantics_runtime_check_plus"\
  "\n POPFRAME"\
  "\n RETURN"\
  \
@@ -278,9 +294,30 @@ do {                                                     \
  "\n MOVE LF@op1 LF@%3"\
  "\n DEFVAR LF@op2"\
  "\n MOVE LF@op2 LF@%4"\
+ "\n JUMPIFEQ $OK$semantics_runtime_check_min LF@op1_type LF@op2_type"\
+ "\n JUMPIFEQ $OP1_INT$semantics_runtime_check_min LF@op1_type string@int"\
+ "\n JUMPIFEQ $OP2_INT$semantics_runtime_check_min LF@op2_type string@int"\
+ "\n LABEL $EXIT$semantics_runtime_check_min"\
+ "\n EXIT int@4"\
+ "\n LABEL $OP1_INT$semantics_runtime_check_min"\
+ "\n INT2FLOAT LF@op1 LF@op1"\
+ "\n TYPE LF@op1_type LF@op1"\
+ "\n JUMPIFEQ $OK$semantics_runtime_check_min LF@op1_type LF@op2_type"\
+ "\n JUMP $EXIT$semantics_runtime_check_min"\
+ "\n LABEL $OP2_INT$semantics_runtime_check_min"\
+ "\n INT2FLOAT LF@op2 LF@op2"\
+ "\n TYPE LF@op2_type LF@op2"\
+ "\n JUMPIFEQ $OK$semantics_runtime_check_min LF@op1_type LF@op2_type"\
+ "\n JUMP $EXIT$semantics_runtime_check_min"\
+ "\n LABEL $OK$semantics_runtime_check_min"\
+ "\n JUMPIFEQ $EXIT$semantics_runtime_check_min LF@op1_type string@string"\
+ "\n JUMPIFEQ $EXIT$semantics_runtime_check_min LF@op1_type string@nil"\
+ "\n JUMPIFEQ $EXIT$semantics_runtime_check_min LF@op1_type string@bool"\
+ "\n SUB LF@%retval LF@op1 LF@op2"\
  "\n POPFRAME"\
  "\n RETURN"\
- \
+ 
+#define ARITHMETIC2_SEMANTICS_FUNCTIONS \
  "\n # semantic_mul"\
  "\n LABEL $semantics_runtime_check_mul"\
  "\n PUSHFRAME"\
@@ -293,6 +330,26 @@ do {                                                     \
  "\n MOVE LF@op1 LF@%3"\
  "\n DEFVAR LF@op2"\
  "\n MOVE LF@op2 LF@%4"\
+ "\n JUMPIFEQ $OK$semantics_runtime_check_mul LF@op1_type LF@op2_type"\
+ "\n JUMPIFEQ $OP1_INT$semantics_runtime_check_mul LF@op1_type string@int"\
+ "\n JUMPIFEQ $OP2_INT$semantics_runtime_check_mul LF@op2_type string@int"\
+ "\n LABEL $EXIT$semantics_runtime_check_mul"\
+ "\n EXIT int@4"\
+ "\n LABEL $OP1_INT$semantics_runtime_check_mul"\
+ "\n INT2FLOAT LF@op1 LF@op1"\
+ "\n TYPE LF@op1_type LF@op1"\
+ "\n JUMPIFEQ $OK$semantics_runtime_check_mul LF@op1_type LF@op2_type"\
+ "\n JUMP $EXIT$semantics_runtime_check_mul"\
+ "\n LABEL $OP2_INT$semantics_runtime_check_mul"\
+ "\n INT2FLOAT LF@op2 LF@op2"\
+ "\n TYPE LF@op2_type LF@op2"\
+ "\n JUMPIFEQ $OK$semantics_runtime_check_mul LF@op1_type LF@op2_type"\
+ "\n JUMP $EXIT$semantics_runtime_check_mul"\
+ "\n LABEL $OK$semantics_runtime_check_mul"\
+ "\n JUMPIFEQ $EXIT$semantics_runtime_check_mul LF@op1_type string@string"\
+ "\n JUMPIFEQ $EXIT$semantics_runtime_check_mul LF@op1_type string@nil"\
+ "\n JUMPIFEQ $EXIT$semantics_runtime_check_mul LF@op1_type string@bool"\
+ "\n MUL LF@%retval LF@op1 LF@op2"\
  "\n POPFRAME"\
  "\n RETURN"\
  \
@@ -308,6 +365,33 @@ do {                                                     \
  "\n MOVE LF@op1 LF@%3"\
  "\n DEFVAR LF@op2"\
  "\n MOVE LF@op2 LF@%4"\
+ "\n JUMPIFEQ $OK$semantics_runtime_check_div LF@op1_type LF@op2_type"\
+ "\n JUMPIFEQ $OP1_INT$semantics_runtime_check_div LF@op1_type string@int"\
+ "\n JUMPIFEQ $OP2_INT$semantics_runtime_check_div LF@op2_type string@int"\
+ "\n LABEL $EXIT$semantics_runtime_check_div"\
+ "\n EXIT int@4"\
+ "\n LABEL $OP1_INT$semantics_runtime_check_div"\
+ "\n INT2FLOAT LF@op1 LF@op1"\
+ "\n TYPE LF@op1_type LF@op1"\
+ "\n JUMPIFEQ $OK$semantics_runtime_check_div LF@op1_type LF@op2_type"\
+ "\n JUMP $EXIT$semantics_runtime_check_div"\
+ "\n LABEL $OP2_INT$semantics_runtime_check_div"\
+ "\n INT2FLOAT LF@op2 LF@op2"\
+ "\n TYPE LF@op2_type LF@op2"\
+ "\n JUMPIFEQ $OK$semantics_runtime_check_div LF@op1_type LF@op2_type"\
+ "\n JUMP $EXIT$semantics_runtime_check_div"\
+ "\n LABEL $OK$semantics_runtime_check_div"\
+ "\n JUMPIFEQ $EXIT$semantics_runtime_check_div LF@op1_type string@string"\
+ "\n JUMPIFEQ $EXIT$semantics_runtime_check_div LF@op1_type string@nil"\
+ "\n JUMPIFEQ $EXIT$semantics_runtime_check_div LF@op1_type string@bool"\
+ "\n JUMPIFEQ $FLOAT$semantics_runtime_check_div LF@op1_type string@float"\
+ "\n JUMPIFNEQ $NOT_ZERO$semantics_runtime_check_div LF@op2 int@0"\
+ "\n EXIT int@9"\
+ "\n LABEL $FLOAT$semantics_runtime_check_div"\
+ "\n JUMPIFNEQ $NOT_ZERO$semantics_runtime_check_div LF@op2 float@0"\
+ "\n EXIT int@9"\
+ "\n LABEL $NOT_ZERO$semantics_runtime_check_div"\
+ "\n DIV LF@%retval LF@op1 LF@op2"\
  "\n POPFRAME"\
  "\n RETURN"\
  \
@@ -323,9 +407,34 @@ do {                                                     \
  "\n MOVE LF@op1 LF@%3"\
  "\n DEFVAR LF@op2"\
  "\n MOVE LF@op2 LF@%4"\
+ "\n JUMPIFEQ $OK$semantics_runtime_check_idiv LF@op1_type LF@op2_type"\
+ "\n JUMPIFEQ $OP1_FLOAT$semantics_runtime_check_idiv LF@op1_type string@float"\
+ "\n JUMPIFEQ $OP2_FLOAT$semantics_runtime_check_idiv LF@op2_type string@float"\
+ "\n LABEL $EXIT$semantics_runtime_check_idiv"\
+ "\n EXIT int@4"\
+ "\n LABEL $OP1_FLOAT$semantics_runtime_check_idiv"\
+ "\n FLOAT2INT LF@op1 LF@op1"\
+ "\n TYPE LF@op1_type LF@op1"\
+ "\n JUMPIFEQ $OK$semantics_runtime_check_idiv LF@op1_type LF@op2_type"\
+ "\n JUMP $EXIT$semantics_runtime_check_idiv"\
+ "\n LABEL $OP2_FLOAT$semantics_runtime_check_idiv"\
+ "\n FLOAT2INT LF@op2 LF@op2"\
+ "\n TYPE LF@op2_type LF@op2"\
+ "\n JUMPIFEQ $OK$semantics_runtime_check_idiv LF@op1_type LF@op2_type"\
+ "\n JUMP $EXIT$semantics_runtime_check_idiv"\
+ "\n LABEL $OK$semantics_runtime_check_idiv"\
+ "\n JUMPIFEQ $EXIT$semantics_runtime_check_idiv LF@op1_type string@string"\
+ "\n JUMPIFEQ $EXIT$semantics_runtime_check_idiv LF@op1_type string@float"\
+ "\n JUMPIFEQ $EXIT$semantics_runtime_check_idiv LF@op1_type string@nil"\
+ "\n JUMPIFEQ $EXIT$semantics_runtime_check_idiv LF@op1_type string@bool"\
+ "\n JUMPIFNEQ $NOT_ZERO$semantics_runtime_check_idiv LF@op2 int@0"\
+ "\n EXIT int@9"\
+ "\n LABEL $NOT_ZERO$semantics_runtime_check_idiv"\
+ "\n DIV LF@%retval LF@op1 LF@op2"\
  "\n POPFRAME"\
  "\n RETURN"\
- \
+ 
+#define RELATIONAL1_SEMANTICS_FUNCTIONS \
  "\n # semantic_a"\
  "\n LABEL $semantics_runtime_check_a"\
  "\n PUSHFRAME"\
@@ -425,7 +534,8 @@ do {                                                     \
  "\n LT LF@%retval LF@op1 LF@op2"\
  "\n POPFRAME"\
  "\n RETURN"\
- \
+ 
+#define RELATIONAL2_SEMANTICS_FUNCTIONS \
  "\n # semantic_el"\
  "\n LABEL $semantics_runtime_check_el"\
  "\n PUSHFRAME"\
@@ -555,7 +665,10 @@ int
 insert_built_in_functions()
 {
     CODE_APPEND_AND_EOL(BUILT_IN_FUNCTIONS)
-    CODE_APPEND_AND_EOL(SEMANTICS_FUNCTIONS)
+    CODE_APPEND_AND_EOL(ARITHMETIC1_SEMANTICS_FUNCTIONS)
+    CODE_APPEND_AND_EOL(ARITHMETIC2_SEMANTICS_FUNCTIONS)
+    CODE_APPEND_AND_EOL(RELATIONAL1_SEMANTICS_FUNCTIONS)
+    CODE_APPEND_AND_EOL(RELATIONAL2_SEMANTICS_FUNCTIONS)
 
     return RET_OK;
 }
