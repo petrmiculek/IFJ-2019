@@ -390,6 +390,7 @@ int function_def()
     // FUNCTION_DEF -> id ( DEF_PARAM_LIST ) : eol indent STATEMENT_LIST_NONEMPTY
 
     int res;
+    int lp = 0;
 
     // IMPORTANT: def token was read in by callee
 
@@ -416,6 +417,7 @@ int function_def()
         if (global_search_res->data->is_function == true && global_search_res->data->is_defined == false)
         {
             global_search_res->data->is_defined = true;
+            lp = global_search_res->data->function_params_count;
         }
         else
         {
@@ -434,6 +436,11 @@ int function_def()
     if ((res = def_param_list()) != RET_OK)
         return res;
 
+    if (lp != 0) //check earlier local function call
+    {
+        if (lp != data->function_ID->data->function_params_count)
+            return RET_SEMANTICAL_PARAMS_ERROR;
+    }
     // IMPORTANT: right brace read in inside def_param_list
 
     GET_TOKEN()
@@ -613,8 +620,13 @@ int statement()
                         data->ID->is_function = true;
                         data->ID->is_defined = false;
                         //TODO params check
+                        if ((res = call_param_list()) != RET_OK)
+                            return res;
+                        data->ID->function_params_count = data->function_call_param_count;
                         res = add_to_symtable(&lhs_identifier.string, global);
                         RETURN_IF_ERR(res)
+
+                        global_search_res = ht_search(data->global_sym_table, lhs_identifier.string.str);
                     }
                     else
                     {
@@ -641,11 +653,18 @@ int statement()
                     // for later check of params variable
 
                     data->function_ID = swap;
+
+                    if ((res = call_param_list()) != RET_OK)
+                        return res;
+                }
+                else if (data->parser_in_local_scope == local)
+                {
+                    if ((res = call_param_list()) != RET_OK)
+                    {
+                        return res;
+                    }
                 }
                 // end of if-else chain, no errors -> carry on
-
-                if ((res = call_param_list()) != RET_OK)
-                    return res;
 
                 if (global_search_res != NULL && global_search_res->data->function_params_count != -1 && global_search_res->data->function_params_count != data->function_call_param_count)
                 {
@@ -770,9 +789,12 @@ int assign_rhs()
                     // SEM: ADD TO SYMTABLE undefined
                     data->ID->is_function = true;
                     data->ID->is_defined = false;
-                    //TODO params checkma
-                    res = add_to_symtable(&data->token->string, global);
+                    if ((res = call_param_list()) != RET_OK)
+                        return res;
+                    data->ID->function_params_count = data->function_call_param_count;
+                    res = add_to_symtable(&token_tmp.string, global);
                     RETURN_IF_ERR(res)
+                    global_search_res = ht_search(data->global_sym_table, data->token->string.str);
                 }
                 else
                 {
@@ -785,8 +807,7 @@ int assign_rhs()
                 //ID exists but it is NOT a defined function
                 return RET_SEMANTICAL_ERROR;
             }
-
-            if (data->parser_in_local_scope == global)
+            else if (data->parser_in_local_scope == global)
             {
 
                 ht_item_t *swap = data->function_ID;
@@ -800,11 +821,17 @@ int assign_rhs()
                 // for later check of params variable
 
                 data->function_ID = swap;
+                if ((res = call_param_list()) != RET_OK)
+                {
+                    return res;
+                }
             }
-
-            if ((res = call_param_list()) != RET_OK)
+            else if (data->parser_in_local_scope == local)
             {
-                return res;
+                if ((res = call_param_list()) != RET_OK)
+                {
+                    return res;
+                }
             }
 
             if (global_search_res != NULL && global_search_res->data->function_params_count != -1 && global_search_res->data->function_params_count != data->function_call_param_count)
