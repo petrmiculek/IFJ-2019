@@ -631,7 +631,7 @@ statement()
                         // SEM: ADD TO SYMTABLE undefined
                         data->ID->is_function = true;
                         data->ID->is_defined = false;
-
+                        //TODO params check
                         res = add_to_symtable(&lhs_identifier.string, global);
                         RETURN_IF_ERR(res)
                     }
@@ -665,9 +665,13 @@ statement()
 
                 if ((res = call_param_list()) != RET_OK)
                     return res;
-                //we can push params in queue
-                if ((res = generate_function_param(data, data->parser_in_local_scope)) != RET_OK)
-                    return res;
+                
+                if (global_search_res != NULL
+                    && global_search_res->data->function_params_count != -1
+                    && global_search_res->data->function_params_count != data->function_call_param_count)
+                {
+                    return RET_SEMANTICAL_PARAMS_ERROR;
+                }
 
                 //call_predefined_function(&lhs_identifier);
                 if (strcmp(lhs_identifier.string.str, "print") == 0)
@@ -681,8 +685,12 @@ statement()
 
                 else
                 {
+                    //we can push params in queue
+                    res = generate_function_param(data, data->parser_in_local_scope);
+                    RETURN_IF_ERR(res);
+                    
                     res = generate_function_call(&lhs_identifier.string);
-                    RETURN_IF_ERR(res)
+                    RETURN_IF_ERR(res);
 
                 }
 
@@ -787,7 +795,7 @@ assign_rhs()
                     // SEM: ADD TO SYMTABLE undefined
                     data->ID->is_function = true;
                     data->ID->is_defined = false;
-
+                    //TODO params checkma
                     res = add_to_symtable(&data->token->string, global);
                     RETURN_IF_ERR(res)
                 }
@@ -830,7 +838,28 @@ assign_rhs()
             {
                 return RET_SEMANTICAL_PARAMS_ERROR;
             }
+            
+            //call_predefined_function(&lhs_identifier);
+            if (strcmp(token_tmp.string.str, "print") == 0)
+            {
+                while(data->call_params->first != NULL)
+                {
+                    token_t *param = q_pop(data->call_params);
+                    generate_write(param, data);
+                }
+            }
 
+            else
+            {
+                //we can push params in queue
+                res = generate_function_param(data, data->parser_in_local_scope);
+                RETURN_IF_ERR(res);
+                
+                res = generate_function_call(&token_tmp.string);
+                RETURN_IF_ERR(res);
+
+            }
+            
             return res;
         }
         else
