@@ -67,36 +67,36 @@ do {                                                     \
 "\n PUSHFRAME"\
 "\n CREATEFRAME"\
 "\n DEFVAR TF@compare"\
-"\n TYPE TF@compare GF@exp_result"\
+"\n TYPE TF@compare GF@%exp_result"\
 "\n JUMPIFEQ exp_result%is%string TF@compare string@string"\
 "\n JUMPIFEQ exp_result%is%int TF@compare string@int"\
 "\n JUMPIFEQ exp_result%is%float TF@compare string@float"\
 "\n JUMPIFEQ convert%to%bool%end TF@compare string@bool"\
 "\n #exp_result is nil"\
-"\n MOVE GF@exp_result bool@false"\
+"\n MOVE GF@%exp_result bool@false"\
 "\n JUMP convert%to%bool%end"\
 \
 "\n LABEL exp_result%is%string"\
 "\n JUMPIFNEQ result%true  GF@%exp_result string@"\
-"\n MOVE GF@exp_result bool@false"\
+"\n MOVE GF@%exp_result bool@false"\
 "\n JUMP convert%to%bool%end"\
 \
 "\n LABEL exp_result%is%int"\
 "\n JUMPIFNEQ result%true  GF@%exp_result int@0"\
-"\n MOVE GF@exp_result bool@false"\
+"\n MOVE GF@%exp_result bool@false"\
 "\n JUMP convert%to%bool%end"\
 \
 "\n LABEL exp_result%is%float"\
 "\n JUMPIFNEQ result%true  GF@%exp_result float@0x0p+0"\
-"\n MOVE GF@exp_result bool@false"\
+"\n MOVE GF@%exp_result bool@false"\
 "\n JUMP convert%to%bool%end"\
 \
 "\n LABEL result%true"\
-"\n MOVE GF@exp_result bool@true"\
+"\n MOVE GF@%exp_result bool@true"\
 \
 "\n LABEL convert%to%bool%end"\
-"\n LABEL POPFRAME"\
-"\n LABEL RETURN"\
+"\n POPFRAME"\
+"\n RETURN"\
 
 
 #define BUILT_IN_FUNCTIONS \
@@ -305,7 +305,7 @@ do {                                                     \
  "\n JUMPIFEQ $OK$semantics_runtime_check_plus LF@op1_type LF@op2_type"\
  "\n JUMP $EXIT$semantics_runtime_check_plus"\
  "\n LABEL $OK$semantics_runtime_check_plus"\
- "\n JUMPIFEQ $CONCAT LF@op1_type string@string"\
+ "\n JUMPIFEQ $CONCAT$semantics_runtime_check_plus LF@op1_type string@string"\
  "\n JUMPIFEQ $EXIT$semantics_runtime_check_plus LF@op1_type string@nil"\
  "\n JUMPIFEQ $EXIT$semantics_runtime_check_plus LF@op1_type string@bool"\
  "\n ADD LF@%retval LF@op1 LF@op2"\
@@ -661,7 +661,7 @@ do {                                                     \
  "\n EXIT int@4"\
  "\n LABEL $n_eq$semantics_runtime_check_ne"\
  "\n EQ LF@%retval int@0 int@1"\
- "\n JUMP end"\
+ "\n JUMP end$semantics_runtime_check_ne"\
  "\n LABEL $ne$semantics_runtime_check_ne"\
  "\n EQ LF@%retval LF@op1 LF@op2"\
  "\n LABEL end$semantics_runtime_check_ne"\
@@ -949,6 +949,7 @@ generate_function_call(string_t *identifier)
     CODE_APPEND("CALL $")
     CODE_APPEND(identifier->str)
     CODE_APPEND("\n")
+    CODE_APPEND_AND_EOL( "MOVE GF@%exp_result TF@%retval")
 
     return RET_OK;
 }
@@ -979,16 +980,16 @@ generate_function_param(data_t *data, bool scope)
                 CODE_APPEND("\n")
                 break;
             case TOKEN_IDENTIFIER:
-                if (scope == local)
-                {
-                    CODE_APPEND("LF@")
-                }
-                else
-                {
-                    CODE_APPEND("GF@")
-                }
+                // if (scope == local)
+                // {
+                //     CODE_APPEND("LF@")
+                // }
+                // else
+                // {
+                //     CODE_APPEND("GF@")
+                // }
 
-                CODE_APPEND(param->string.str)
+                append_identifier_string(param->string, data);
                 CODE_APPEND("\n")
                 break;
             case TOKEN_DOC:
