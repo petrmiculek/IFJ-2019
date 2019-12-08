@@ -485,17 +485,13 @@ get_token(token_t *token, FILE *file)
                     state = STATE_EOL_SP;
                     break;
                 }
-                else if (read == '#')
+                else if (read == '#' || read == '"')
                 {
                     spaces_num = -1;
-                    state = STATE_COMMENT;
-                    break;
-                }
-                else if (read == '"')
-                {
-                    spaces_num = -1;
-                    state = STATE_BLOCK1;
-                    break;
+                    ungetc(read, file);
+                    token->type = TOKEN_EOL;
+                    previous_was_eol = 2;
+                    return RET_OK;
                 }
                 else
                 {
@@ -517,17 +513,13 @@ get_token(token_t *token, FILE *file)
                     state = STATE_EOL_SP;
                     break;
                 }
-                else if (read == '#')
+                else if (read == '#' || read == '"')
                 {
                     spaces_num = -1;
-                    state = STATE_COMMENT;
-                    break;
-                }
-                else if (read == '"')
-                {
-                    spaces_num = -1;
-                    state = STATE_BLOCK1;
-                    break;
+                    ungetc(read, file);
+                    token->type = TOKEN_EOL;
+                    previous_was_eol = 2;
+                    return RET_OK;
                 }
                 else
                 {

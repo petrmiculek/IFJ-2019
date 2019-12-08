@@ -275,7 +275,7 @@ do {                                                     \
  "\n LABEL $substr$return"\
  "\n POPFRAME"\
  "\n RETURN"\
- 
+
 #define ARITHMETIC1_SEMANTICS_FUNCTIONS \
  "\n # semantic_plus"\
  "\n LABEL $semantics_runtime_check_plus"\
@@ -385,7 +385,7 @@ do {                                                     \
  "\n MUL LF@%retval LF@op1 LF@op2"\
  "\n POPFRAME"\
  "\n RETURN"\
- 
+
 #define ARITHMETIC2_SEMANTICS_FUNCTIONS \
  "\n # semantic_div"\
  "\n LABEL $semantics_runtime_check_div"\
@@ -455,7 +455,7 @@ do {                                                     \
  "\n IDIV LF@%retval LF@op1 LF@op2"\
  "\n POPFRAME"\
  "\n RETURN"\
- 
+
 #define RELATIONAL1_SEMANTICS_FUNCTIONS \
  "\n # semantic_a"\
  "\n LABEL $semantics_runtime_check_a"\
@@ -556,7 +556,7 @@ do {                                                     \
  "\n LT LF@%retval LF@op1 LF@op2"\
  "\n POPFRAME"\
  "\n RETURN"\
- 
+
 #define RELATIONAL2_SEMANTICS_FUNCTIONS \
  "\n # semantic_el"\
  "\n LABEL $semantics_runtime_check_el"\
@@ -667,7 +667,7 @@ do {                                                     \
  "\n LABEL end$semantics_runtime_check_ne"\
  "\n POPFRAME"\
  "\n RETURN"\
- 
+
 
 string_t code;
 
@@ -956,14 +956,13 @@ generate_function_call(string_t *identifier)
 int
 generate_function_param(data_t *data, bool scope)
 {
-    int param_number=0;
+    int param_number = 0;
     token_t *param;
     CODE_APPEND_AND_EOL("CREATEFRAME")
     while (data->call_params->first != NULL)
     {
         param = q_pop(data->call_params);
-        
-    
+
         CODE_APPEND("DEFVAR ")
         CODE_APPEND("TF@%")
         CODE_APPEND_VALUE_INT(param_number)
@@ -972,44 +971,39 @@ generate_function_param(data_t *data, bool scope)
         CODE_APPEND("MOVE TF@%")
         CODE_APPEND_VALUE_INT(param_number)
         CODE_APPEND(" ")
-        
+
         switch (param->type)
         {
-        case TOKEN_FLOAT:
-            CODE_APPEND("float@")
-            CODE_APPEND_AS_FLOAT(param->string.str)
-            CODE_APPEND("\n")
-            break;
-        case TOKEN_IDENTIFIER:
-            if (scope == local)
-            {
-                CODE_APPEND("LF@")
-            }
-            else
-            {
-                CODE_APPEND("GF@")
-            }
+            case TOKEN_FLOAT:CODE_APPEND("float@")
+                CODE_APPEND_AS_FLOAT(param->string.str)
+                CODE_APPEND("\n")
+                break;
+            case TOKEN_IDENTIFIER:
+                if (scope == local)
+                {
+                    CODE_APPEND("LF@")
+                }
+                else
+                {
+                    CODE_APPEND("GF@")
+                }
 
-            CODE_APPEND(param->string.str)
-            CODE_APPEND("\n")
-            break;
-        case TOKEN_DOC:
-        case TOKEN_LIT:
-            CODE_APPEND("string@")
-            CODE_APPEND(param->string.str)
-            CODE_APPEND("\n")
-            break;
-        case TOKEN_INT:
-            CODE_APPEND("int@")
-            CODE_APPEND(param->string.str)
-            CODE_APPEND("\n")
-            break;
-        case TOKEN_NONE:
-            CODE_APPEND_AND_EOL("nil@nil")
-            break;
-        
-        default:
-            break;
+                CODE_APPEND(param->string.str)
+                CODE_APPEND("\n")
+                break;
+            case TOKEN_DOC:
+            case TOKEN_LIT:CODE_APPEND("string@")
+                CODE_APPEND(param->string.str)
+                CODE_APPEND("\n")
+                break;
+            case TOKEN_INT:CODE_APPEND("int@")
+                CODE_APPEND(param->string.str)
+                CODE_APPEND("\n")
+                break;
+            case TOKEN_NONE:CODE_APPEND_AND_EOL("nil@nil")
+                break;
+
+            default:break;
         }
 
         param_number++;
@@ -1018,7 +1012,7 @@ generate_function_param(data_t *data, bool scope)
 }
 
 int
-generate_operand(string_t operand, int tmp, unsigned int symbol, data_t  *data)
+generate_operand(string_t operand, int tmp, unsigned int symbol, data_t *data)
 {
     CODE_APPEND(" MOVE ")
     CODE_APPEND("GF@%tmp_op")
@@ -1072,7 +1066,6 @@ generate_operand(string_t operand, int tmp, unsigned int symbol, data_t  *data)
 
 }
 
-
 int
 generate_result(sem_t result)
 {
@@ -1115,28 +1108,28 @@ typecheck(sem_t *op1, sem_t *op2, unsigned int rule, int result)
 {
     int res;
     if ((res = defvar_type(op1)) != RET_OK)
-        {
-            return res;
-        }
+    {
+        return res;
+    }
 
-        if ((res = defvar_type(op2)) != RET_OK)
-        {
-           return res;
-        }
+    if ((res = defvar_type(op2)) != RET_OK)
+    {
+        return res;
+    }
     CODE_APPEND_AND_EOL(" CREATEFRAME")
-    
+
     CODE_APPEND_AND_EOL(" DEFVAR TF@%1")
     CODE_APPEND(" MOVE TF@%1 ")
     CODE_APPEND("GF@%");
     CODE_APPEND(op1->sem_data.str);
     CODE_APPEND_AND_EOL("$type");
-    
+
     CODE_APPEND_AND_EOL(" DEFVAR TF@%2")
     CODE_APPEND(" MOVE TF@%2 ")
     CODE_APPEND("GF@%");
     CODE_APPEND(op2->sem_data.str);
     CODE_APPEND_AND_EOL("$type");
-    
+
     CODE_APPEND_AND_EOL(" DEFVAR TF@%3")
     CODE_APPEND(" MOVE TF@%3 ")
     CODE_APPEND("GF@%");
@@ -1152,75 +1145,65 @@ typecheck(sem_t *op1, sem_t *op2, unsigned int rule, int result)
     switch (rule)
     {
         case R_PLUS:
-            
+
             CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_plus");
             CODE_APPEND(" MOVE GF@%tmp_op");
-            CODE_APPEND_VALUE_INT(result); 
-            CODE_APPEND_AND_EOL(" TF@%retval"); 
+            CODE_APPEND_VALUE_INT(result);
+            CODE_APPEND_AND_EOL(" TF@%retval");
             break;
 
-        case R_MIN:
-            CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_min");
+        case R_MIN:CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_min");
             CODE_APPEND(" MOVE GF@%tmp_op");
-            CODE_APPEND_VALUE_INT(result); 
-            CODE_APPEND_AND_EOL(" TF@%retval"); 
-            break;
-        
-        case R_MUL:
-            CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_mul");
-            CODE_APPEND(" MOVE GF@%tmp_op");
-            CODE_APPEND_VALUE_INT(result); 
-            CODE_APPEND_AND_EOL(" TF@%retval"); 
-            break;
-        
-        case R_DIV:
-            CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_div");
-            CODE_APPEND(" MOVE GF@%tmp_op");
-            CODE_APPEND_VALUE_INT(result); 
-            CODE_APPEND_AND_EOL(" TF@%retval"); 
-            break;
-        
-        case R_IDIV:
-            CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_idiv");
-            CODE_APPEND(" MOVE GF@%tmp_op");
-            CODE_APPEND_VALUE_INT(result); 
-            CODE_APPEND_AND_EOL(" TF@%retval"); 
-            break;
-        
-        case R_A:
-            CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_a");
-            CODE_APPEND(" MOVE GF@%tmp_op");
-            CODE_APPEND_VALUE_INT(result); 
+            CODE_APPEND_VALUE_INT(result);
             CODE_APPEND_AND_EOL(" TF@%retval");
             break;
-        case R_EA:
-            CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_ea");
+
+        case R_MUL:CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_mul");
             CODE_APPEND(" MOVE GF@%tmp_op");
-            CODE_APPEND_VALUE_INT(result); 
+            CODE_APPEND_VALUE_INT(result);
             CODE_APPEND_AND_EOL(" TF@%retval");
             break;
-        case R_EQ:
-            CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_eq");
+
+        case R_DIV:CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_div");
             CODE_APPEND(" MOVE GF@%tmp_op");
-            CODE_APPEND_VALUE_INT(result); 
+            CODE_APPEND_VALUE_INT(result);
             CODE_APPEND_AND_EOL(" TF@%retval");
             break;
-        case R_L:
-            CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_l");
+
+        case R_IDIV:CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_idiv");
             CODE_APPEND(" MOVE GF@%tmp_op");
-            CODE_APPEND_VALUE_INT(result); 
+            CODE_APPEND_VALUE_INT(result);
             CODE_APPEND_AND_EOL(" TF@%retval");
             break;
-        case R_EL:
-            CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_el");
+
+        case R_A:CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_a");
             CODE_APPEND(" MOVE GF@%tmp_op");
-            CODE_APPEND_VALUE_INT(result); 
+            CODE_APPEND_VALUE_INT(result);
             CODE_APPEND_AND_EOL(" TF@%retval");
             break;
-        case R_NE:
-            CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_ne");
+        case R_EA:CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_ea");
             CODE_APPEND(" MOVE GF@%tmp_op");
-            CODE_APPEND_VALUE_INT(result); 
+            CODE_APPEND_VALUE_INT(result);
+            CODE_APPEND_AND_EOL(" TF@%retval");
+            break;
+        case R_EQ:CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_eq");
+            CODE_APPEND(" MOVE GF@%tmp_op");
+            CODE_APPEND_VALUE_INT(result);
+            CODE_APPEND_AND_EOL(" TF@%retval");
+            break;
+        case R_L:CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_l");
+            CODE_APPEND(" MOVE GF@%tmp_op");
+            CODE_APPEND_VALUE_INT(result);
+            CODE_APPEND_AND_EOL(" TF@%retval");
+            break;
+        case R_EL:CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_el");
+            CODE_APPEND(" MOVE GF@%tmp_op");
+            CODE_APPEND_VALUE_INT(result);
+            CODE_APPEND_AND_EOL(" TF@%retval");
+            break;
+        case R_NE:CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_ne");
+            CODE_APPEND(" MOVE GF@%tmp_op");
+            CODE_APPEND_VALUE_INT(result);
             CODE_APPEND_AND_EOL(" TF@%retval");
             break;
 
@@ -1342,11 +1325,9 @@ generate_while_end(char *label)
     return RET_OK;
 }
 
-
 int
 generate_var_declare_while(char *var_id, char *label, int counter)
 {
-
 
     CODE_APPEND("JUMPIFNEQ declaration%while%")
     CODE_APPEND(label)
@@ -1366,7 +1347,6 @@ generate_var_declare_while(char *var_id, char *label, int counter)
     CODE_APPEND(label)
     CODE_APPEND(" int@1")
     CODE_APPEND("\n")
-
 
     CODE_APPEND("LABEL declaration%while%")
     CODE_APPEND(label)
