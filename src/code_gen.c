@@ -472,17 +472,17 @@ do {                                                     \
  "\n JUMPIFEQ $a$semantics_runtime_check_a LF@op1_type LF@op2_type"\
  "\n JUMPIFEQ $op1_int$semantics_runtime_check_a LF@op1_type string@int"\
  "\n JUMPIFEQ $op2_int$semantics_runtime_check_a LF@op2_type string@int"\
- "\n JUMP exit"\
+ "\n JUMP exit$semantics_runtime_check_a"\
  "\n LABEL $op1_int$semantics_runtime_check_a"\
  "\n INT2FLOAT LF@op1 LF@op1"\
  "\n TYPE LF@op1_type LF@op1"\
  "\n JUMPIFEQ $a$semantics_runtime_check_a LF@op1_type LF@op2_type"\
- "\n JUMP exit"\
+ "\n JUMP exit$semantics_runtime_check_a"\
  "\n LABEL $op2_int$semantics_runtime_check_a"\
  "\n INT2FLOAT LF@op2 LF@op2"\
  "\n TYPE LF@op2_type LF@op2"\
  "\n JUMPIFEQ $a$semantics_runtime_check_a LF@op1_type LF@op2_type"\
- "\n JUMP exit"\
+ "\n JUMP exit$semantics_runtime_check_a"\
  "\n LABEL exit$semantics_runtime_check_a"\
  "\n EXIT int@4"\
  "\n LABEL $a$semantics_runtime_check_a"\
@@ -515,7 +515,7 @@ do {                                                     \
  "\n INT2FLOAT LF@op2 LF@op2"\
  "\n TYPE LF@op2_type LF@op2"\
  "\n JUMPIFEQ $ea$semantics_runtime_check_ea LF@op1_type LF@op2_type"\
- "\n JUMP exit"\
+ "\n JUMP exit$semantics_runtime_check_ea"\
  "\n LABEL exit$semantics_runtime_check_ea"\
  "\n EXIT int@4"\
  "\n LABEL $ea$semantics_runtime_check_ea"\
@@ -1178,13 +1178,13 @@ typecheck(sem_t *op1, sem_t *op2, unsigned int rule, int result)
             CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_el");
             CODE_APPEND(" MOVE GF@%tmp_op");
             CODE_APPEND_VALUE_INT(result); 
-            CODE_APPEND_AND_EOL("TF@%retval");
+            CODE_APPEND_AND_EOL(" TF@%retval");
             break;
         case R_NE:
             CODE_APPEND_AND_EOL(" CALL $semantics_runtime_check_ne");
             CODE_APPEND(" MOVE GF@%tmp_op");
             CODE_APPEND_VALUE_INT(result); 
-            CODE_APPEND_AND_EOL("TF@%retval");
+            CODE_APPEND_AND_EOL(" TF@%retval");
             break;
 
         default:break;
@@ -1294,11 +1294,11 @@ generate_while_begin(char *label)
 int
 generate_while_end(char *label)
 {
-    CODE_APPEND("JUMP")
+    CODE_APPEND("JUMP ")
     CODE_APPEND(label)
     CODE_APPEND("\n")
 
-    CODE_APPEND("LABEL")
+    CODE_APPEND("LABEL ")
     CODE_APPEND(label)
     CODE_APPEND("%end\n")
 
