@@ -946,7 +946,7 @@ generate_write(token_t *token, data_t *data)
 int
 generate_function_call(string_t *identifier)
 {
-    CODE_APPEND("CALL ")
+    CODE_APPEND("CALL $")
     CODE_APPEND(identifier->str)
     CODE_APPEND("\n")
 
@@ -954,29 +954,66 @@ generate_function_call(string_t *identifier)
 }
 
 int
-generate_function_param(int param_number, string_t *identifier, bool scope)
+generate_function_param(data_t *data, bool scope)
 {
-    CODE_APPEND("DEFVAR ")
-    CODE_APPEND("TF@%")
-    CODE_APPEND_VALUE_INT(param_number)
-    CODE_APPEND("\n")
-
-    CODE_APPEND("MOVE TF@%")
-    CODE_APPEND_VALUE_INT(param_number)
-    CODE_APPEND(" ")
-
-    if (scope == local)
+    int param_number=0;
+    token_t *param;
+    CODE_APPEND_AND_EOL("CREATEFRAME")
+    while (data->call_params->first != NULL)
     {
-        CODE_APPEND("LF@")
-    }
-    else
-    {
-        CODE_APPEND("GF@")
-    }
+        param = q_pop(data->call_params);
+        
+    
+        CODE_APPEND("DEFVAR ")
+        CODE_APPEND("TF@%")
+        CODE_APPEND_VALUE_INT(param_number)
+        CODE_APPEND("\n")
 
-    CODE_APPEND(identifier->str)
-    CODE_APPEND("\n")
+        CODE_APPEND("MOVE TF@%")
+        CODE_APPEND_VALUE_INT(param_number)
+        CODE_APPEND(" ")
+        
+        switch (param->type)
+        {
+        case TOKEN_FLOAT:
+            CODE_APPEND("float@")
+            CODE_APPEND_AS_FLOAT(param->string.str)
+            CODE_APPEND("\n")
+            break;
+        case TOKEN_IDENTIFIER:
+            if (scope == local)
+            {
+                CODE_APPEND("LF@")
+            }
+            else
+            {
+                CODE_APPEND("GF@")
+            }
 
+            CODE_APPEND(param->string.str)
+            CODE_APPEND("\n")
+            break;
+        case TOKEN_DOC:
+        case TOKEN_LIT:
+            CODE_APPEND("string@")
+            CODE_APPEND(param->string.str)
+            CODE_APPEND("\n")
+            break;
+        case TOKEN_INT:
+            CODE_APPEND("int@")
+            CODE_APPEND(param->string.str)
+            CODE_APPEND("\n")
+            break;
+        case TOKEN_NONE:
+            CODE_APPEND_AND_EOL("nil@nil")
+            break;
+        
+        default:
+            break;
+        }
+
+        param_number++;
+    }
     return RET_OK;
 }
 

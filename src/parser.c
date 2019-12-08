@@ -665,7 +665,9 @@ statement()
 
                 if ((res = call_param_list()) != RET_OK)
                     return res;
-
+                //we can push params in queue
+                if ((res = generate_function_param(data, data->parser_in_local_scope)) != RET_OK)
+                    return res;
 
                 //call_predefined_function(&lhs_identifier);
                 if (strcmp(lhs_identifier.string.str, "print") == 0)

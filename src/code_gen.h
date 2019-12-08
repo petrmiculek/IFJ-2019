@@ -57,7 +57,7 @@ int
 generate_function_call(string_t *identifier);
 
 int
-generate_function_param(int param_number, string_t *identifier, bool scope);
+generate_function_param(data_t *data, bool scope);
 
 int
 generate_operand(string_t operand, int tmp, unsigned int symbol, data_t *data);
