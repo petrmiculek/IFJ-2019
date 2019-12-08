@@ -105,6 +105,16 @@ do {                                                     \
  "\n PUSHFRAME"\
  "\n DEFVAR LF@%retval"\
  "\n MOVE LF@%retval nil@nil"\
+ "\n DEFVAR LF@type0"\
+ "\n DEFVAR LF@type1"\
+ "\n TYPE LF@type0 LF@%0"\
+ "\n TYPE LF@type1 LF@%1"\
+ "\n JUMPIFNEQ $EXIT$ord LF@type0 string@string"\
+ "\n JUMPIFNEQ $EXIT$ord LF@type1 string@int"\
+ "\n JUMP $OK$ord"\
+ "\n LABEL $EXIT$ord"\
+ "\n EXIT int@4"\
+ "\n LABEL $OK$ord"\
  "\n DEFVAR LF@cond_range"\
  "\n LT LF@cond_range LF@%1 int@0"\
  "\n JUMPIFEQ $chr$err LF@cond_range bool@true"\
@@ -112,7 +122,7 @@ do {                                                     \
  "\n CREATEFRAME"\
  "\n DEFVAR TF@%0"\
  "\n MOVE TF@%0 LF@%0"\
- "\n CALL $length"\
+ "\n CALL $len"\
  "\n SUB LF@len TF@%retval int@1"\
  "\n GT LF@cond_range LF@%1 LF@len"\
  "\n JUMPIFEQ $ord$err LF@cond_range bool@true"\
@@ -147,6 +157,11 @@ do {                                                     \
  "\n PUSHFRAME"\
  "\n DEFVAR LF@%retval"\
  "\n MOVE LF@%retval nil@nil"\
+ "\n DEFVAR LF@type0"\
+ "\n TYPE LF@type0 LF@%0"\
+ "\n JUMPIFEQ $OK$chr LF@type0 string@int"\
+ "\n EXIT int@4"\
+ "\n LABEL $OK$chr"\
  "\n DEFVAR LF@cond_range"\
  "\n LT LF@cond_range LF@%0 int@0"\
  "\n JUMPIFEQ $chr$err LF@cond_range bool@true"\
@@ -185,9 +200,14 @@ do {                                                     \
  "\n RETURN"\
  \
  "\n# Built-in function Length"\
- "\n LABEL $length"\
+ "\n LABEL $len"\
  "\n PUSHFRAME"\
  "\n DEFVAR LF@%retval"\
+ "\n DEFVAR LF@type"\
+ "\n TYPE LF@type LF@%0"\
+ "\n JUMPIFEQ $OK$length LF@type string@string"\
+ "\n EXIT int@4"\
+ "\n LABEL $OK$length"\
  "\n STRLEN LF@%retval LF@%0"\
  "\n POPFRAME"\
  "\n RETURN"\
@@ -196,11 +216,25 @@ do {                                                     \
  "\n LABEL $substr"\
  "\n PUSHFRAME"\
  "\n DEFVAR LF@%retval"\
+ "\n MOVE LF@%retval string@"\
+ "\n DEFVAR LF@type0"\
+ "\n DEFVAR LF@type1"\
+ "\n DEFVAR LF@type2"\
+ "\n TYPE LF@type0 LF@%0"\
+ "\n TYPE LF@type1 LF@%1"\
+ "\n TYPE LF@type2 LF@%2"\
+ "\n JUMPIFNEQ $EXIT$substr LF@type0 string@string"\
+ "\n JUMPIFNEQ $EXIT$substr LF@type1 string@int"\
+ "\n JUMPIFNEQ $EXIT$substr LF@type2 string@int"\
+ "\n JUMP $OK$substr"\
+ "\n LABEL $EXIT$substr"\
+ "\n EXIT int@4"\
+ "\n LABEL $OK$substr"\
  "\n DEFVAR LF@length_str"\
  "\n CREATEFRAME"\
  "\n DEFVAR TF@%0"\
  "\n MOVE TF@%0 LF@%0"\
- "\n CALL $length"\
+ "\n CALL $len"\
  "\n MOVE LF@length_str TF@%retval"\
  "\n DEFVAR LF@ret_cond"\
  "\n LT LF@ret_cond LF@length_str int@0"\
@@ -408,20 +442,8 @@ do {                                                     \
  "\n DEFVAR LF@op2"\
  "\n MOVE LF@op2 LF@%4"\
  "\n JUMPIFEQ $OK$semantics_runtime_check_idiv LF@op1_type LF@op2_type"\
- "\n JUMPIFEQ $OP1_FLOAT$semantics_runtime_check_idiv LF@op1_type string@float"\
- "\n JUMPIFEQ $OP2_FLOAT$semantics_runtime_check_idiv LF@op2_type string@float"\
  "\n LABEL $EXIT$semantics_runtime_check_idiv"\
  "\n EXIT int@4"\
- "\n LABEL $OP1_FLOAT$semantics_runtime_check_idiv"\
- "\n FLOAT2INT LF@op1 LF@op1"\
- "\n TYPE LF@op1_type LF@op1"\
- "\n JUMPIFEQ $OK$semantics_runtime_check_idiv LF@op1_type LF@op2_type"\
- "\n JUMP $EXIT$semantics_runtime_check_idiv"\
- "\n LABEL $OP2_FLOAT$semantics_runtime_check_idiv"\
- "\n FLOAT2INT LF@op2 LF@op2"\
- "\n TYPE LF@op2_type LF@op2"\
- "\n JUMPIFEQ $OK$semantics_runtime_check_idiv LF@op1_type LF@op2_type"\
- "\n JUMP $EXIT$semantics_runtime_check_idiv"\
  "\n LABEL $OK$semantics_runtime_check_idiv"\
  "\n JUMPIFEQ $EXIT$semantics_runtime_check_idiv LF@op1_type string@string"\
  "\n JUMPIFEQ $EXIT$semantics_runtime_check_idiv LF@op1_type string@float"\

@@ -355,10 +355,10 @@ check_semantics(rules rule, sem_t *sym1, int result, sem_t *sym3, d_type *final_
                     return RET_SEMANTICAL_RUNTIME_ERROR;
 
                 if (sym1->d_type == FLOAT)
-                    retype_sym1_to_integer = true;
+                    return RET_SEMANTICAL_RUNTIME_ERROR;
 
                 if (sym3->d_type == FLOAT)
-                    retype_sym3_to_integer = true;
+                    return RET_SEMANTICAL_RUNTIME_ERROR;
 
                 break;
 
