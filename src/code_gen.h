@@ -101,5 +101,14 @@ generate_while_end(char *label);
 int
 generate_var_declare_while(char *var_id, char *label, int counter, bool is_scope_local);
 
+int
+generate_print_space_or_newline (char str);
+
+int
+defvar_param(data_t *data);
+
+int
+retval();
+
 #endif // HEADER_CODE_GEN
 

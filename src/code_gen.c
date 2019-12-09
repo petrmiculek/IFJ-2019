@@ -133,24 +133,6 @@ do {                                                     \
  "\n LABEL $ord$ok"\
  "\n POPFRAME"\
  "\n RETURN"\
-  \
- "\n# Built-in function Print"\
- "\n LABEL $print"\
- "\n PUSHFRAME"\
- "\n DEFVAR LF@%retval"\
- "\n MOVE LF@%retval nil@nil"\
- "\n # DEFVAR LF@print_loop_cond"\
- "\n # DEFVAR LF@pr_arg"\
- "\n # LABEL $print$loop"\
- "\n # GT LF@print_loop_cond LF@%0 int@0"\
- "\n # JUMPIFEQ $end$loop LF@print_loop_cond bool@false"\
- "\n WRITE LF@%0"\
- "\n WRITE string@\\032"\
- "\n # WRITE string@\\010"\
- "\n # JUMP $print$loop"\
- "\n # LABEL $end$loop"\
- "\n POPFRAME"\
- "\n RETURN"\
  \
  "\n# Built-in function Chr"\
  "\n LABEL $chr"\
@@ -660,10 +642,11 @@ do {                                                     \
  "\n LABEL exit$semantics_runtime_check_ne"\
  "\n EXIT int@4"\
  "\n LABEL $n_eq$semantics_runtime_check_ne"\
- "\n EQ LF@%retval int@0 int@1"\
+ "\n EQ LF@%retval int@1 int@1"\
  "\n JUMP end$semantics_runtime_check_ne"\
  "\n LABEL $ne$semantics_runtime_check_ne"\
  "\n EQ LF@%retval LF@op1 LF@op2"\
+ "\n NOT LF@%retval LF@%retval"\
  "\n LABEL end$semantics_runtime_check_ne"\
  "\n POPFRAME"\
  "\n RETURN"\
@@ -745,6 +728,11 @@ generate_main_scope_end()
 int
 generate_function_start(char *function_id)
 {
+    CODE_APPEND("JUMP end$")
+    CODE_APPEND(function_id)
+    
+
+
     CODE_APPEND("\n# Start of function ")
     CODE_APPEND(function_id)
     CODE_APPEND("\n")
@@ -761,16 +749,15 @@ generate_function_start(char *function_id)
 }
 int
 generate_function_end(char *function_id)
-{
+{   
+    CODE_APPEND_AND_EOL("POPFRAME")
+    CODE_APPEND_AND_EOL("RETURN")
     CODE_APPEND("# End of function ")
     CODE_APPEND(function_id)
     CODE_APPEND("\n")
-
-    CODE_APPEND("LABEL $")
+    CODE_APPEND("LABEL end$")
     CODE_APPEND(function_id)
-    CODE_APPEND("%return\n")
-    CODE_APPEND_AND_EOL("POPFRAME")
-    CODE_APPEND_AND_EOL("RETURN")
+    CODE_APPEND("\n")
 
     return RET_OK;
 }
@@ -874,8 +861,8 @@ append_identifier_string(string_t string, const data_t *data)
 
     if (identifier == NULL)
     {
-        fprintf(stderr, "# %s, %d: identifier (%s) not found in (%s)\n",
-                __func__, __LINE__,
+        fprintf(stderr, "# %s, %s, %d: identifier (%s) not found in (%s)\n",
+                __FILE__, __func__, __LINE__,
                 string.str,
                 (data->parser_in_local_scope == local ? "local" : "global"));
 
@@ -884,8 +871,8 @@ append_identifier_string(string_t string, const data_t *data)
 
     if (identifier->data->is_defined == false)
     {
-        fprintf(stderr, "# %s, %d: using undefined identifier(%s)\n",
-                __func__, __LINE__,
+        fprintf(stderr, "# %s, %s, %d: using undefined identifier(%s)\n",
+                __FILE__, __func__, __LINE__,
                 string.str);
 
         // don't throw error, I just wanted to know about when this happens
@@ -935,11 +922,31 @@ generate_write(token_t *token, data_t *data)
     }
     else
     {
-        fprintf(stderr, "# %s, %u: invalid parameter passed (%d, %s)",
-                __func__, __LINE__,
+        fprintf(stderr, "# %s, %s, %u: invalid parameter passed (%d, %s)",
+                __FILE__, __func__, __LINE__,
                 token->type, token->string.str);
 
         return RET_SEMANTICAL_ERROR;
+    }
+
+    CODE_APPEND("\n") // EOL in IFJCode source-code
+
+    return RET_OK;
+}
+
+int
+generate_print_space_or_newline(char str)
+{
+    CODE_APPEND("WRITE ")
+    CODE_APPEND("string@")
+
+    if(str == ' ')
+    {
+        CODE_APPEND("\\032")
+    }
+    else if(str == '\n')
+    {
+        CODE_APPEND("\\010")
     }
 
     CODE_APPEND("\n")
@@ -1358,4 +1365,27 @@ generate_var_declare_while(char *var_id, char *label, int counter, bool is_scope
 
     return RET_OK;
 
+}
+
+int
+defvar_param(data_t *data)
+{
+    int res=RET_OK;
+    CODE_APPEND("DEFVAR ")
+    res = append_identifier_string(data->token->string, data);
+    RETURN_IF_ERR(res);
+    CODE_APPEND("\nMOVE ")
+    res = append_identifier_string(data->token->string, data);
+    RETURN_IF_ERR(res);
+    CODE_APPEND(" LF@%")
+    CODE_APPEND_VALUE_INT(data->function_call_param_count)
+    CODE_APPEND("\n")
+    return RET_OK;
+}
+
+int
+retval()
+{
+    CODE_APPEND_AND_EOL("MOVE LF@%retval GF@%exp_result")
+    return RET_OK;
 }
