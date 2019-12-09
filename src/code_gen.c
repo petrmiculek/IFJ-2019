@@ -133,24 +133,6 @@ do {                                                     \
  "\n LABEL $ord$ok"\
  "\n POPFRAME"\
  "\n RETURN"\
-  \
- "\n# Built-in function Print"\
- "\n LABEL $print"\
- "\n PUSHFRAME"\
- "\n DEFVAR LF@%retval"\
- "\n MOVE LF@%retval nil@nil"\
- "\n # DEFVAR LF@print_loop_cond"\
- "\n # DEFVAR LF@pr_arg"\
- "\n # LABEL $print$loop"\
- "\n # GT LF@print_loop_cond LF@%0 int@0"\
- "\n # JUMPIFEQ $end$loop LF@print_loop_cond bool@false"\
- "\n WRITE LF@%0"\
- "\n WRITE string@\\032"\
- "\n # WRITE string@\\010"\
- "\n # JUMP $print$loop"\
- "\n # LABEL $end$loop"\
- "\n POPFRAME"\
- "\n RETURN"\
  \
  "\n# Built-in function Chr"\
  "\n LABEL $chr"\
@@ -874,8 +856,8 @@ append_identifier_string(string_t string, const data_t *data)
 
     if (identifier == NULL)
     {
-        fprintf(stderr, "# %s, %d: identifier (%s) not found in (%s)\n",
-                __func__, __LINE__,
+        fprintf(stderr, "# %s, %s, %d: identifier (%s) not found in (%s)\n",
+                __FILE__, __func__, __LINE__,
                 string.str,
                 (data->parser_in_local_scope == local ? "local" : "global"));
 
@@ -884,8 +866,8 @@ append_identifier_string(string_t string, const data_t *data)
 
     if (identifier->data->is_defined == false)
     {
-        fprintf(stderr, "# %s, %d: using undefined identifier(%s)\n",
-                __func__, __LINE__,
+        fprintf(stderr, "# %s, %s, %d: using undefined identifier(%s)\n",
+                __FILE__, __func__, __LINE__,
                 string.str);
 
         // don't throw error, I just wanted to know about when this happens
@@ -935,11 +917,31 @@ generate_write(token_t *token, data_t *data)
     }
     else
     {
-        fprintf(stderr, "# %s, %u: invalid parameter passed (%d, %s)",
-                __func__, __LINE__,
+        fprintf(stderr, "# %s, %s, %u: invalid parameter passed (%d, %s)",
+                __FILE__, __func__, __LINE__,
                 token->type, token->string.str);
 
         return RET_SEMANTICAL_ERROR;
+    }
+
+    CODE_APPEND("\n") // EOL in IFJCode source-code
+
+    return RET_OK;
+}
+
+int
+generate_print_space_or_newline(char str)
+{
+    CODE_APPEND("WRITE ")
+    CODE_APPEND("string@")
+
+    if(str == ' ')
+    {
+        CODE_APPEND("\\032")
+    }
+    else if(str == '\n')
+    {
+        CODE_APPEND("\\010")
     }
 
     CODE_APPEND("\n")

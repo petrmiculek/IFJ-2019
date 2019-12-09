@@ -20,7 +20,6 @@
 #include "code_gen.h"
 
 #define TABLE_SIZE 7
-#define RETURN_IF_ERR(res) do { if ((res) != RET_OK) {return (res);} } while(0);
 
 sym_stack *Stack;
 
@@ -425,7 +424,7 @@ check_semantics(rules rule, sem_t *sym1, int result, sem_t *sym3, d_type *final_
             return res;
         }
     }
-    
+
 
     return RET_OK;
 }
@@ -808,7 +807,7 @@ solve_exp(data_t *data)
 
                     if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used, &result) == RET_INTERNAL_ERROR)
                         return RET_INTERNAL_ERROR;
-                    
+
                     if ((res = check_semantics(rule, &sym1, result, &sym3, &finaltype, data, &frame)) != RET_OK)
                         return res;
 
@@ -831,7 +830,7 @@ solve_exp(data_t *data)
                     sym3 = Stack->atr[i - 2];
                     if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used, &result) == RET_INTERNAL_ERROR)
                         return RET_INTERNAL_ERROR;
-                    
+
                     if ((res = check_semantics(rule, &sym1, result, &sym3, &finaltype, data, &frame)) != RET_OK)
                         return res;
 
@@ -865,7 +864,7 @@ solve_exp(data_t *data)
 
                     if (tmp_var(&new.sem_data, &tmp1_used, &tmp2_used, &tmp3_used, &result) == RET_INTERNAL_ERROR)
                         return RET_INTERNAL_ERROR;
-                    
+
                     if ((res = check_semantics(rule, &sym1, result, &sym3, &finaltype, data, &frame)) != RET_OK)
                         return res;
 

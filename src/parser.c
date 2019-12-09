@@ -670,7 +670,13 @@ int statement()
                     {
                         token_t *param = q_pop(data->call_params);
                         generate_write(param, data);
+
+                        if(data->call_params->first != NULL)
+                            res = generate_print_space_or_newline(' ');
+                        RETURN_IF_ERR(res);
                     }
+                    res = generate_print_space_or_newline('\n');
+                    RETURN_IF_ERR(res);
                 }
 
                 else
@@ -831,14 +837,21 @@ int assign_rhs()
                 return RET_SEMANTICAL_PARAMS_ERROR;
             }
 
-            //call_predefined_function(&lhs_identifier);
+            //call_predefined_function(&token_tmp);
             if (strcmp(token_tmp.string.str, "print") == 0)
             {
                 while (data->call_params->first != NULL)
                 {
                     token_t *param = q_pop(data->call_params);
                     generate_write(param, data);
+
+                    if(data->call_params->first != NULL)
+                        res = generate_print_space_or_newline(' ');
+
+                    RETURN_IF_ERR(res);
                 }
+                res = generate_print_space_or_newline('\n');
+                RETURN_IF_ERR(res);
             }
 
             else
