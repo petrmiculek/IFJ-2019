@@ -495,6 +495,10 @@ int statement()
         {
             return res;
         }
+        
+        // generate retval
+        res=retval();
+        RETURN_IF_ERR(res)
 
         return RET_OK;
     }

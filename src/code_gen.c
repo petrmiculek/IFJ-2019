@@ -1382,3 +1382,10 @@ defvar_param(data_t *data)
     CODE_APPEND("\n")
     return RET_OK;
 }
+
+int
+retval()
+{
+    CODE_APPEND_AND_EOL("MOVE LF@%retval GF@%exp_result")
+    return RET_OK;
+}
