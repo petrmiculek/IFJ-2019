@@ -36,6 +36,7 @@
 *.x86_64
 *.hex
 ifj19-testsuite/compiler
+compiler
 test_bin
 
 # Debug files

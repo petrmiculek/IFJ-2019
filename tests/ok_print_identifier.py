@@ -1,3 +1,9 @@
-print(1.7)
-a = 4.2
-print(a)
+def foo():
+    var = globalni
+
+globalni = 7
+
+foo()
+
+
+

@@ -210,7 +210,7 @@ int check_all_functions_defined(void *data_void)
             // TODO recent change
             if (tmp->data && tmp->data->is_defined == false)
             {
-                fprintf(stderr, "# %s, %u: undefined function (%s)\n", __func__, __LINE__, tmp->key);
+                fprintf(stderr, "# %s, %u: undefined identifier (%s)\n", __func__, __LINE__, tmp->key);
                 return RET_SEMANTICAL_ERROR; // missing function definition
             }
 
