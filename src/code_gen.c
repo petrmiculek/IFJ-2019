@@ -955,7 +955,7 @@ generate_function_call(string_t *identifier)
 }
 
 int
-generate_function_param(data_t *data, bool scope)
+generate_function_param(data_t *data)
 {
     int param_number = 0;
     token_t *param;
@@ -980,15 +980,6 @@ generate_function_param(data_t *data, bool scope)
                 CODE_APPEND("\n")
                 break;
             case TOKEN_IDENTIFIER:
-                // if (scope == local)
-                // {
-                //     CODE_APPEND("LF@")
-                // }
-                // else
-                // {
-                //     CODE_APPEND("GF@")
-                // }
-
                 append_identifier_string(param->string, data);
                 CODE_APPEND("\n")
                 break;

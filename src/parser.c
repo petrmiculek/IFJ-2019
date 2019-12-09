@@ -684,7 +684,7 @@ int statement()
                 else
                 {
                     //we can push params in queue
-                    res = generate_function_param(data, data->parser_in_local_scope);
+                    res = generate_function_param(data);
                     RETURN_IF_ERR(res);
 
                     res = generate_function_call(&lhs_identifier.string);
@@ -852,7 +852,7 @@ int assign_rhs()
             else
             {
                 //we can push params in queue
-                res = generate_function_param(data, data->parser_in_local_scope);
+                res = generate_function_param(data);
                 RETURN_IF_ERR(res);
 
                 res = generate_function_call(&token_tmp.string);
