@@ -1365,3 +1365,19 @@ generate_var_declare_while(char *var_id, char *label, int counter)
     return RET_OK;
 
 }
+
+int
+defvar_param(data_t *data)
+{
+    int res=RET_OK;
+    CODE_APPEND("DEFVAR ")
+    res = append_identifier_string(data->token->string, data);
+    RETURN_IF_ERR(res);
+    CODE_APPEND("\nMOVE ")
+    res = append_identifier_string(data->token->string, data);
+    RETURN_IF_ERR(res);
+    CODE_APPEND(" LF@%")
+    CODE_APPEND_VALUE_INT(data->function_call_param_count)
+    CODE_APPEND("\n")
+    return RET_OK;
+}

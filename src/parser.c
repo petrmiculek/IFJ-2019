@@ -424,7 +424,10 @@ int function_def()
 
     if (data->token->type != TOKEN_LEFT)
         return RET_SYNTAX_ERROR;
-
+ 
+    res=generate_function_start(data->function_ID->data->identifier.str);
+    RETURN_IF_ERR(res);
+    
     if ((res = def_param_list()) != RET_OK)
         return res;
 
@@ -447,9 +450,6 @@ int function_def()
 
     if (data->token->type != TOKEN_INDENT)
         return RET_SYNTAX_ERROR;
-    
-    res=generate_function_start(data->function_ID->data->identifier.str);
-    RETURN_IF_ERR(res);
     
     if ((res = statement_list_nonempty()) != RET_OK)
         return res;
@@ -1102,9 +1102,7 @@ int def_param_list_next()
 
         if (data->token->type != TOKEN_IDENTIFIER)
             return (RET_SYNTAX_ERROR);
-
-        data->function_ID->data->function_params_count++;
-
+        
         ht_item_t *local_search_res = ht_search(data->local_sym_table, data->token->string.str);
 
         if (local_search_res != NULL)
@@ -1124,7 +1122,11 @@ int def_param_list_next()
 
             RETURN_IF_ERR((res))
         }
-
+        //DEFVAR of param
+        res=defvar_param(data);
+        RETURN_IF_ERR(res)
+        data->function_ID->data->function_params_count++;
+        
         if ((res = def_param_list_next()) != RET_OK)
         {
             return res;
@@ -1154,8 +1156,6 @@ int def_param_list()
     else if (data->token->type == TOKEN_IDENTIFIER)
     {
 
-        data->function_ID->data->function_params_count++;
-
         ht_item_t *local_search_res = ht_search(data->local_sym_table, data->token->string.str);
 
         if (local_search_res != NULL)
@@ -1172,11 +1172,15 @@ int def_param_list()
             data->ID->is_defined = true;
 
             res = add_to_symtable(&data->token->string, local);
-            if (res != RET_OK)
-            {
-                return res;
-            }
+            
+            RETURN_IF_ERR((res))
+
         }
+        
+        //DEFVAR of param
+        res=defvar_param(data);
+        RETURN_IF_ERR(res)
+        data->function_ID->data->function_params_count++;
 
         if ((res = def_param_list_next()) != RET_OK)
         {
