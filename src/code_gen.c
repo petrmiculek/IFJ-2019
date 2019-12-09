@@ -642,10 +642,11 @@ do {                                                     \
  "\n LABEL exit$semantics_runtime_check_ne"\
  "\n EXIT int@4"\
  "\n LABEL $n_eq$semantics_runtime_check_ne"\
- "\n EQ LF@%retval int@0 int@1"\
+ "\n EQ LF@%retval int@1 int@1"\
  "\n JUMP end$semantics_runtime_check_ne"\
  "\n LABEL $ne$semantics_runtime_check_ne"\
  "\n EQ LF@%retval LF@op1 LF@op2"\
+ "\n NOT LF@%retval LF@%retval"\
  "\n LABEL end$semantics_runtime_check_ne"\
  "\n POPFRAME"\
  "\n RETURN"\
