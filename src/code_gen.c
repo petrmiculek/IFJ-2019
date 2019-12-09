@@ -832,8 +832,8 @@ append_identifier(const token_t *token, const data_t *data)
 
     if (identifier->data->is_defined == false)
     {
-        fprintf(stderr, "# %s, %d: using undefined identifier(%d, %s)\n",
-                __func__, __LINE__,
+        fprintf(stderr, "# %s, %s, %d: using undefined identifier(%d, %s)\n",
+                __FILE__ ,__func__, __LINE__,
                 token->type, token->string.str);
 
         // don't throw error, I just wanted to know about when this happens
@@ -850,18 +850,22 @@ append_identifier(const token_t *token, const data_t *data)
 int
 append_identifier_string(string_t string, const data_t *data)
 {
-    table_t *table;
+    ht_item_t *identifier;
     if (data->parser_in_local_scope == local)
     {
         CODE_APPEND(" LF@")
-        table = data->local_sym_table;
+        identifier = ht_search(data->local_sym_table, string.str);
+        if(identifier == NULL)
+        {
+            identifier = ht_search(data->global_sym_table, string.str);
+        }
+
     }
     else
     {
         CODE_APPEND(" GF@")
-        table = data->global_sym_table;
+        identifier = ht_search(data->global_sym_table, string.str);
     }
-    ht_item_t *identifier = ht_search(table, string.str);
 
     if (identifier == NULL)
     {
@@ -968,6 +972,8 @@ generate_function_param(data_t *data)
         CODE_APPEND_VALUE_INT(param_number)
         CODE_APPEND(" ")
 
+        int res = RET_OK;
+
         switch (param->type)
         {
             case TOKEN_FLOAT:CODE_APPEND("float@")
@@ -975,7 +981,9 @@ generate_function_param(data_t *data)
                 CODE_APPEND("\n")
                 break;
             case TOKEN_IDENTIFIER:
-                append_identifier_string(param->string, data);
+                res = append_identifier_string(param->string, data);
+                RETURN_IF_ERR(res);
+
                 CODE_APPEND("\n")
                 break;
             case TOKEN_DOC:
@@ -1004,6 +1012,7 @@ generate_operand(string_t operand, int tmp, unsigned int symbol, data_t *data)
     CODE_APPEND(" MOVE ")
     CODE_APPEND("GF@%tmp_op")
     CODE_APPEND_VALUE_INT(tmp)
+    int res = RET_OK;
     switch (symbol)
     {
         case OP_INT:
@@ -1042,7 +1051,9 @@ generate_operand(string_t operand, int tmp, unsigned int symbol, data_t *data)
         }
         case OP_ID:
         {
-            append_identifier_string(operand, data);
+            res = append_identifier_string(operand, data);
+            RETURN_IF_ERR(res);
+
             CODE_APPEND("\n")
 
             return RET_OK;

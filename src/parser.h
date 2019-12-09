@@ -13,6 +13,16 @@
 #include "token_queue.h"
 #include "symtable.h"
 
+
+#define RETURN_IF_ERR(res)   \
+    do                       \
+    {                        \
+        if ((res) != RET_OK) \
+        {                    \
+            return (res);    \
+        }                    \
+    } while (0);
+
 #define local true
 #define global false
 

@@ -55,7 +55,7 @@ ht_search(table_t *ptrht, char *key)
 {
     unsigned int keyHash = hash(key) % hash_table_size;
 
-    ht_item_t *tmp = (ht_item_t *) (*ptrht)[keyHash];
+    ht_item_t *tmp = (ht_item_t *)(*ptrht)[keyHash];
 
     while (tmp != NULL)
     {
@@ -72,8 +72,7 @@ ht_search(table_t *ptrht, char *key)
     return NULL;
 }
 
-int
-ht_insert(table_t *ptrht, char *key, sym_table_item *data)
+int ht_insert(table_t *ptrht, char *key, sym_table_item *data)
 {
     ht_item_t *searched_item = ht_search(ptrht, key);
 
@@ -97,7 +96,7 @@ ht_insert(table_t *ptrht, char *key, sym_table_item *data)
             return RET_INTERNAL_ERROR;
         }
 
-        tmp->next = (ht_item_t *) (*ptrht)[keyHash];
+        tmp->next = (ht_item_t *)(*ptrht)[keyHash];
 
         tmp->key = calloc(strlen(key) + 1, 1);
         tmp->data = calloc(sizeof(sym_table_item), 1);
@@ -109,7 +108,13 @@ ht_insert(table_t *ptrht, char *key, sym_table_item *data)
 
         strcpy(tmp->key, key);
 
-        *tmp->data = *data;
+        // *tmp->data = *data;
+        copy_string(&(tmp->data->identifier), &(data->identifier));
+        tmp->data->function_params_count = data->function_params_count;
+        *(tmp->data->global_variables) = *(data->global_variables);
+        tmp->data->is_defined = data->is_defined;
+        tmp->data->is_function = data->is_function;
+        tmp->data->just_index = data->just_index;
         (*ptrht)[keyHash] = tmp;
     }
 
@@ -131,12 +136,11 @@ ht_get_data(table_t *ptrht, char *key)
     }
 }
 
-void
-ht_delete(table_t *ptrht, char *key)
+void ht_delete(table_t *ptrht, char *key)
 {
     unsigned int keyHash = hash(key) % hash_table_size;
 
-    ht_item_t *tmp = (ht_item_t *) (*ptrht)[keyHash];
+    ht_item_t *tmp = (ht_item_t *)(*ptrht)[keyHash];
     ht_item_t *prev_item = NULL;
 
     while (tmp != NULL)
@@ -170,12 +174,11 @@ ht_delete(table_t *ptrht, char *key)
     }
 }
 
-void
-ht_clear_all(table_t *ptrht)
+void ht_clear_all(table_t *ptrht)
 {
     for (int i = 0; i < hash_table_size; ++i)
     {
-        ht_item_t *tmp = (ht_item_t *) (*ptrht)[i];
+        ht_item_t *tmp = (ht_item_t *)(*ptrht)[i];
         ht_item_t *prev_item = NULL;
 
         while (tmp != NULL)
@@ -189,10 +192,9 @@ ht_clear_all(table_t *ptrht)
     }
 }
 
-int
-check_all_functions_defined(void *data_void)
+int check_all_functions_defined(void *data_void)
 {
-    data_t *data_typed = (data_t *) data_void;
+    data_t *data_typed = (data_t *)data_void;
     table_t *table = data_typed->global_sym_table; // TODO cast? (ht_item_t**)
 
     if (table == NULL)
@@ -208,7 +210,7 @@ check_all_functions_defined(void *data_void)
             // TODO recent change
             if (tmp->data && tmp->data->is_defined == false)
             {
-                fprintf(stderr, "# %s, %u: undefined function (%s)\n", __func__, __LINE__, tmp->key);
+                fprintf(stderr, "# %s, %u: undefined identifier (%s)\n", __func__, __LINE__, tmp->key);
                 return RET_SEMANTICAL_ERROR; // missing function definition
             }
 

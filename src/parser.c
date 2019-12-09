@@ -25,14 +25,6 @@ extern string_t code;
     typically used after reading from scanner, but can be utilized anywhere
  */
 
-#define RETURN_IF_ERR(res)   \
-    do                       \
-    {                        \
-        if ((res) != RET_OK) \
-        {                    \
-            return (res);    \
-        }                    \
-    } while (0);
 
 #define GET_TOKEN()                        \
     do                                     \
@@ -73,7 +65,7 @@ int parse(FILE *file)
     free_static_stack();
     // clear_data();
 
-    res = compiler_ret_value_comment(res);
+    compiler_ret_value_comment(res); // retvalue ignored on purpose
 
     if (res == RET_OK)
     {
@@ -769,7 +761,7 @@ int assign_rhs()
     // ASSIGN_RHS -> id ( CALL_PARAM_LIST
     // ASSIGN_RHS -> EXPRESSION
 
-    int res;
+    int res = RET_OK;
 
     GET_TOKEN()
 
