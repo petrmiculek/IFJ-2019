@@ -727,6 +727,11 @@ generate_main_scope_end()
 int
 generate_function_start(char *function_id)
 {
+    CODE_APPEND("JUMP end$")
+    CODE_APPEND(function_id)
+    
+
+
     CODE_APPEND("\n# Start of function ")
     CODE_APPEND(function_id)
     CODE_APPEND("\n")
@@ -736,6 +741,7 @@ generate_function_start(char *function_id)
     CODE_APPEND("\n")
     CODE_APPEND_AND_EOL("PUSHFRAME")
     CODE_APPEND_AND_EOL("DEFVAR LF@%retval")
+    CODE_APPEND_AND_EOL("MOVE LF@%retval nil@nil")
     // next up, arguments
 
     return RET_OK;
@@ -746,6 +752,9 @@ generate_function_end(char *function_id)
     CODE_APPEND_AND_EOL("POPFRAME")
     CODE_APPEND_AND_EOL("RETURN")
     CODE_APPEND("# End of function ")
+    CODE_APPEND(function_id)
+    CODE_APPEND("\n")
+    CODE_APPEND("LABEL end$")
     CODE_APPEND(function_id)
     CODE_APPEND("\n")
 
