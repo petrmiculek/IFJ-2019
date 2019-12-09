@@ -447,10 +447,16 @@ int function_def()
 
     if (data->token->type != TOKEN_INDENT)
         return RET_SYNTAX_ERROR;
-
+    
+    res=generate_function_start(data->function_ID->data->identifier.str);
+    RETURN_IF_ERR(res);
+    
     if ((res = statement_list_nonempty()) != RET_OK)
         return res;
-
+    
+    res=generate_function_end(data->function_ID->data->identifier.str);
+    RETURN_IF_ERR(res);
+    
     // back to global scope
     data->parser_in_local_scope = global;
 
@@ -611,7 +617,7 @@ int statement()
                         // SEM: ADD TO SYMTABLE undefined
                         data->ID->is_function = true;
                         data->ID->is_defined = false;
-                        //TODO params check
+                        
                         if ((res = call_param_list()) != RET_OK)
                             return res;
                         data->ID->function_params_count = data->function_call_param_count;
@@ -670,7 +676,13 @@ int statement()
                     {
                         token_t *param = q_pop(data->call_params);
                         generate_write(param, data);
+
+                        if(data->call_params->first != NULL)
+                            res = generate_print_space_or_newline(' ');
+                        RETURN_IF_ERR(res);
                     }
+                    res = generate_print_space_or_newline('\n');
+                    RETURN_IF_ERR(res);
                 }
 
                 else
@@ -679,7 +691,7 @@ int statement()
                     res = generate_function_param(data);
                     RETURN_IF_ERR(res);
 
-                    res = generate_function_call(&lhs_identifier.string);
+                    res = generate_function_call(&global_search_res->data->identifier);
                     RETURN_IF_ERR(res);
                 }
 
@@ -831,14 +843,21 @@ int assign_rhs()
                 return RET_SEMANTICAL_PARAMS_ERROR;
             }
 
-            //call_predefined_function(&lhs_identifier);
+            //call_predefined_function(&token_tmp);
             if (strcmp(token_tmp.string.str, "print") == 0)
             {
                 while (data->call_params->first != NULL)
                 {
                     token_t *param = q_pop(data->call_params);
                     generate_write(param, data);
+
+                    if(data->call_params->first != NULL)
+                        res = generate_print_space_or_newline(' ');
+
+                    RETURN_IF_ERR(res);
                 }
+                res = generate_print_space_or_newline('\n');
+                RETURN_IF_ERR(res);
             }
 
             else
@@ -847,7 +866,7 @@ int assign_rhs()
                 res = generate_function_param(data);
                 RETURN_IF_ERR(res);
 
-                res = generate_function_call(&token_tmp.string);
+                res = generate_function_call(&global_search_res->data->identifier);
                 RETURN_IF_ERR(res);
             }
 
