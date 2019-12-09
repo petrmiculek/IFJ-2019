@@ -730,8 +730,6 @@ generate_function_start(char *function_id)
 {
     CODE_APPEND("JUMP end$")
     CODE_APPEND(function_id)
-    
-
 
     CODE_APPEND("\n# Start of function ")
     CODE_APPEND(function_id)
@@ -749,7 +747,7 @@ generate_function_start(char *function_id)
 }
 int
 generate_function_end(char *function_id)
-{   
+{
     CODE_APPEND_AND_EOL("POPFRAME")
     CODE_APPEND_AND_EOL("RETURN")
     CODE_APPEND("# End of function ")
@@ -825,7 +823,7 @@ append_identifier(const token_t *token, const data_t *data)
     if (identifier->data->is_defined == false)
     {
         fprintf(stderr, "# %s, %s, %d: using undefined identifier(%d, %s)\n",
-                __FILE__ ,__func__, __LINE__,
+                __FILE__, __func__, __LINE__,
                 token->type, token->string.str);
 
         // don't throw error, I just wanted to know about when this happens
@@ -847,7 +845,7 @@ append_identifier_string(string_t string, const data_t *data)
     {
         CODE_APPEND(" LF@")
         identifier = ht_search(data->local_sym_table, string.str);
-        if(identifier == NULL)
+        if (identifier == NULL)
         {
             identifier = ht_search(data->global_sym_table, string.str);
         }
@@ -940,11 +938,11 @@ generate_print_space_or_newline(char str)
     CODE_APPEND("WRITE ")
     CODE_APPEND("string@")
 
-    if(str == ' ')
+    if (str == ' ')
     {
         CODE_APPEND("\\032")
     }
-    else if(str == '\n')
+    else if (str == '\n')
     {
         CODE_APPEND("\\010")
     }
@@ -960,7 +958,7 @@ generate_function_call(string_t *identifier)
     CODE_APPEND("CALL $")
     CODE_APPEND(identifier->str)
     CODE_APPEND("\n")
-    CODE_APPEND_AND_EOL( "MOVE GF@%exp_result TF@%retval")
+    CODE_APPEND_AND_EOL("MOVE GF@%exp_result TF@%retval")
 
     return RET_OK;
 }
@@ -992,8 +990,7 @@ generate_function_param(data_t *data)
                 CODE_APPEND_AS_FLOAT(param->string.str)
                 CODE_APPEND("\n")
                 break;
-            case TOKEN_IDENTIFIER:
-                res = append_identifier_string(param->string, data);
+            case TOKEN_IDENTIFIER:res = append_identifier_string(param->string, data);
                 RETURN_IF_ERR(res);
 
                 CODE_APPEND("\n")
@@ -1289,17 +1286,20 @@ generate_if_end(char *label)
 }
 
 int
-generate_while_label(char *label)
+generate_while_label(char *label, bool first)
 {
-    CODE_APPEND("DEFVAR LF@counter%")
-    CODE_APPEND(label)
-    CODE_APPEND("\n")
+    if (first)
+    {
+        CODE_APPEND("DEFVAR LF@counter%")
+        CODE_APPEND(label)
+        CODE_APPEND("\n")
 
-    CODE_APPEND("MOVE ")
-    CODE_APPEND("LF@counter%")
-    CODE_APPEND(label)
-    CODE_APPEND(" int@0")
-    CODE_APPEND("\n")
+        CODE_APPEND("MOVE ")
+        CODE_APPEND("LF@counter%")
+        CODE_APPEND(label)
+        CODE_APPEND(" int@0")
+        CODE_APPEND("\n")
+    }
 
     CODE_APPEND("LABEL ")
     CODE_APPEND(label)
@@ -1370,7 +1370,7 @@ generate_var_declare_while(char *var_id, char *label, int counter, bool is_scope
 int
 defvar_param(data_t *data)
 {
-    int res=RET_OK;
+    int res = RET_OK;
     CODE_APPEND("DEFVAR ")
     res = append_identifier_string(data->token->string, data);
     RETURN_IF_ERR(res);

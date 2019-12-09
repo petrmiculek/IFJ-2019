@@ -33,7 +33,8 @@ extern string_t code;
         RETURN_IF_ERR(data->get_token_res) \
     } while (0);
 
-int parse(FILE *file)
+int
+parse(FILE *file)
 {
     int res;
 
@@ -82,7 +83,8 @@ int parse(FILE *file)
     return res;
 }
 
-int symtable_insert_predefined()
+int
+symtable_insert_predefined()
 {
     int res;
 
@@ -121,7 +123,8 @@ int symtable_insert_predefined()
     return RET_OK;
 }
 
-int symtable_insert_function(const char *identifier_arr, int param_count)
+int
+symtable_insert_function(const char *identifier_arr, int param_count)
 {
     int res;
     string_t *identifier_string;
@@ -155,7 +158,8 @@ int symtable_insert_function(const char *identifier_arr, int param_count)
     return RET_OK;
 }
 
-int add_to_symtable(string_t *identifier, bool use_local_symtable)
+int
+add_to_symtable(string_t *identifier, bool use_local_symtable)
 {
     int res;
     string_t *uniq_identifier;
@@ -193,7 +197,8 @@ int add_to_symtable(string_t *identifier, bool use_local_symtable)
     return res;
 }
 
-void get_next_token()
+void
+get_next_token()
 {
     // for explanation, see function declaration
 
@@ -211,20 +216,23 @@ void get_next_token()
             data->use_queue_for_read = false;
             do
             {
-                data->get_token_res = (int)get_token(data->token, data->file);
-            } while (data->get_token_res == RET_OK && data->token->type == TOKEN_SPACE);
+                data->get_token_res = (int) get_token(data->token, data->file);
+            }
+            while (data->get_token_res == RET_OK && data->token->type == TOKEN_SPACE);
         }
     }
     else
     {
         do
         {
-            data->get_token_res = (int)get_token(data->token, data->file);
-        } while (data->get_token_res == RET_OK && data->token->type == TOKEN_SPACE);
+            data->get_token_res = (int) get_token(data->token, data->file);
+        }
+        while (data->get_token_res == RET_OK && data->token->type == TOKEN_SPACE);
     }
 }
 
-int read_eol(bool check_for_first_eol)
+int
+read_eol(bool check_for_first_eol)
 {
     // check for first eol token
     // skip further eol tokens
@@ -242,16 +250,20 @@ int read_eol(bool check_for_first_eol)
     do
     {
         GET_TOKEN()
-    } while (data->token->type == TOKEN_EOL);
+    }
+    while (data->token->type == TOKEN_EOL);
 
     q_enqueue(data->token, data->token_queue);
     data->use_queue_for_read = true;
     return RET_OK;
 }
 
-int is_expression_start()
+int
+is_expression_start()
 {
-    if (data->token->type == TOKEN_IDENTIFIER || data->token->type == TOKEN_INT || data->token->type == TOKEN_FLOAT || data->token->type == TOKEN_LIT || data->token->type == TOKEN_DOC || data->token->type == TOKEN_LEFT || data->token->type == TOKEN_NONE)
+    if (data->token->type == TOKEN_IDENTIFIER || data->token->type == TOKEN_INT || data->token->type == TOKEN_FLOAT
+        || data->token->type == TOKEN_LIT || data->token->type == TOKEN_DOC || data->token->type == TOKEN_LEFT
+        || data->token->type == TOKEN_NONE)
     {
         return RET_OK;
     }
@@ -261,7 +273,8 @@ int is_expression_start()
     }
 }
 
-int init_data()
+int
+init_data()
 {
     if (NULL == (data = calloc(sizeof(data_t), 1)))
     {
@@ -329,7 +342,8 @@ int init_data()
     return RET_OK;
 }
 
-int statement_list_nonempty()
+int
+statement_list_nonempty()
 {
     // STATEMENT_LIST_NONEMPTY -> STATEMENT STATEMENT_LIST
     int res;
@@ -347,7 +361,8 @@ int statement_list_nonempty()
     return RET_OK;
 }
 
-int statement_list()
+int
+statement_list()
 {
     // STATEMENT_LIST -> STATEMENT STATEMENT_LIST
     // STATEMENT_LIST -> dedent
@@ -379,7 +394,8 @@ int statement_list()
     }
 }
 
-int function_def()
+int
+function_def()
 {
     // FUNCTION_DEF -> id ( DEF_PARAM_LIST ) : eol indent STATEMENT_LIST_NONEMPTY
 
@@ -426,10 +442,10 @@ int function_def()
 
     if (data->token->type != TOKEN_LEFT)
         return RET_SYNTAX_ERROR;
- 
-    res=generate_function_start(data->function_ID->data->identifier.str);
+
+    res = generate_function_start(data->function_ID->data->identifier.str);
     RETURN_IF_ERR(res);
-    
+
     if ((res = def_param_list()) != RET_OK)
         return res;
 
@@ -452,20 +468,21 @@ int function_def()
 
     if (data->token->type != TOKEN_INDENT)
         return RET_SYNTAX_ERROR;
-    
+
     if ((res = statement_list_nonempty()) != RET_OK)
         return res;
-    
-    res=generate_function_end(data->function_ID->data->identifier.str);
+
+    res = generate_function_end(data->function_ID->data->identifier.str);
     RETURN_IF_ERR(res);
-    
+
     // back to global scope
     data->parser_in_local_scope = global;
 
     return RET_OK;
 }
 
-int statement()
+int
+statement()
 {
     // STATEMENT -> id = ASSIGN_RHS eol
     // STATEMENT -> ASSIGN_RHS eol
@@ -497,9 +514,9 @@ int statement()
         {
             return res;
         }
-        
+
         // generate retval
-        res=retval();
+        res = retval();
         RETURN_IF_ERR(res)
 
         return RET_OK;
@@ -572,9 +589,12 @@ int statement()
                         res = add_to_symtable(&lhs_identifier.string, local);
                         RETURN_IF_ERR((res))
 
-                        if(data->is_in_while)
+                        if (data->is_in_while)
                         {
-                            generate_var_declare_while(data->ID->identifier.str,data->uniq_identifier_while->str,data->while_counter,data->parser_in_local_scope);
+                            generate_var_declare_while(data->ID->identifier.str,
+                                                       data->uniq_identifier_while->str,
+                                                       data->while_counter,
+                                                       data->parser_in_local_scope);
                             data->while_counter++;
                         }
                         else
@@ -597,9 +617,12 @@ int statement()
                         res = add_to_symtable(&lhs_identifier.string, global);
                         RETURN_IF_ERR((res))
 
-                        if(data->is_in_while)
+                        if (data->is_in_while)
                         {
-                            generate_var_declare_while(data->ID->identifier.str,data->uniq_identifier_while->str,data->while_counter,data->parser_in_local_scope);
+                            generate_var_declare_while(data->ID->identifier.str,
+                                                       data->uniq_identifier_while->str,
+                                                       data->while_counter,
+                                                       data->parser_in_local_scope);
                             data->while_counter++;
                         }
                         else
@@ -641,7 +664,7 @@ int statement()
                         // SEM: ADD TO SYMTABLE undefined
                         data->ID->is_function = true;
                         data->ID->is_defined = false;
-                        
+
                         if ((res = call_param_list()) != RET_OK)
                             return res;
                         data->ID->function_params_count = data->function_call_param_count;
@@ -688,7 +711,8 @@ int statement()
                 }
                 // end of if-else chain, no errors -> carry on
 
-                if (global_search_res != NULL && global_search_res->data->function_params_count != -1 && global_search_res->data->function_params_count != data->function_call_param_count)
+                if (global_search_res != NULL && global_search_res->data->function_params_count != -1
+                    && global_search_res->data->function_params_count != data->function_call_param_count)
                 {
                     return RET_SEMANTICAL_PARAMS_ERROR;
                 }
@@ -701,7 +725,7 @@ int statement()
                         token_t *param = q_pop(data->call_params);
                         generate_write(param, data);
 
-                        if(data->call_params->first != NULL)
+                        if (data->call_params->first != NULL)
                             res = generate_print_space_or_newline(' ');
                         RETURN_IF_ERR(res);
                     }
@@ -732,7 +756,7 @@ int statement()
                 q_enqueue(data->token, data->token_queue);     // token past identifier
                 data->use_queue_for_read = true;
 
-                if ((res = (int)solve_exp(data)) != RET_OK)
+                if ((res = (int) solve_exp(data)) != RET_OK)
                 {
                     return res;
                 }
@@ -751,7 +775,7 @@ int statement()
             q_enqueue(data->token, data->token_queue);
             data->use_queue_for_read = true;
 
-            if ((res = (int)solve_exp(data)) != RET_OK)
+            if ((res = (int) solve_exp(data)) != RET_OK)
             {
                 return res;
             }
@@ -768,13 +792,15 @@ int statement()
         return RET_SYNTAX_ERROR;
     }
 }
-int call_predefined_function(token_t *identifier)
+int
+call_predefined_function(token_t *identifier)
 {
     // TODO don't forget about this
     return RET_SEMANTICAL_ERROR;
 }
 
-bool is_predefined_function(token_t *identifier)
+bool
+is_predefined_function(token_t *identifier)
 {
     if (strcmp(identifier->string.str, "print") == 0)
     {
@@ -786,7 +812,8 @@ bool is_predefined_function(token_t *identifier)
     return false;
 }
 
-int assign_rhs()
+int
+assign_rhs()
 {
     // ASSIGN_RHS -> id ( CALL_PARAM_LIST
     // ASSIGN_RHS -> EXPRESSION
@@ -862,7 +889,8 @@ int assign_rhs()
                 }
             }
 
-            if (global_search_res != NULL && global_search_res->data->function_params_count != -1 && global_search_res->data->function_params_count != data->function_call_param_count)
+            if (global_search_res != NULL && global_search_res->data->function_params_count != -1
+                && global_search_res->data->function_params_count != data->function_call_param_count)
             {
                 return RET_SEMANTICAL_PARAMS_ERROR;
             }
@@ -875,7 +903,7 @@ int assign_rhs()
                     token_t *param = q_pop(data->call_params);
                     generate_write(param, data);
 
-                    if(data->call_params->first != NULL)
+                    if (data->call_params->first != NULL)
                         res = generate_print_space_or_newline(' ');
 
                     RETURN_IF_ERR(res);
@@ -902,7 +930,7 @@ int assign_rhs()
             q_enqueue(data->token, data->token_queue);
             data->use_queue_for_read = true;
 
-            if ((res = (int)solve_exp(data)) != RET_OK)
+            if ((res = (int) solve_exp(data)) != RET_OK)
             {
                 return res;
             }
@@ -915,7 +943,7 @@ int assign_rhs()
         q_enqueue(&token_tmp, data->token_queue);
         data->use_queue_for_read = true;
 
-        if ((res = (int)solve_exp(data)) != RET_OK)
+        if ((res = (int) solve_exp(data)) != RET_OK)
         {
             return res;
         }
@@ -924,7 +952,8 @@ int assign_rhs()
     }
 }
 
-int statement_global()
+int
+statement_global()
 {
     // STATEMENT_GLOBAL -> eof
     // STATEMENT_GLOBAL -> eol
@@ -988,7 +1017,8 @@ int statement_global()
     }
 }
 
-int if_clause()
+int
+if_clause()
 {
     // IF_CLAUSE -> if EXPRESSION : eol indent STATEMENT_LIST_NONEMPTY
     //              else : eol indent STATEMENT_LIST_NONEMPTY
@@ -999,7 +1029,7 @@ int if_clause()
 
     int res;
 
-    if ((res = (int)solve_exp(data)) != RET_OK)
+    if ((res = (int) solve_exp(data)) != RET_OK)
     {
         return res;
     }
@@ -1061,23 +1091,29 @@ int if_clause()
     return RET_OK;
 }
 
-int while_clause()
+int
+while_clause()
 {
     // WHILE_CLAUSE -> while EXPRESSION : eol indent STATEMENT_LIST_NONEMPTY
 
     int res;
     data->is_in_while++;
-    if(data->is_in_while == 1)
+    string_t *local_identifier = generate_unique_identifier("global", "while");
+    if (data->is_in_while == 1)
     {
-        data->uniq_identifier_while = generate_unique_identifier("global","while");
+        data->uniq_identifier_while = local_identifier;
         data->while_counter = 0;
+        generate_while_label(local_identifier->str, true);
+    }
+    else
+    {
+        generate_while_label(local_identifier->str, false);
     }
 
-    generate_while_label(data->uniq_identifier_while->str);
 
     // 'while' token checked already
 
-    if ((res = (int)solve_exp(data)) != RET_OK)
+    if ((res = (int) solve_exp(data)) != RET_OK)
     {
         return res;
     }
@@ -1092,8 +1128,7 @@ int while_clause()
     if ((res = read_eol(true)) != RET_OK)
         return res;
 
-    generate_while_begin(data->uniq_identifier_while->str);
-
+    generate_while_begin(local_identifier->str);
 
     GET_TOKEN()
 
@@ -1107,13 +1142,14 @@ int while_clause()
         return res;
     }
 
-    generate_while_end(data->uniq_identifier_while->str);
+    generate_while_end(local_identifier->str);
     data->is_in_while--;
 
     return RET_OK;
 }
 
-int def_param_list_next()
+int
+def_param_list_next()
 {
     // DEF_PARAM_LIST_NEXT -> , id DEF_PARAM_LIST_NEXT
     // DEF_PARAM_LIST_NEXT -> )
@@ -1132,7 +1168,7 @@ int def_param_list_next()
 
         if (data->token->type != TOKEN_IDENTIFIER)
             return (RET_SYNTAX_ERROR);
-        
+
         ht_item_t *local_search_res = ht_search(data->local_sym_table, data->token->string.str);
 
         if (local_search_res != NULL)
@@ -1153,10 +1189,10 @@ int def_param_list_next()
             RETURN_IF_ERR((res))
         }
         //DEFVAR of param
-        res=defvar_param(data);
+        res = defvar_param(data);
         RETURN_IF_ERR(res)
         data->function_ID->data->function_params_count++;
-        
+
         if ((res = def_param_list_next()) != RET_OK)
         {
             return res;
@@ -1169,7 +1205,8 @@ int def_param_list_next()
     }
 }
 
-int def_param_list()
+int
+def_param_list()
 {
     // DEF_PARAM_LIST -> )
     // DEF_PARAM_LIST -> id DEF_PARAM_LIST_NEXT
@@ -1202,13 +1239,13 @@ int def_param_list()
             data->ID->is_defined = true;
 
             res = add_to_symtable(&data->token->string, local);
-            
+
             RETURN_IF_ERR((res))
 
         }
-        
+
         //DEFVAR of param
-        res=defvar_param(data);
+        res = defvar_param(data);
         RETURN_IF_ERR(res)
         data->function_ID->data->function_params_count++;
 
@@ -1224,7 +1261,8 @@ int def_param_list()
     }
 }
 
-int call_param_list()
+int
+call_param_list()
 {
     // CALL_PARAM_LIST -> )
     // CALL_PARAM_LIST -> CALL_ELEM CALL_PARAM_LIST_NEXT
@@ -1282,7 +1320,7 @@ int call_param_list()
                     return RET_SEMANTICAL_ERROR;
                 }
                 else if (global_search_res->data->is_defined == false     // exist but not defined
-                         || global_search_res->data->is_function == true) // id is function
+                    || global_search_res->data->is_function == true) // id is function
                 {
                     return RET_SEMANTICAL_ERROR;
                 }
@@ -1302,7 +1340,8 @@ int call_param_list()
     }
 }
 
-int call_param_list_next()
+int
+call_param_list_next()
 {
     // CALL_PARAM_LIST_NEXT -> , CALL_ELEM CALL_PARAM_LIST_NEXT
     // CALL_PARAM_LIST_NEXT -> )
@@ -1364,7 +1403,7 @@ int call_param_list_next()
                     return RET_SEMANTICAL_ERROR;
                 }
                 else if (global_search_res->data->is_defined == false     // exist but not defined
-                         || global_search_res->data->is_function == true) // id is function
+                    || global_search_res->data->is_function == true) // id is function
                 {
                     return RET_SEMANTICAL_ERROR;
                 }
@@ -1385,7 +1424,8 @@ int call_param_list_next()
     }
 }
 
-int call_elem()
+int
+call_elem()
 {
     // CALL_ELEM -> id
     // CALL_ELEM -> literal
@@ -1421,7 +1461,8 @@ int call_elem()
     }
 }
 
-int return_statement()
+int
+return_statement()
 {
     // RETURN -> return RETURN_EXPRESSION
 
@@ -1437,7 +1478,8 @@ int return_statement()
     return RET_OK;
 }
 
-int return_expression()
+int
+return_expression()
 {
     // RETURN_EXPRESSION -> eol
     // RETURN_EXPRESSION -> EXPRESSION eol
@@ -1459,7 +1501,7 @@ int return_expression()
         q_enqueue(data->token, data->token_queue);
         data->use_queue_for_read = true;
 
-        if ((res = (int)solve_exp(data)) != RET_OK)
+        if ((res = (int) solve_exp(data)) != RET_OK)
         {
             return res;
         }
@@ -1473,7 +1515,8 @@ int return_expression()
     }
 }
 
-int global_variables(char *str, int a)
+int
+global_variables(char *str, int a)
 {
     int i = data->function_ID->data->just_index - 1;
     ht_item_t *search_res;

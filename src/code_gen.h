@@ -90,7 +90,7 @@ int
 generate_if_end(char *label);
 
 int
-generate_while_label(char *label);
+generate_while_label(char *label, bool first);
 
 int
 generate_while_begin(char *label);
@@ -102,7 +102,7 @@ int
 generate_var_declare_while(char *var_id, char *label, int counter, bool is_scope_local);
 
 int
-generate_print_space_or_newline (char str);
+generate_print_space_or_newline(char str);
 
 int
 defvar_param(data_t *data);

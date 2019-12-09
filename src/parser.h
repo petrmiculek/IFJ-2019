@@ -13,7 +13,6 @@
 #include "token_queue.h"
 #include "symtable.h"
 
-
 #define RETURN_IF_ERR(res)   \
     do                       \
     {                        \
