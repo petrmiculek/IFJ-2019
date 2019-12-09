@@ -281,6 +281,8 @@ int init_data()
     data->token->string.length = 0;
     data->token->string.size = 0;
     data->token->string.str = NULL;
+    data->is_in_while = 0;
+    data->while_counter = 0;
 
     // queue
     if (NULL == (data->token_queue = q_init_queue()))
@@ -560,7 +562,16 @@ int statement()
                         res = add_to_symtable(&lhs_identifier.string, local);
                         RETURN_IF_ERR((res))
 
-                        generate_var_declare(data->ID->identifier.str, data->parser_in_local_scope);
+                        if(data->is_in_while)
+                        {
+                            generate_var_declare_while(data->ID->identifier.str,data->uniq_identifier_while->str,data->while_counter,data->parser_in_local_scope);
+                            data->while_counter++;
+                        }
+                        else
+                        {
+                            generate_var_declare(data->ID->identifier.str, data->parser_in_local_scope);
+                        }
+
                         RETURN_IF_ERR((res))
                     }
                 }
@@ -576,7 +587,16 @@ int statement()
                         res = add_to_symtable(&lhs_identifier.string, global);
                         RETURN_IF_ERR((res))
 
-                        generate_var_declare(data->ID->identifier.str, data->parser_in_local_scope);
+                        if(data->is_in_while)
+                        {
+                            generate_var_declare_while(data->ID->identifier.str,data->uniq_identifier_while->str,data->while_counter,data->parser_in_local_scope);
+                            data->while_counter++;
+                        }
+                        else
+                        {
+                            generate_var_declare(data->ID->identifier.str, data->parser_in_local_scope);
+                        }
+
                         RETURN_IF_ERR((res))
                     }
                     else
@@ -1023,10 +1043,14 @@ int while_clause()
     // WHILE_CLAUSE -> while EXPRESSION : eol indent STATEMENT_LIST_NONEMPTY
 
     int res;
+    data->is_in_while++;
+    if(data->is_in_while == 1)
+    {
+        data->uniq_identifier_while = generate_unique_identifier("global","while");
+        data->while_counter = 0;
+    }
 
-    string_t *uniq_identifier_while = generate_unique_identifier("local%label", "while");
-    generate_while_label(uniq_identifier_while->str);
-    int counter = 0;
+    generate_while_label(data->uniq_identifier_while->str);
 
     // 'while' token checked already
 
@@ -1045,7 +1069,8 @@ int while_clause()
     if ((res = read_eol(true)) != RET_OK)
         return res;
 
-    generate_while_begin(uniq_identifier_while->str);
+    generate_while_begin(data->uniq_identifier_while->str);
+
 
     GET_TOKEN()
 
@@ -1059,7 +1084,8 @@ int while_clause()
         return res;
     }
 
-    generate_while_end(uniq_identifier_while->str);
+    generate_while_end(data->uniq_identifier_while->str);
+    data->is_in_while--;
 
     return RET_OK;
 }

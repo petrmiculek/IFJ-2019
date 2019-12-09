@@ -39,6 +39,9 @@ struct _struct_data_t
     ht_item_t *function_ID; // in local scope we will need it
     bool parser_in_local_scope;
     int function_call_param_count;
+    int is_in_while;
+    int while_counter;
+    string_t *uniq_identifier_while;
 
     token_queue_t *call_params;
 

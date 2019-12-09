@@ -1329,7 +1329,7 @@ generate_while_end(char *label)
 }
 
 int
-generate_var_declare_while(char *var_id, char *label, int counter)
+generate_var_declare_while(char *var_id, char *label, int counter, bool is_scope_local)
 {
 
     CODE_APPEND("JUMPIFNEQ declaration%while%")
@@ -1341,7 +1341,7 @@ generate_var_declare_while(char *var_id, char *label, int counter)
     CODE_APPEND_VALUE_INT(counter)
     CODE_APPEND("\n")
 
-    generate_var_declare(var_id, true);
+    generate_var_declare(var_id, is_scope_local);
 
     CODE_APPEND("ADD ")
     CODE_APPEND("LF@counter%")
