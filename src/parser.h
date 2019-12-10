@@ -41,7 +41,7 @@ struct _struct_data_t
     int is_in_while;
     int while_counter;
     string_t *uniq_identifier_while;
-
+    int inside_if;
     token_queue_t *call_params;
 
     int get_token_res; // result of most-recent get_next_token

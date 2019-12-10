@@ -296,6 +296,7 @@ init_data()
     data->token->string.str = NULL;
     data->is_in_while = 0;
     data->while_counter = 0;
+    data->inside_if=0;
 
     // queue
     if (NULL == (data->token_queue = q_init_queue()))
@@ -585,7 +586,15 @@ statement()
 
                         data->ID->is_function = false;
                         data->ID->is_defined = true;
-
+                        if (data->inside_if)
+                        {
+                            data->ID->defined_inside_if=true;
+                        }
+                        else
+                        {
+                            data->ID->defined_inside_if=false;
+                        }
+                        
                         res = add_to_symtable(&lhs_identifier.string, local);
                         RETURN_IF_ERR((res))
 
@@ -604,6 +613,10 @@ statement()
 
                         RETURN_IF_ERR((res))
                     }
+                    else if(local_search_res->data->defined_inside_if)
+                    {
+                        generate_var_declare(local_search_res->data->identifier.str, data->parser_in_local_scope);
+                    }
                 }
                 else
                 {
@@ -613,7 +626,14 @@ statement()
 
                         data->ID->is_function = false;
                         data->ID->is_defined = true;
-
+                        if (data->inside_if)
+                        {
+                            data->ID->defined_inside_if=true;
+                        }
+                        else
+                        {
+                            data->ID->defined_inside_if=false;
+                        }
                         res = add_to_symtable(&lhs_identifier.string, global);
                         RETURN_IF_ERR((res))
 
@@ -636,6 +656,10 @@ statement()
                     {
                         // identifier exists (in global scope)
                         global_search_res->data->is_defined = true; // before used as not defined in function
+                        if (global_search_res->data->defined_inside_if)
+                        {
+                            generate_var_declare(global_search_res->data->identifier.str, data->parser_in_local_scope);
+                        }
                     }
                 }
 
@@ -1054,11 +1078,15 @@ if_clause()
         return RET_SYNTAX_ERROR;
     }
 
+    data->inside_if=1;
+
     if ((res = statement_list_nonempty()) != RET_OK)
     {
         return res;
     }
 
+    data->inside_if=0;
+    
     GET_TOKEN()
 
     if (data->token->type != TOKEN_ELSE)
@@ -1082,7 +1110,7 @@ if_clause()
     {
         return RET_SYNTAX_ERROR;
     }
-
+    
     if ((res = statement_list_nonempty()) != RET_OK)
     {
         return res;

@@ -18,6 +18,7 @@ typedef struct _sym_table_item_t
     string_t identifier;
     bool is_function;
     bool is_defined;
+    bool defined_inside_if;
     int function_params_count;
     char *global_variables[500]; // every function id has its global variables, for later check of definiton
     int just_index; //later it can be struct

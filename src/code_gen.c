@@ -1253,6 +1253,7 @@ generate_move_exp_result_to_variable(token_t *token, data_t *data)
 int
 generate_if_begin(char *label)
 {
+    CODE_APPEND_AND_EOL("CREATEFRAME")
     CODE_APPEND("CALL convert%to%bool\n")
     CODE_APPEND("JUMPIFEQ ")
     CODE_APPEND(label)

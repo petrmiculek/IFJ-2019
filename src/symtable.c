@@ -115,6 +115,7 @@ int ht_insert(table_t *ptrht, char *key, sym_table_item *data)
         tmp->data->is_defined = data->is_defined;
         tmp->data->is_function = data->is_function;
         tmp->data->just_index = data->just_index;
+        tmp->data->defined_inside_if=data->defined_inside_if;
         (*ptrht)[keyHash] = tmp;
     }
 
