@@ -66,12 +66,12 @@ do {                                                     \
 "\n LABEL convert%to%bool"\
 "\n PUSHFRAME"\
 "\n CREATEFRAME"\
-"\n DEFVAR TF@compare"\
-"\n TYPE TF@compare GF@%exp_result"\
-"\n JUMPIFEQ exp_result%is%string TF@compare string@string"\
-"\n JUMPIFEQ exp_result%is%int TF@compare string@int"\
-"\n JUMPIFEQ exp_result%is%float TF@compare string@float"\
-"\n JUMPIFEQ convert%to%bool%end TF@compare string@bool"\
+"\n DEFVAR LF@compare"\
+"\n TYPE LF@compare GF@%exp_result"\
+"\n JUMPIFEQ exp_result%is%string LF@compare string@string"\
+"\n JUMPIFEQ exp_result%is%int LF@compare string@int"\
+"\n JUMPIFEQ exp_result%is%float LF@compare string@float"\
+"\n JUMPIFEQ convert%to%bool%end LF@compare string@bool"\
 "\n #exp_result is nil"\
 "\n MOVE GF@%exp_result bool@false"\
 "\n JUMP convert%to%bool%end"\
@@ -1311,6 +1311,7 @@ generate_while_label(char *label, bool first)
 int
 generate_while_begin(char *label)
 {
+    CODE_APPEND_AND_EOL("CREATEFRAME")
     CODE_APPEND("CALL convert%to%bool\n")
     CODE_APPEND("JUMPIFEQ ")
     CODE_APPEND(label)
