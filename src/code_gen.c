@@ -916,7 +916,7 @@ generate_write(token_t *token, data_t *data)
     }
     else if (token->type == TOKEN_NONE)
     {
-        CODE_APPEND("nil@nil")
+        CODE_APPEND("string@None")
     }
     else
     {

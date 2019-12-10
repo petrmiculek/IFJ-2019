@@ -493,7 +493,7 @@ statement()
     // STATEMENT -> WHILE_CLAUSE
     // STATEMENT -> RETURN_STATEMENT
 
-    int res;
+    int res = RET_OK;
 
     GET_TOKEN()
 
