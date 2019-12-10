@@ -820,16 +820,6 @@ append_identifier(const token_t *token, const data_t *data)
         return RET_SEMANTICAL_ERROR;
     }
 
-    if (identifier->data->is_defined == false)
-    {
-        fprintf(stderr, "# %s, %s, %d: using undefined identifier(%d, %s)\n",
-                __FILE__, __func__, __LINE__,
-                token->type, token->string.str);
-
-        // don't throw error, I just wanted to know about when this happens
-        // TODO remove this if-block in final submission
-    }
-
     char *token_uniq_identifier = identifier->data->identifier.str;
 
     CODE_APPEND(token_uniq_identifier)
@@ -865,16 +855,6 @@ append_identifier_string(string_t string, const data_t *data)
                 (data->parser_in_local_scope == local ? "local" : "global"));
 
         return RET_SEMANTICAL_ERROR;
-    }
-
-    if (identifier->data->is_defined == false)
-    {
-        fprintf(stderr, "# %s, %s, %d: using undefined identifier(%s)\n",
-                __FILE__, __func__, __LINE__,
-                string.str);
-
-        // don't throw error, I just wanted to know about when this happens
-        // TODO remove this if-block in final submission
     }
 
     char *token_uniq_identifier = identifier->data->identifier.str;

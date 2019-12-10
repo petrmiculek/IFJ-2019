@@ -4,12 +4,10 @@
  * @name IFJ19Compiler
  * @authors xmicul08 (Mičulek Petr)
             xjacko04 (Jacko Daniel)
-            xsetin00 (Setinský Jiří)
-            xsisma01 (Šišma Vojtěch)
  */
 
-#define INITIAL_SIZE 20
-#define REALLOC_SIZE 5
+#define INITIAL_SIZE 32
+#define REALLOC_SIZE 8
 
 typedef struct
 {
@@ -41,16 +39,6 @@ append_char_to_string(string_t *dest, char src);
  * @brief concatenate strings
  *
  * @param dest string to which will be appended
- * @param src string which is to be appended
- * @return unsigned int INTERNAL_ERROR if realloc fails, otherwise OK
- */
-unsigned int
-append_string_to_string(string_t *dest, string_t *src);
-
-/**
- * @brief concatenate strings
- *
- * @param dest string to which will be appended
  * @param src c_string (char*) which is to be appended
  * @return unsigned int INTERNAL_ERROR if realloc fails, otherwise OK
  */
@@ -59,7 +47,7 @@ append_c_string_to_string(string_t *dest, const char *src);
 
 /**
  * TODO missing doc comment
- * Kod pouzit z jednoduchy_interpret
+ * Code reused from: jednoduchy_interpret
  * @param dest
  * @param src
  * @return

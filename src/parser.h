@@ -22,35 +22,41 @@
         }                    \
     } while (0);
 
+
+// Used for current scope of parser
 #define local true
 #define global false
 
 struct _struct_data_t
 {
     FILE *file;
+
     token_queue_t *token_queue;
     token_t *token;
     int use_queue_for_read;
 
     table_t *global_sym_table;
     table_t *local_sym_table;
+
     sym_table_item *ID;
-    ht_item_t *function_ID; // in local scope we will need it
+
+    ht_item_t *function_ID;
+
     bool parser_in_local_scope;
+
     int function_call_param_count;
+
     int is_in_while;
+
     int while_counter;
+
     string_t *uniq_identifier_while;
+
     int inside_if;
+
     token_queue_t *call_params;
 
-    int get_token_res; // result of most-recent get_next_token
-
-    // Feature ideas:
-    //
-    //      inside while -> context aware code generation for defvar ?
-
-
+    int get_token_res; // result of most-recent call to get_next_token
 };
 typedef struct _struct_data_t data_t;
 
@@ -114,17 +120,7 @@ symtable_insert_predefined();
 int
 add_to_symtable(string_t *identifier, bool use_local_symtable);
 
-/**
- * @brief cleanup values used by data_t
- */
-/*
-void
-clear_data();
-*/
 
-// TODO missing javadoc
-int
-symtable_insert(token_t *token, bool is_function);
 
 // ---------vvv--------- GRAMMAR RULES FUNCTIONS ---------vvv---------
 
@@ -253,11 +249,5 @@ global_variables(char *str, int a);
 
 int
 symtable_insert_function(const char *identifier_arr, int param_count);
-
-bool
-is_predefined_function(token_t *identifier);
-
-int
-call_predefined_function(token_t *identifier);
 
 #endif //IFJ_2019__PARSER_H

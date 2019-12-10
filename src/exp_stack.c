@@ -1,12 +1,8 @@
 /**
  * @name IFJ19Compiler
- * @authors xmicul08 (Mičulek Petr)
-            xjacko04 (Jacko Daniel)
-            xsetin00 (Setinský Jiří)
-            xsisma01 (Šišma Vojtěch)
+ * @authors xsisma01 (Šišma Vojtěch)
  */
 #include <stdio.h>
-#include <stdlib.h>
 #include "err.h"
 #include "psa.h"
 #include "exp_stack.h"

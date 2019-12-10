@@ -4,8 +4,6 @@
  * @name IFJ19Compiler
  * @authors xmicul08 (Mičulek Petr)
             xjacko04 (Jacko Daniel)
-            xsetin00 (Setinský Jiří)
-            xsisma01 (Šišma Vojtěch)
  */
 
 #include <stdio.h>
@@ -24,13 +22,6 @@ initStack(stack_t *stack);
 
 stack_t *
 init_stack();
-
-/*
-void
-free_stack(stack_t *stack);
-
-// replaced by free_static_stack
-*/
 
 unsigned int
 stack_push(stack_t *stack, unsigned int item);

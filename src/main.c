@@ -10,6 +10,7 @@
 #include "err.h"
 #include <stdio.h>
 
+// for debugging purposes
 //#define file_input 1234098
 
 int

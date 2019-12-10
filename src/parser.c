@@ -169,7 +169,6 @@ add_to_symtable(string_t *identifier, bool use_local_symtable)
     {
         table = data->local_sym_table;
         prefix = data->function_ID->key;
-        // TODO        ^^^ ->key or ->data->identifier? (unique name)
     }
     else
     {
@@ -574,7 +573,6 @@ statement()
                 if (data->parser_in_local_scope == local)
                 {
 
-                    // TODO we have to check if in function was early same variable as global
                     // find all variables in some structure in function_id if in global table are defined
                     // if variable is found RET SEM ERROR
                     if ((res = global_variables(lhs_identifier.string.str, 0)) != RET_OK)
@@ -594,7 +592,7 @@ statement()
                         {
                             data->ID->defined_inside_if=false;
                         }
-                        
+
                         res = add_to_symtable(&lhs_identifier.string, local);
                         RETURN_IF_ERR((res))
 
@@ -717,7 +715,7 @@ statement()
                     // check if all variables in function are defined
                     if ((res = global_variables(lhs_identifier.string.str, 1)) != RET_OK)
                     {
-                        return RET_SEMANTICAL_ERROR;
+                        return res;
                     }
                     // for later check of params variable
 
@@ -816,25 +814,6 @@ statement()
         return RET_SYNTAX_ERROR;
     }
 }
-int
-call_predefined_function(token_t *identifier)
-{
-    // TODO don't forget about this
-    return RET_SEMANTICAL_ERROR;
-}
-
-bool
-is_predefined_function(token_t *identifier)
-{
-    if (strcmp(identifier->string.str, "print") == 0)
-    {
-        return true;
-    }
-
-    // TODO add other functions (see symtable_insert_predefined)
-
-    return false;
-}
 
 int
 assign_rhs()
@@ -895,7 +874,7 @@ assign_rhs()
                 // check if all variables in function are defined
                 if ((res = global_variables(token_tmp.string.str, 1)) != RET_OK)
                 {
-                    return RET_SEMANTICAL_ERROR;
+                    return res;
                 }
                 // for later check of params variable
 
@@ -1086,7 +1065,7 @@ if_clause()
     }
 
     data->inside_if=0;
-    
+
     GET_TOKEN()
 
     if (data->token->type != TOKEN_ELSE)
@@ -1110,7 +1089,7 @@ if_clause()
     {
         return RET_SYNTAX_ERROR;
     }
-    
+
     if ((res = statement_list_nonempty()) != RET_OK)
     {
         return res;

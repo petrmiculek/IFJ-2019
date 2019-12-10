@@ -1,9 +1,6 @@
-
 /**
  * @name IFJ19Compiler
- * @authors xmicul08 (Mičulek Petr)
-            xjacko04 (Jacko Daniel)
-            xsetin00 (Setinský Jiří)
+ * @authors xsetin00 (Setinský Jiří)
             xsisma01 (Šišma Vojtěch)
  */
 #include "token_queue.h"
@@ -12,9 +9,7 @@
 #include "psa.h"
 #include "parser.h"
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
-#include "parser.h"
 #include "scanner.h"
 #include "err.h"
 #include "code_gen.h"
@@ -669,7 +664,7 @@ solve_exp(data_t *data)
     int res;
     int result = 0;
 
-    res = 0;
+    res = RET_OK;
 
     sem_t new;
 

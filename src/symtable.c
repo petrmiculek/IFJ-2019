@@ -12,12 +12,6 @@
 #include <stdio.h>
 #include <string.h>
 
-/*
-  // How to initialize
- 	ptrht = (tHTable *) malloc(sizeof(tHTable));
-	ht_init(ptrht);
-
- */
 static int hash_table_size = MAX_HTSIZE;
 
 unsigned int
@@ -108,7 +102,6 @@ int ht_insert(table_t *ptrht, char *key, sym_table_item *data)
 
         strcpy(tmp->key, key);
 
-        // *tmp->data = *data;
         copy_string(&(tmp->data->identifier), &(data->identifier));
         tmp->data->function_params_count = data->function_params_count;
         *(tmp->data->global_variables) = *(data->global_variables);
@@ -120,59 +113,6 @@ int ht_insert(table_t *ptrht, char *key, sym_table_item *data)
     }
 
     return RET_OK;
-}
-
-sym_table_item *
-ht_get_data(table_t *ptrht, char *key)
-{
-    ht_item_t *item = ht_search(ptrht, key);
-
-    if (item)
-    {
-        return item->data;
-    }
-    else
-    {
-        return NULL;
-    }
-}
-
-void ht_delete(table_t *ptrht, char *key)
-{
-    unsigned int keyHash = hash(key) % hash_table_size;
-
-    ht_item_t *tmp = (ht_item_t *)(*ptrht)[keyHash];
-    ht_item_t *prev_item = NULL;
-
-    while (tmp != NULL)
-    {
-        if (strcmp(tmp->key, key) == 0)
-        {
-            // delete item
-
-            if (prev_item)
-            {
-                // item being deleted has a predecessor
-                prev_item->next = tmp->next;
-                free(tmp);
-                tmp = NULL;
-            }
-            else
-            {
-                // item being deleted is first item
-                ht_item_t *to_be_freed = tmp;
-                (*ptrht)[keyHash] = tmp->next;
-                free(to_be_freed);
-
-                break;
-            }
-        }
-        else
-        {
-            prev_item = tmp;
-            tmp = tmp->next;
-        }
-    }
 }
 
 void ht_clear_all(table_t *ptrht)
@@ -196,7 +136,7 @@ void ht_clear_all(table_t *ptrht)
 int check_all_functions_defined(void *data_void)
 {
     data_t *data_typed = (data_t *)data_void;
-    table_t *table = data_typed->global_sym_table; // TODO cast? (ht_item_t**)
+    table_t *table = data_typed->global_sym_table;
 
     if (table == NULL)
         return RET_INTERNAL_ERROR;
@@ -208,7 +148,6 @@ int check_all_functions_defined(void *data_void)
         tmp = (*table)[i];
         while (tmp != NULL)
         {
-            // TODO recent change
             if (tmp->data && tmp->data->is_defined == false)
             {
                 fprintf(stderr, "# %s, %u: undefined identifier (%s)\n", __func__, __LINE__, tmp->key);

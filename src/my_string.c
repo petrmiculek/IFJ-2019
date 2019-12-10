@@ -2,15 +2,11 @@
  * @name IFJ19Compiler
  * @authors xmicul08 (Mičulek Petr)
             xjacko04 (Jacko Daniel)
-            xsetin00 (Setinský Jiří)
-            xsisma01 (Šišma Vojtěch)
  */
 #include "my_string.h"
 #include "err.h"
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 unsigned int
 init_string(string_t *string)
@@ -77,12 +73,6 @@ append_c_string_to_string(string_t *dest, const char *src)
     dest->str[dest->length] = '\0';
 
     return RET_OK;
-}
-
-unsigned int
-append_string_to_string(string_t *dest, string_t *src)
-{
-    return append_c_string_to_string(dest, src->str);
 }
 
 int

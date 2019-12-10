@@ -2,9 +2,7 @@
 #define HEADER_PSA
 /**
  * @name IFJ19Compiler
- * @authors xmicul08 (Mičulek Petr)
-            xjacko04 (Jacko Daniel)
-            xsetin00 (Setinský Jiří)
+ * @authors xsetin00 (Setinský Jiří)
             xsisma01 (Šišma Vojtěch)
  */
 #include "parser.h"
@@ -64,7 +62,7 @@ unsigned int
 check_semantics(rules rule, sem_t *sym1, int result, sem_t *sym3, d_type *final_type, data_t *data, int *frame);
 
 unsigned int
-tmp_var();
+tmp_var(string_t *string, int *tmp1, int *tmp2, int *tmp3, int *result);
 
 unsigned int
 solve_exp(data_t *data);

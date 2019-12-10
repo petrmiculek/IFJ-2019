@@ -1,9 +1,6 @@
 /**
  * @name IFJ19Compiler
- * @authors xmicul08 (Mičulek Petr)
-            xjacko04 (Jacko Daniel)
-            xsetin00 (Setinský Jiří)
-            xsisma01 (Šišma Vojtěch)
+ * @authors xjacko04 (Jacko Daniel)
  */
 #include "scanner.h"
 #include "err.h"
@@ -14,12 +11,6 @@
 #include <string.h>
 #include <regex.h>
 
-/*######################TODO LIST######################
- * Otazky:
- * Co ak pride v literaly '\' a za nim bude nasledovat space
- *
-#######################################################
-*/
 char *keywords[] = {"def", "else", "if", "None", "pass", "return", "while"};
 
 static stack_t *space_stack = NULL;

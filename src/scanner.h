@@ -3,18 +3,15 @@
 #define HEADER_SCANNER
 /**
  * @name IFJ19Compiler
- * @authors xmicul08 (Mičulek Petr)
-            xjacko04 (Jacko Daniel)
-            xsetin00 (Setinský Jiří)
-            xsisma01 (Šišma Vojtěch)
+ * @authors xjacko04 (Jacko Daniel)
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "my_string.h"
 
-#define STACK_CAPACITY 100
-#define STACK_REALLOC 20
+#define STACK_CAPACITY 128
+#define STACK_REALLOC 32
 
 #define RETURN_ERR do { state = STATE_ERROR; return RET_LEXICAL_ERROR; } while(0);
 #define APPEND(read) if(append_char_to_string(&(token->string), read)) { return RET_INTERNAL_ERROR; }

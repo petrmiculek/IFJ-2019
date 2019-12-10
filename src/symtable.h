@@ -3,7 +3,6 @@
 /**
  * @name IFJ19Compiler
  * @authors xmicul08 (Mičulek Petr)
-            xjacko04 (Jacko Daniel)
             xsetin00 (Setinský Jiří)
             xsisma01 (Šišma Vojtěch)
  */
@@ -11,7 +10,7 @@
 #include <stdbool.h>
 #include "my_string.h"
 
-#define MAX_HTSIZE 101 // FIXME find suitable prime number
+#define MAX_HTSIZE 12289
 
 typedef struct _sym_table_item_t
 {
@@ -22,12 +21,6 @@ typedef struct _sym_table_item_t
     int function_params_count;
     char *global_variables[500]; // every function id has its global variables, for later check of definiton
     int just_index; //later it can be struct
-
-    /**
-        idea - function added to symtable upon call,
-        its ifjCode label is generated, so that we can generate CALL $label_of_this_function,
-        sometime later a definition is supplied
-     */
 
 } sym_table_item;
 
@@ -51,12 +44,6 @@ ht_search(table_t *ptrht, char *key);
 
 int
 ht_insert(table_t *ptrht, char *key, sym_table_item *data);
-
-sym_table_item *
-ht_get_data(table_t *ptrht, char *key);
-
-void
-ht_delete(table_t *ptrht, char *key);
 
 void
 ht_clear_all(table_t *ptrht);
