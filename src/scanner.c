@@ -48,7 +48,7 @@ int
 convert_char_to_hexcode(int read, token_t *token)
 {
     char c[5];
-    sprintf(c, "\\0%.2d", read);
+    sprintf(c, "\\0%.2d", read); //output is in form '\xyz' where x is always 0
 
     for (int i = 0; i < 4; ++i)
     {
@@ -61,9 +61,9 @@ convert_char_to_hexcode(int read, token_t *token)
 int
 generate_dedent(long long *spaces_num, token_t *token, int *previous_was_eol)
 {
-    if (*spaces_num >= 0)
+    if (*spaces_num >= 0) //check indent
     {
-        if (space_stack->array[space_stack->top] < *spaces_num)
+        if (space_stack->array[space_stack->top] < *spaces_num) // generate indent
         {
             stack_push(space_stack, (unsigned) *spaces_num);
             *spaces_num = -1;
@@ -87,7 +87,7 @@ generate_dedent(long long *spaces_num, token_t *token, int *previous_was_eol)
             return RET_OK;
         }
     }
-    else if (*spaces_num == -2)
+    else if (*spaces_num == -2) // check dedent
     {
         if (!*previous_was_eol)
         {
@@ -95,7 +95,7 @@ generate_dedent(long long *spaces_num, token_t *token, int *previous_was_eol)
             token->type = TOKEN_EOL;
             return RET_OK;
         }
-        if (space_stack->array[space_stack->top] != 0)
+        if (space_stack->array[space_stack->top] != 0) // generate dedent
         {
             stack_pop(space_stack);
             token->type = TOKEN_DEDENT;
@@ -338,7 +338,7 @@ get_token(token_t *token, FILE *file)
                 }
                 else if (read == '.')
                 {
-                    APPEND('0')
+                    APPEND('0') //0 was not aapended after readind 0 before
                     APPEND(read)
                     state = STATE_FLOAT;
                 }
@@ -368,14 +368,14 @@ get_token(token_t *token, FILE *file)
                 }
                 else if (read == '_')
                 {
-                    if (!token->string.length)
+                    if (!token->string.length) // _ can't be before first digit
                         RETURN_ERR
                     state = STATE_BASE_B_U;
                     break;
                 }
                 else
                 {
-                    if (token->string.length == 0)
+                    if (token->string.length == 0) // _ can't stand alone
                         RETURN_ERR
                     sprintf(token->string.str, "%ld", strtol(token->string.str, NULL, 2));
                     append_c_string_to_string(&token->string, token->string.str);
@@ -392,14 +392,14 @@ get_token(token_t *token, FILE *file)
                 }
                 else if (read == '_')
                 {
-                    if (!token->string.length)
+                    if (!token->string.length) // _ can't be before first digit
                         RETURN_ERR
                     state = STATE_BASE_O_U;
                     break;
                 }
                 else
                 {
-                    if (!token->string.length)
+                    if (!token->string.length) // _ can't stand alone
                         RETURN_ERR
                     sprintf(token->string.str, "%ld", strtol(token->string.str, NULL, 8));
                     append_c_string_to_string(&token->string, token->string.str);
@@ -418,14 +418,14 @@ get_token(token_t *token, FILE *file)
                 }
                 else if (read == '_')
                 {
-                    if (!token->string.length)
+                    if (!token->string.length) // _ can't be before first digit
                         RETURN_ERR
                     state = STATE_BASE_X_U;
                     break;
                 }
                 else
                 {
-                    if (token->string.length == 0)
+                    if (token->string.length == 0) // _ can't stand alone
                         RETURN_ERR
                     sprintf(token->string.str, "%ld", strtol(token->string.str, NULL, 16));
                     append_c_string_to_string(&token->string, token->string.str);

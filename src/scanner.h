@@ -27,17 +27,6 @@ typedef struct
     unsigned int type;
 } token_t;
 
-/**
- * @brief Get the token object
- *
- * @param token token struct to be filled
- * @param file file to read from
- * @return unsigned int INTERNAL_ERROR if one of used functions fails, LEXICAL_ERROR if lexical sructure of
- * text is wrong, otherwise OK
- */
-unsigned int
-get_token(token_t *token, FILE *file);
-
 enum state
 {
     STATE_LIT, // 0
@@ -116,6 +105,45 @@ typedef enum token_type
     TOKEN_IDENTIFIER, // 31
     TOKEN_DOC, // 32
 } token_type;
+
+/**
+ * @brief Get the token object
+ *
+ * @param token token struct to be filled
+ * @param file file to read from
+ * @return unsigned int INTERNAL_ERROR if one of used functions fails, LEXICAL_ERROR if lexical sructure of
+ * text is wrong, otherwise OK
+ */
+unsigned int
+get_token(token_t *token, FILE *file);
+
+/**
+ *
+ * @param str string to be checked for keyword
+ * @return token_type that belongs to given string
+ */
+token_type
+check_keyword(char *str);
+
+/**
+ * Convert chart to desired form for interpret
+ *
+ * @param read character to be converted
+ * @param token to be appended
+ * @return RET_OK
+ */
+int
+convert_char_to_hexcode(int read, token_t *token);
+
+/**
+ *
+ * @param spaces_num number of spcaces from EOL to first non white space character
+ * @param token
+ * @param previous_was_eol has value 1 or 2 if character before actual was eol
+ * @return RET_OK
+ */
+int
+generate_dedent(long long *spaces_num, token_t *token, int *previous_was_eol);
 
 #define TOKEN_INVALID 404
 
