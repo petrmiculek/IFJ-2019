@@ -48,6 +48,7 @@ do {                                                     \
 "\n DEFVAR GF@%tmp_op3"\
 "\n DEFVAR GF@%tmp_op1$type"\
 "\n DEFVAR GF@%tmp_op2$type"\
+"\n DEFVAR GF@%tmp_op3$type"\
 "\n DEFVAR GF@%exp_result"\
 "\n JUMP $$main"\
 
